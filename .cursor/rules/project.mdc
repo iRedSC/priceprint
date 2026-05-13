@@ -1,0 +1,14 @@
+---
+alwaysApply: true
+---
+
+These are very important ways to work with the project:
+
+ - Only use existing shadcn components, do not create your own or modify them unless explicity asked to.
+ - Create reusable components each in their own files. Roughly speaking, no one file should be more than 50 LOC (except if for a reason)
+ - Look for and use existing components before pulling in anything new. The goal is simple reusablility.
+ - Prefer dead simple code of elegant code. Complexity is the enemy.
+
+These are very important ways to structure the project:
+
+ - The mobile experience is very important, pay special attention to it. UI principles for mobile design should apply here (appropiately spaced and sized elements, using `touch-action: manipulation;` to remove touch delay, etc).
