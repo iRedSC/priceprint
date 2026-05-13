@@ -1,5 +1,3 @@
-import { variablesToRjson } from "@/lib/labelLiveRjson";
-
 /** Same shape as jobs passed to `sendLabelLiveJobs` (standalone type avoids circular imports). */
 export type LabelLiveDebugJob = {
   design: string;
@@ -35,10 +33,7 @@ function preview(text: string, max: number) {
 
 function batchPayloadJson(jobs: LabelLiveDebugJob[]) {
   return JSON.stringify(
-    jobs.map((job) => ({
-      design: job.design,
-      variables: variablesToRjson(job.variables),
-    })),
+    jobs.map((job) => ({ design: job.design, variables: job.variables })),
   );
 }
 

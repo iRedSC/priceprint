@@ -1,5 +1,3 @@
-import { variablesToRjson } from "@/lib/labelLiveRjson";
-
 const BATCH_URL = "http://127.0.0.1:11180/api/v1/batch";
 
 /** Prefer v4.5+ multi-job HTTP print (one design); paths are tried in order. */
@@ -39,12 +37,15 @@ function openFallbackUri(payload: string) {
   a.remove();
 }
 
-/** Batch jobs use the same keys as Integrate query params (`design` + RJSON `variables`). */
-function jobToLabelLiveParams(job: LabelLiveBatchJob): Record<string, string> {
-  return {
-    design: job.design,
-    variables: variablesToRjson(job.variables),
-  };
+/**
+ * Batch items mirror HTTP print (`design` + `variables` JSON object).
+ * URLs use RJSON (`NAME:'…'`), but POST and batch payloads use JSON objects; META etc. stays one string — avoids RJSON choking on commas/colons inside JSON text.
+ */
+function jobToLabelLiveParams(job: LabelLiveBatchJob): {
+  design: string;
+  variables: Record<string, string>;
+} {
+  return { design: job.design, variables: job.variables };
 }
 
 function buildBatchPayloadJson(jobs: LabelLiveBatchJob[]) {
