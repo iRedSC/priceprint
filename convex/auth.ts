@@ -12,6 +12,7 @@ import {
 import { isoBase64URL } from "@simplewebauthn/server/helpers";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
+import type { Doc } from "./_generated/dataModel";
 import { action } from "./_generated/server";
 
 const internalApi = internal as any;
@@ -19,6 +20,9 @@ const internalApi = internal as any;
 const OTP_MINUTES = 10;
 const CHALLENGE_MINUTES = 5;
 const SESSION_DAYS = 30;
+type ExcludeCredential = NonNullable<
+  Parameters<typeof generateRegistrationOptions>[0]["excludeCredentials"]
+>[number];
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
@@ -93,9 +97,9 @@ export const verifyOtpAndStartPasskeySetup = action({
       codeHash: hashValue(args.code.trim()),
       now,
     });
-    const passkeys = await ctx.runQuery(internalApi.authModel.getUserPasskeys, {
+    const passkeys = (await ctx.runQuery(internalApi.authModel.getUserPasskeys, {
       userId: user.userId,
-    });
+    })) as Doc<"passkeys">[];
     const { rpID } = getWebAuthnConfig(args.origin);
     const options = await generateRegistrationOptions({
       rpName: "PricePrint",
@@ -104,9 +108,9 @@ export const verifyOtpAndStartPasskeySetup = action({
       userDisplayName: email,
       userID: new TextEncoder().encode(user.userId),
       attestationType: "none",
-      excludeCredentials: passkeys.map((passkey) => ({
+      excludeCredentials: passkeys.map((passkey): ExcludeCredential => ({
         id: passkey.credentialId,
-        transports: passkey.transports,
+        transports: passkey.transports as ExcludeCredential["transports"],
       })),
       authenticatorSelection: {
         residentKey: "preferred",
