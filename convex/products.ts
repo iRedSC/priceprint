@@ -90,3 +90,58 @@ export const createMany = mutation({
     );
   },
 });
+
+export const update = mutation({
+  args: {
+    sessionToken: v.string(),
+    productId: v.id("products"),
+    product: v.object(productFields),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getSessionUserId(ctx, args.sessionToken);
+    const product = await ctx.db.get(args.productId);
+
+    if (!product || product.userId !== userId) {
+      throw new ConvexError("Product not found.");
+    }
+
+    await ctx.db.patch(args.productId, {
+      ...args.product,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+export const remove = mutation({
+  args: {
+    sessionToken: v.string(),
+    productId: v.id("products"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getSessionUserId(ctx, args.sessionToken);
+    const product = await ctx.db.get(args.productId);
+
+    if (!product || product.userId !== userId) {
+      throw new ConvexError("Product not found.");
+    }
+
+    const productGroups = await ctx.db
+      .query("productGroups")
+      .withIndex("by_product", (q) => q.eq("productId", args.productId))
+      .collect();
+    const printRows = await ctx.db
+      .query("printData")
+      .withIndex("by_product", (q) => q.eq("productId", args.productId))
+      .collect();
+
+    await Promise.all([
+      ...productGroups
+        .filter((productGroup) => productGroup.userId === userId)
+        .map((productGroup) => ctx.db.delete(productGroup._id)),
+      ...printRows
+        .filter((printRow) => printRow.userId === userId)
+        .map((printRow) => ctx.db.delete(printRow._id)),
+      ctx.db.delete(args.productId),
+    ]);
+  },
+});

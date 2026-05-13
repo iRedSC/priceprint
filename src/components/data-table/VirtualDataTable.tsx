@@ -13,6 +13,11 @@ import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu"
+import {
   Table,
   TableBody,
   TableCell,
@@ -29,6 +34,7 @@ type VirtualDataTableProps<TData, TValue> = {
   emptyMessage?: string
   height?: number
   rowHeight?: number
+  renderRowMenu?: (row: TData) => React.ReactNode
 }
 
 function VirtualDataTable<TData, TValue>({
@@ -38,6 +44,7 @@ function VirtualDataTable<TData, TValue>({
   emptyMessage = "No results.",
   height = 420,
   rowHeight = 48,
+  renderRowMenu,
 }: VirtualDataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const scrollRef = React.useRef<HTMLDivElement>(null)
@@ -93,8 +100,8 @@ function VirtualDataTable<TData, TValue>({
             {rows.length ? (
               virtualizer.getVirtualItems().map((virtualRow) => {
                 const row = rows[virtualRow.index]
-
-                return (
+                const rowMenu = renderRowMenu?.(row.original)
+                const tableRow = (
                   <TableRow
                     key={row.id}
                     className="absolute flex w-full"
@@ -110,6 +117,15 @@ function VirtualDataTable<TData, TValue>({
                       </TableCell>
                     ))}
                   </TableRow>
+                )
+
+                return rowMenu ? (
+                  <ContextMenu key={row.id}>
+                    <ContextMenuTrigger asChild>{tableRow}</ContextMenuTrigger>
+                    <ContextMenuContent>{rowMenu}</ContextMenuContent>
+                  </ContextMenu>
+                ) : (
+                  tableRow
                 )
               })
             ) : (
