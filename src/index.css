@@ -194,28 +194,34 @@
   .safe-area-bottom-nav {
     right: calc(1rem + env(safe-area-inset-right, 0px));
     bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
-    bottom: calc(
-      1rem + env(safe-area-inset-bottom, 0px) + 100dvh - 100svh
-    );
     left: calc(1rem + env(safe-area-inset-left, 0px));
   }
 
   .safe-area-product-actions {
     bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
-    bottom: calc(
-      5.75rem + env(safe-area-inset-bottom, 0px) + 100dvh - 100svh
-    );
     left: 50%;
     transform: translateX(-50%);
   }
 
   .safe-area-group-actions {
     bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
-    bottom: calc(
-      5.75rem + env(safe-area-inset-bottom, 0px) + 100dvh - 100svh
-    );
     left: 50%;
     transform: translateX(-50%);
+  }
+
+  @media (max-width: 47.999rem) {
+    .safe-area-bottom-nav {
+      bottom: calc(
+        1rem + env(safe-area-inset-bottom, 0px) + 100svh - 100dvh
+      );
+    }
+
+    .safe-area-product-actions,
+    .safe-area-group-actions {
+      bottom: calc(
+        5.75rem + env(safe-area-inset-bottom, 0px) + 100svh - 100dvh
+      );
+    }
   }
 
   @media (min-width: 40rem) {
