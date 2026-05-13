@@ -26,15 +26,15 @@ function BarcodeScanOverlay({ active, success, successKey }: BarcodeScanOverlayP
         <defs>
           <mask id={maskId}>
             <rect width="100" height="100" fill="white" />
-            <rect x="10" y="41" width="80" height="18" rx="2.5" ry="2.5" fill="black" />
+            <rect x="10" y="38" width="80" height="24" rx="2.5" ry="2.5" fill="black" />
           </mask>
         </defs>
         <rect width="100" height="100" fill="rgba(0,0,0,0.52)" mask={`url(#${maskId})`} />
         <rect
           x="10"
-          y="41"
+          y="38"
           width="80"
-          height="18"
+          height="24"
           rx="2.5"
           ry="2.5"
           fill="none"
