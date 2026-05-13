@@ -165,8 +165,6 @@
   #root {
     min-height: 100%;
     min-height: -webkit-fill-available;
-    display: flex;
-    flex-direction: column;
   }
 
   html {
