@@ -29,6 +29,7 @@ function GroupScanDialog({ group, onOpenChange, onScanProduct }: GroupScanDialog
   const [feed, setFeed] = useState<ScanFeedItem[]>([])
   const [busy, setBusy] = useState(false)
   const [scanSucceeded, setScanSucceeded] = useState(false)
+  const [scanSuccessKey, setScanSuccessKey] = useState(0)
 
   const updateFeed = (item: ScanFeedItem) => {
     setFeed((items) => [item, ...items.filter((current) => current.code !== item.code)].slice(0, 4))
@@ -39,11 +40,12 @@ function GroupScanDialog({ group, onOpenChange, onScanProduct }: GroupScanDialog
       window.clearTimeout(scanSuccessTimeoutRef.current)
     }
 
+    setScanSuccessKey((key) => key + 1)
     setScanSucceeded(true)
     scanSuccessTimeoutRef.current = window.setTimeout(() => {
       setScanSucceeded(false)
       scanSuccessTimeoutRef.current = null
-    }, 700)
+    }, 900)
   }
 
   useEffect(() => {
@@ -55,6 +57,7 @@ function GroupScanDialog({ group, onOpenChange, onScanProduct }: GroupScanDialog
       setHolding(false)
       setFeed([])
       setScanSucceeded(false)
+      setScanSuccessKey(0)
     }
   }, [open])
 
@@ -107,18 +110,24 @@ function GroupScanDialog({ group, onOpenChange, onScanProduct }: GroupScanDialog
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="md:hidden">
-        {feed.length > 0 && (
-          <div className="pointer-events-none">
-            <LastScannedFeed items={feed} />
-          </div>
-        )}
         <DialogHeader>
           <DialogTitle>Scan into {group?.name}</DialogTitle>
           <DialogDescription>
             Hold the scan button while the barcode is visible in the camera.
           </DialogDescription>
         </DialogHeader>
-        <CameraPreview videoRef={videoRef} error={cameraError || scanError} success={scanSucceeded} />
+        <div className="relative isolate">
+          <div className="pointer-events-none absolute inset-x-0 bottom-full z-10 mb-2 max-h-[min(30vh,10rem)] overflow-hidden">
+            {feed.length > 0 ? <LastScannedFeed items={feed} /> : null}
+          </div>
+          <CameraPreview
+            videoRef={videoRef}
+            error={cameraError || scanError}
+            scanning={holding && !busy}
+            success={scanSucceeded}
+            successKey={scanSuccessKey}
+          />
+        </div>
         <Button
           className="h-14 touch-manipulation select-none text-base"
           disabled={busy || Boolean(cameraError)}

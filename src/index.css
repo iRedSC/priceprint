@@ -185,7 +185,25 @@
   }
 }
 
+@keyframes barcode-scan-flash {
+  0% {
+    opacity: 0;
+  }
+
+  35% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
 @layer utilities {
+  .animate-barcode-scan-flash {
+    animation: barcode-scan-flash 0.55s ease-out;
+  }
+
   .safe-area-auth-page {
     padding: calc(1.5rem + env(safe-area-inset-top, 0px))
       calc(1rem + env(safe-area-inset-right, 0px))
