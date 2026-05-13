@@ -1,5 +1,5 @@
 import { ConvexError, v } from "convex/values";
-import type { Doc, Id } from "./_generated/dataModel";
+import type { Id } from "./_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 
 const hashValue = async (value: string) => {
@@ -46,13 +46,27 @@ export const list = query({
         const products = await Promise.all(
           joins
             .filter((join) => join.userId === userId)
-            .map((join) => ctx.db.get(join.productId)),
+            .map(async (join) => {
+              const product = await ctx.db.get(join.productId);
+              if (!product || product.userId !== userId) {
+                return null;
+              }
+
+              const printData = await ctx.db
+                .query("printData")
+                .withIndex("by_user_product", (q) =>
+                  q.eq("userId", userId).eq("productId", product._id),
+                )
+                .unique();
+
+              return { ...product, printData };
+            }),
         );
 
         return {
           ...group,
-          products: products.filter(
-            (product): product is Doc<"products"> => product?.userId === userId,
+          products: products.filter((product): product is NonNullable<typeof product> =>
+            Boolean(product),
           ),
         };
       }),
@@ -74,7 +88,6 @@ export const create = mutation({
     return await ctx.db.insert("groups", {
       userId,
       name,
-      status: "active",
       createdAt: now,
       updatedAt: now,
     });

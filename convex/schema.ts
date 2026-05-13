@@ -19,16 +19,9 @@ export default defineSchema({
   groups: defineTable({
     userId: v.id("users"),
     name: v.string(),
-    status: v.union(
-      v.literal("active"),
-      v.literal("review"),
-      v.literal("ready_to_print"),
-      v.literal("printed"),
-    ),
     ...timestamps,
   })
-    .index("by_user", ["userId"])
-    .index("by_user_status", ["userId", "status"]),
+    .index("by_user", ["userId"]),
 
   products: defineTable({
     userId: v.id("users"),

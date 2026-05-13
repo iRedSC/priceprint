@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { formatGroupDate, formatGroupStatus } from "./groupFormat"
+import { formatGroupDate } from "./groupFormat"
 import type { GroupRow } from "./groupTableData"
 
 type GroupMobileListProps = {
@@ -27,7 +27,6 @@ function GroupMobileList({ groups, emptyMessage, onOpen }: GroupMobileListProps)
             <span className="truncate font-medium">{group.name}</span>
             <span className="flex gap-2 text-sm text-muted-foreground">
               <span>{group.products.length} products</span>
-              <span>{formatGroupStatus(group.status)}</span>
             </span>
             <span className="text-xs text-muted-foreground">
               Updated {formatGroupDate(group.updatedAt ?? group.createdAt)}

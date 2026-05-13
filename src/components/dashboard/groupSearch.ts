@@ -8,7 +8,7 @@ export function filterGroups(groups: GroupRow[], search: string) {
   }
 
   return groups.filter((group) =>
-    [group.name, group.status, ...group.products.map((product) => product.name)]
+    [group.name, ...group.products.map((product) => product.name)]
       .filter(Boolean)
       .some((value) => value.toLowerCase().includes(term))
   )
