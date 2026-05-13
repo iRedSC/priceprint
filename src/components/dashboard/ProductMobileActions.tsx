@@ -60,7 +60,7 @@ function ProductMobileActions({
   return (
     <div
       ref={actionsRef}
-      className={`fixed bottom-20 right-4 z-40 flex gap-2 rounded-2xl bg-background/95 p-2 shadow-lg ring-1 ring-foreground/10 backdrop-blur transition-opacity duration-150 md:hidden ${
+      className={`safe-area-product-actions fixed z-40 flex gap-2 rounded-2xl bg-background/95 p-2 shadow-lg ring-1 ring-foreground/10 backdrop-blur transition-opacity duration-150 md:hidden ${
         interacting ? "opacity-25" : "opacity-100"
       }`}
     >

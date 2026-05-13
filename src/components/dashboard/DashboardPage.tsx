@@ -35,7 +35,7 @@ function DashboardPage() {
   }
 
   return (
-    <main className="min-h-svh bg-muted/30 px-4 pb-24 pt-5 text-foreground sm:px-6 sm:py-5 lg:px-8">
+    <main className="safe-area-dashboard-page min-h-svh bg-muted/30 text-foreground">
       <div className="mx-auto grid w-full min-w-0 max-w-6xl gap-5">
         <header>
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -46,7 +46,7 @@ function DashboardPage() {
         <Tabs value={section} onValueChange={handleSectionChange} className="min-w-0">
           <TabsList
             aria-label="Dashboard sections"
-            className="fixed inset-x-4 bottom-4 z-50 w-auto rounded-2xl bg-background/95 shadow-lg ring-1 ring-foreground/10 backdrop-blur sm:static sm:inset-auto sm:z-auto sm:w-full sm:rounded-xl sm:bg-muted sm:shadow-none sm:ring-0 sm:backdrop-blur-none"
+            className="safe-area-bottom-nav fixed z-50 w-auto rounded-2xl bg-background/95 shadow-lg ring-1 ring-foreground/10 backdrop-blur sm:rounded-xl"
           >
             <DashboardTabTrigger
               value="dashboard"

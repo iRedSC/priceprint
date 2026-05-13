@@ -6,7 +6,7 @@ type GroupMobileActionsProps = {
 
 function GroupMobileActions({ onAddGroup }: GroupMobileActionsProps) {
   return (
-    <div className="fixed right-4 bottom-24 z-40 md:hidden">
+    <div className="safe-area-group-actions fixed z-40 md:hidden">
       <AddGroupDialog onAddGroup={onAddGroup} />
     </div>
   )

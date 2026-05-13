@@ -15,8 +15,8 @@ type AuthPageProps = {
 
 function AuthPage({ onSignedIn }: AuthPageProps) {
   return (
-    <main className="min-h-svh bg-muted/30 px-4 py-6 text-foreground sm:px-6 lg:px-8">
-      <div className="mx-auto grid min-h-[calc(100svh-3rem)] w-full max-w-5xl content-center gap-8 lg:grid-cols-[1fr_420px] lg:items-center">
+    <main className="safe-area-auth-page min-h-svh bg-muted/30 text-foreground">
+      <div className="mx-auto grid min-h-[calc(100svh-3rem-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px))] w-full max-w-5xl content-center gap-8 lg:grid-cols-[1fr_420px] lg:items-center">
         <section className="max-w-2xl text-left">
           <p className="mb-3 text-sm font-medium text-muted-foreground">PricePrint</p>
           <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
