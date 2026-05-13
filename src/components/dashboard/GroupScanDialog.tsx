@@ -24,20 +24,47 @@ type GroupScanDialogProps = {
 function GroupScanDialog({ group, onOpenChange, onScanProduct }: GroupScanDialogProps) {
   const open = Boolean(group)
   const videoRef = useRef<HTMLVideoElement | null>(null)
+  const scanSuccessTimeoutRef = useRef<number | null>(null)
   const [holding, setHolding] = useState(false)
   const [feed, setFeed] = useState<ScanFeedItem[]>([])
   const [busy, setBusy] = useState(false)
+  const [scanSucceeded, setScanSucceeded] = useState(false)
 
   const updateFeed = (item: ScanFeedItem) => {
     setFeed((items) => [item, ...items.filter((current) => current.code !== item.code)].slice(0, 4))
   }
 
+  const flashScanSuccess = () => {
+    if (scanSuccessTimeoutRef.current) {
+      window.clearTimeout(scanSuccessTimeoutRef.current)
+    }
+
+    setScanSucceeded(true)
+    scanSuccessTimeoutRef.current = window.setTimeout(() => {
+      setScanSucceeded(false)
+      scanSuccessTimeoutRef.current = null
+    }, 700)
+  }
+
   useEffect(() => {
     if (!open) {
+      if (scanSuccessTimeoutRef.current) {
+        window.clearTimeout(scanSuccessTimeoutRef.current)
+        scanSuccessTimeoutRef.current = null
+      }
       setHolding(false)
       setFeed([])
+      setScanSucceeded(false)
     }
   }, [open])
+
+  useEffect(() => {
+    return () => {
+      if (scanSuccessTimeoutRef.current) {
+        window.clearTimeout(scanSuccessTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const handleCode = useCallback(async (code: string) => {
     if (!group || busy) {
@@ -45,6 +72,7 @@ function GroupScanDialog({ group, onOpenChange, onScanProduct }: GroupScanDialog
     }
 
     setHolding(false)
+    flashScanSuccess()
     setBusy(true)
     updateFeed({ code, detail: "Checking Shopify...", status: "loading" })
 
@@ -90,7 +118,7 @@ function GroupScanDialog({ group, onOpenChange, onScanProduct }: GroupScanDialog
             Hold the scan button while the barcode is visible in the camera.
           </DialogDescription>
         </DialogHeader>
-        <CameraPreview videoRef={videoRef} error={cameraError || scanError} />
+        <CameraPreview videoRef={videoRef} error={cameraError || scanError} success={scanSucceeded} />
         <Button
           className="h-14 touch-manipulation select-none text-base"
           disabled={busy || Boolean(cameraError)}
