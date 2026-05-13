@@ -4,6 +4,10 @@ import { useAction, useMutation, useQuery } from "convex/react"
 import { readStoredSession, type AuthResult } from "@/authSession"
 import VirtualDataTable from "@/components/data-table/VirtualDataTable"
 import { sendLabelLiveJobs } from "@/lib/labelLiveBatch"
+import {
+  alertLabelLiveProtocolFallback,
+  alertLabelLiveSendFailed,
+} from "@/lib/labelLiveDebug"
 import { productToLabelLiveVariables } from "@/lib/productLabelVariables"
 import { api } from "../../../convex/_generated/api"
 import { createGroupColumns } from "./groupColumns"
@@ -160,7 +164,7 @@ function GroupsPanel() {
     }))
 
     try {
-      await sendLabelLiveJobs(jobs)
+      const { openedLabelliveFallback } = await sendLabelLiveJobs(jobs)
 
       let historyNote = ""
       try {
@@ -171,14 +175,24 @@ function GroupsPanel() {
         })
       } catch (historyError) {
         historyNote =
-          `\n\nPrint history failed to save: ${
+          `Print history failed to save: ${
             historyError instanceof Error ? historyError.message : "Unknown error"
           }`
       }
 
-      window.alert(`Sent ${jobs.length} label job(s) to Label LIVE.${historyNote}`)
+      if (openedLabelliveFallback) {
+        alertLabelLiveProtocolFallback(
+          jobs,
+          historyNote
+            ? `${historyNote}\n\n(${jobs.length} job(s) triggered.)`
+            : `(${jobs.length} job(s) triggered.)`,
+        )
+        return
+      }
+
+      window.alert(`Sent ${jobs.length} label job(s) to Label LIVE.${historyNote ? `\n\n${historyNote}` : ""}`)
     } catch (error) {
-      window.alert(error instanceof Error ? error.message : "Could not reach Label LIVE.")
+      alertLabelLiveSendFailed(error, jobs)
     }
   }
 

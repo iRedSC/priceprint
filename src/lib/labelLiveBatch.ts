@@ -100,9 +100,16 @@ function assertSameDesign(jobs: LabelLiveBatchJob[]) {
   }
 }
 
-export async function sendLabelLiveJobs(jobs: LabelLiveBatchJob[]) {
+export type SendLabelLiveJobsResult = {
+  /** True when fetch to localhost failed and `labellive://batch?payload=…` was opened instead. */
+  openedLabelliveFallback: boolean;
+};
+
+export async function sendLabelLiveJobs(
+  jobs: LabelLiveBatchJob[],
+): Promise<SendLabelLiveJobsResult> {
   if (!jobs.length) {
-    return;
+    return { openedLabelliveFallback: false };
   }
 
   assertSameDesign(jobs);
@@ -110,7 +117,7 @@ export async function sendLabelLiveJobs(jobs: LabelLiveBatchJob[]) {
   const variableRows = jobs.map((j) => j.variables);
 
   if (await tryPostMultiJobPrint(design, variableRows)) {
-    return;
+    return { openedLabelliveFallback: false };
   }
 
   const payloadJson = buildBatchPayloadJson(jobs);
@@ -124,7 +131,7 @@ export async function sendLabelLiveJobs(jobs: LabelLiveBatchJob[]) {
     });
     const bodyText = await readError(resBody);
     if (resBody.ok) {
-      return;
+      return { openedLabelliveFallback: false };
     }
     if (resBody.status !== 404 && resBody.status !== 405) {
       throw new Error(bodyText || `HTTP ${resBody.status}`);
@@ -146,8 +153,10 @@ export async function sendLabelLiveJobs(jobs: LabelLiveBatchJob[]) {
   } catch (error) {
     if (error instanceof TypeError) {
       openFallbackUri(payloadJson);
-      return;
+      return { openedLabelliveFallback: true };
     }
     throw error;
   }
+
+  return { openedLabelliveFallback: false };
 }
