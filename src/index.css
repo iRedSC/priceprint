@@ -209,21 +209,6 @@
     transform: translateX(-50%);
   }
 
-  @media (max-width: 47.999rem) {
-    .safe-area-bottom-nav {
-      bottom: calc(
-        1rem + env(safe-area-inset-bottom, 0px) + 100svh - 100dvh
-      );
-    }
-
-    .safe-area-product-actions,
-    .safe-area-group-actions {
-      bottom: calc(
-        5.75rem + env(safe-area-inset-bottom, 0px) + 100svh - 100dvh
-      );
-    }
-  }
-
   @media (min-width: 40rem) {
     .safe-area-auth-page {
       padding-right: calc(1.5rem + env(safe-area-inset-right, 0px));
@@ -240,7 +225,7 @@
 
   @media (min-width: 48rem) {
     .safe-area-dashboard-page {
-      padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+      padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
     }
   }
 
