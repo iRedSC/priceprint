@@ -74,6 +74,17 @@ export default defineSchema({
     .index("by_shop_domain", ["shopDomain"])
     .index("by_user_shop_domain", ["userId", "shopDomain"]),
 
+  shopifyOAuthStates: defineTable({
+    userId: v.id("users"),
+    shopDomain: v.string(),
+    state: v.string(),
+    expiresAt: v.number(),
+    consumedAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index("by_state", ["state"])
+    .index("by_user", ["userId"]),
+
   passkeys: defineTable({
     userId: v.id("users"),
     credentialId: v.string(),

@@ -1,5 +1,6 @@
-import { useAction } from "convex/react"
+import { useAction, useQuery } from "convex/react"
 import { useState, type FormEvent } from "react"
+import { readStoredSession } from "@/authSession"
 import { api } from "../../../convex/_generated/api"
 import { Button } from "@/components/ui/button"
 import {
@@ -12,12 +13,18 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import ShopifyConnectionStatus from "./ShopifyConnectionStatus"
 
 function ShopifyConnectionSection() {
   const startInstall = useAction(api.shopify.startShopifyInstall)
+  const [session] = useState(readStoredSession)
   const [shopDomain, setShopDomain] = useState("")
   const [message, setMessage] = useState("")
   const [isBusy, setIsBusy] = useState(false)
+  const connection = useQuery(
+    api.shopify.currentConnection,
+    session ? { sessionToken: session.sessionToken } : "skip"
+  )
 
   const handleConnect = async (event: FormEvent) => {
     event.preventDefault()
@@ -25,8 +32,22 @@ function ShopifyConnectionSection() {
     setMessage("")
 
     try {
-      const redirectUri = `${window.location.origin}/shopify/callback`
-      const { authUrl } = await startInstall({ shopDomain, redirectUri })
+      const convexSiteUrl = import.meta.env.VITE_CONVEX_SITE_URL
+
+      if (!session) {
+        throw new Error("Sign in again to connect Shopify.")
+      }
+
+      if (!convexSiteUrl) {
+        throw new Error("Missing VITE_CONVEX_SITE_URL in environment.")
+      }
+
+      const redirectUri = `${convexSiteUrl.replace(/\/$/, "")}/shopify/callback`
+      const { authUrl } = await startInstall({
+        shopDomain,
+        redirectUri,
+        sessionToken: session.sessionToken,
+      })
 
       window.location.href = authUrl
     } catch (error) {
@@ -47,6 +68,7 @@ function ShopifyConnectionSection() {
             Connect a Shopify store to sync products for scanning, grouping, and label
             printing.
           </p>
+          <ShopifyConnectionStatus connection={connection} hasSession={Boolean(session)} />
           <div className="grid gap-2">
             <Label htmlFor="shopify-domain">Shopify store</Label>
             <Input

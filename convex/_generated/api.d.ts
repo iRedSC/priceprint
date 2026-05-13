@@ -11,8 +11,10 @@
 import type * as auth from "../auth.js";
 import type * as authModel from "../authModel.js";
 import type * as groups from "../groups.js";
+import type * as http from "../http.js";
 import type * as products from "../products.js";
 import type * as shopify from "../shopify.js";
+import type * as shopifyModel from "../shopifyModel.js";
 
 import type {
   ApiFromModules,
@@ -24,8 +26,10 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   authModel: typeof authModel;
   groups: typeof groups;
+  http: typeof http;
   products: typeof products;
   shopify: typeof shopify;
+  shopifyModel: typeof shopifyModel;
 }>;
 
 /**
