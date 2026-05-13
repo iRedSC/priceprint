@@ -2,17 +2,25 @@ import { Search } from "lucide-react"
 
 import { Input } from "@/components/ui/input"
 import AddGroupDialog from "./AddGroupDialog"
+import UndoLastPrintButton from "./UndoLastPrintButton"
 
 type GroupTaskBarProps = {
   search: string
   onSearchChange: (search: string) => void
   onAddGroup: (name: string) => Promise<void> | void
+  sessionToken: string | null
 }
 
-function GroupTaskBar({ search, onSearchChange, onAddGroup }: GroupTaskBarProps) {
+function GroupTaskBar({
+  search,
+  onSearchChange,
+  onAddGroup,
+  sessionToken,
+}: GroupTaskBarProps) {
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-      <div className="hidden gap-2 md:flex">
+      <div className="hidden items-center gap-2 md:flex">
+        <UndoLastPrintButton sessionToken={sessionToken} />
         <AddGroupDialog onAddGroup={onAddGroup} />
       </div>
       <div className="relative min-w-0 sm:w-80">

@@ -12,6 +12,7 @@ import type * as auth from "../auth.js";
 import type * as authModel from "../authModel.js";
 import type * as groups from "../groups.js";
 import type * as http from "../http.js";
+import type * as printJobs from "../printJobs.js";
 import type * as products from "../products.js";
 import type * as shopify from "../shopify.js";
 import type * as shopifyModel from "../shopifyModel.js";
@@ -28,6 +29,7 @@ declare const fullApi: ApiFromModules<{
   authModel: typeof authModel;
   groups: typeof groups;
   http: typeof http;
+  printJobs: typeof printJobs;
   products: typeof products;
   shopify: typeof shopify;
   shopifyModel: typeof shopifyModel;

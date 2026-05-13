@@ -62,6 +62,28 @@ export default defineSchema({
     .index("by_product", ["productId"])
     .index("by_user_product", ["userId", "productId"]),
 
+  printJobs: defineTable({
+    userId: v.id("users"),
+    groupId: v.id("groups"),
+    scope: v.union(v.literal("all"), v.literal("out-of-date"), v.literal("unprinted")),
+    status: v.union(v.literal("active"), v.literal("undone")),
+    createdAt: v.number(),
+    undoneAt: v.optional(v.number()),
+    lineItems: v.array(
+      v.object({
+        productId: v.id("products"),
+        hadPrintDataRowBefore: v.boolean(),
+        previousLastPrintedAt: v.optional(v.number()),
+        previousLastPrintedPrice: v.optional(v.number()),
+        printedAt: v.number(),
+        printedPrice: v.number(),
+      }),
+    ),
+  })
+    .index("by_user", ["userId"])
+    .index("by_group", ["groupId"])
+    .index("by_user_status_created", ["userId", "status", "createdAt"]),
+
   shopifyConnections: defineTable({
     userId: v.id("users"),
     shopDomain: v.string(),

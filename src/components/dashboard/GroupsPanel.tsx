@@ -47,6 +47,7 @@ function GroupsPanel() {
   const deleteGroupMutation = useMutation(api.groups.remove)
   const addGroupProducts = useMutation(api.groups.addProducts)
   const removeGroupProduct = useMutation(api.groups.removeProduct)
+  const recordGroupPrintMutation = useMutation(api.printJobs.recordGroupPrint)
   const lookupScannedProduct = useAction(api.shopify.lookupProductByScannedCode)
   const groupRows = groups ?? EMPTY_GROUPS
   const productRows = products ?? EMPTY_PRODUCTS
@@ -160,7 +161,22 @@ function GroupsPanel() {
 
     try {
       await sendLabelLiveJobs(jobs)
-      window.alert(`Sent ${jobs.length} label job(s) to Label LIVE.`)
+
+      let historyNote = ""
+      try {
+        await recordGroupPrintMutation({
+          sessionToken: session.sessionToken,
+          groupId: group._id,
+          scope,
+        })
+      } catch (historyError) {
+        historyNote =
+          `\n\nPrint history failed to save: ${
+            historyError instanceof Error ? historyError.message : "Unknown error"
+          }`
+      }
+
+      window.alert(`Sent ${jobs.length} label job(s) to Label LIVE.${historyNote}`)
     } catch (error) {
       window.alert(error instanceof Error ? error.message : "Could not reach Label LIVE.")
     }
@@ -168,7 +184,12 @@ function GroupsPanel() {
 
   return (
     <section className="grid min-w-0 gap-3">
-      <GroupTaskBar search={search} onSearchChange={setSearch} onAddGroup={addGroup} />
+      <GroupTaskBar
+        sessionToken={session?.sessionToken ?? null}
+        search={search}
+        onSearchChange={setSearch}
+        onAddGroup={addGroup}
+      />
       <div className="md:hidden">
         <GroupMobileList
           groups={filteredGroups}
@@ -180,7 +201,7 @@ function GroupsPanel() {
           onPrintGroup={printGroupToLabelLive}
         />
       </div>
-      <GroupMobileActions onAddGroup={addGroup} />
+      <GroupMobileActions sessionToken={session?.sessionToken ?? null} onAddGroup={addGroup} />
       <div className="hidden min-w-0 md:block">
         <VirtualDataTable
           columns={columns}
