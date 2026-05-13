@@ -9,6 +9,8 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import ProductActionMenu from "./ProductActionMenu"
+import ProductPrintedPriceNote from "./ProductPrintedPriceNote"
+import ProductPrintStatusChip from "./ProductPrintStatusChip"
 import { formatProductDate, formatProductMeta, formatProductPrice } from "./productFormat"
 import type { ProductRow } from "./productTableData"
 
@@ -38,13 +40,17 @@ function ProductMobileCard({ product, onEdit, onDelete }: ProductMobileCardProps
         </div>
         <div className="min-w-20 text-right">
           <div className="text-lg font-semibold">{formatProductPrice(product.price)}</div>
+          <ProductPrintedPriceNote product={product} />
         </div>
         <ProductActionMenu product={product} onEdit={onEdit} onDelete={onDelete} />
       </CardHeader>
-      <CardContent className="flex items-end justify-between gap-3 px-3.5">
+      <CardContent className="grid grid-cols-[1fr_auto_1fr] items-end gap-3 px-3.5">
         <div className="grid min-w-0 gap-1">
           <CodeText value={product.sku} />
           <CodeText value={product.upc} />
+        </div>
+        <div className="flex justify-center">
+          <ProductPrintStatusChip product={product} />
         </div>
         <TimelineDates createdAt={product.createdAt} updatedAt={product.updatedAt} />
       </CardContent>

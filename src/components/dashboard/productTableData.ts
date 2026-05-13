@@ -11,5 +11,8 @@ export type ProductInput = {
   meta?: unknown
 }
 
-export type ProductRow = Doc<"products">
+export type ProductPrintStatus = "up-to-date" | "not-printed" | "needs-reprinted"
+export type ProductRow = Doc<"products"> & {
+  printData?: Doc<"printData"> | null
+}
 export type ProductEditableField = "sku" | "upc" | "name" | "img" | "type" | "vendor" | "price"

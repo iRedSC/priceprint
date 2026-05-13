@@ -149,6 +149,7 @@ function ProductsPanel() {
           data={filteredProducts}
           emptyMessage={getProductsMessage(session, products)}
           height={460}
+          rowHeight={56}
           renderRowMenu={(product) => (
             <ProductRowContextMenu
               product={product}

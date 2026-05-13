@@ -42,12 +42,24 @@ export const list = query({
   args: { sessionToken: v.string() },
   handler: async (ctx, args) => {
     const userId = await getSessionUserId(ctx, args.sessionToken);
-
-    return await ctx.db
+    const products = await ctx.db
       .query("products")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .order("desc")
       .collect();
+
+    return await Promise.all(
+      products.map(async (product) => {
+        const printData = await ctx.db
+          .query("printData")
+          .withIndex("by_user_product", (q) =>
+            q.eq("userId", userId).eq("productId", product._id),
+          )
+          .unique();
+
+        return { ...product, printData };
+      }),
+    );
   },
 });
 

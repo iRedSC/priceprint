@@ -1,7 +1,10 @@
 import type { ColumnDef } from "@tanstack/react-table"
 
 import ProductEditableCell from "./ProductEditableCell"
+import ProductPrintedPriceNote from "./ProductPrintedPriceNote"
+import ProductPrintStatusChip from "./ProductPrintStatusChip"
 import { formatProductDate } from "./productFormat"
+import { getProductPrintStatus } from "./productPrintData"
 import type { ProductEditableField, ProductRow } from "./productTableData"
 
 type ProductColumnOptions = {
@@ -97,19 +100,29 @@ export function createProductColumns({ onFieldCommit }: ProductColumnOptions): C
       ),
     },
     {
+      id: "printStatus",
+      accessorFn: getProductPrintStatus,
+      header: "Status",
+      size: 150,
+      cell: ({ row }) => <ProductPrintStatusChip product={row.original} />,
+    },
+    {
       accessorKey: "price",
       header: "Price",
-      size: 120,
+      size: 140,
       cell: ({ row }) => (
-        <ProductEditableCell
-          product={row.original}
-          field="price"
-          value={row.getValue<number>("price")}
-          prefix="$"
-          step={1}
-          type="number"
-          onCommit={onFieldCommit}
-        />
+        <div className="min-w-0">
+          <ProductEditableCell
+            product={row.original}
+            field="price"
+            value={row.getValue<number>("price")}
+            prefix="$"
+            step={1}
+            type="number"
+            onCommit={onFieldCommit}
+          />
+          <ProductPrintedPriceNote product={row.original} />
+        </div>
       ),
     },
     {
