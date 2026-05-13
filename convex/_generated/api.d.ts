@@ -8,13 +8,19 @@
  * @module
  */
 
+import type * as auth from "../auth.js";
+import type * as authModel from "../authModel.js";
+
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
 } from "convex/server";
 
-declare const fullApi: ApiFromModules<{}>;
+declare const fullApi: ApiFromModules<{
+  auth: typeof auth;
+  authModel: typeof authModel;
+}>;
 
 /**
  * A utility for referencing Convex functions in your app's public API.

@@ -4,7 +4,7 @@ alwaysApply: true
 
 These are very important ways to work with the project:
 
- - Only use existing shadcn components, do not create your own or modify them unless explicity asked to.
+ - Only use existing shadcn components (or add them to project if needed), do not create your own from scratch unless explicity asked to.
  - Create reusable components each in their own files. Roughly speaking, no one file should be more than 50 LOC (except if for a reason)
  - Look for and use existing components before pulling in anything new. The goal is simple reusablility.
  - Prefer dead simple code of elegant code. Complexity is the enemy.
