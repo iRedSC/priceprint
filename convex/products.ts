@@ -1,5 +1,5 @@
 import { ConvexError, v } from "convex/values";
-import type { Id } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 
 const productFields = {
@@ -38,6 +38,46 @@ const getSessionUserId = async (
   return session.userId;
 };
 
+const normalizeOptionalCode = (value: string | undefined) => {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+
+  return trimmed.length ? trimmed : undefined;
+};
+
+async function findExistingProductForScan(
+  ctx: MutationCtx,
+  userId: Id<"users">,
+  normalized: { sku?: string; upc?: string },
+): Promise<Doc<"products"> | null> {
+  if (normalized.upc) {
+    const rows = await ctx.db
+      .query("products")
+      .withIndex("by_user_upc", (q) => q.eq("userId", userId).eq("upc", normalized.upc))
+      .collect();
+
+    if (rows.length) {
+      return rows.reduce((best, row) => (row.createdAt > best.createdAt ? row : best));
+    }
+  }
+
+  if (normalized.sku) {
+    const rows = await ctx.db
+      .query("products")
+      .withIndex("by_user_sku", (q) => q.eq("userId", userId).eq("sku", normalized.sku))
+      .collect();
+
+    if (rows.length) {
+      return rows.reduce((best, row) => (row.createdAt > best.createdAt ? row : best));
+    }
+  }
+
+  return null;
+}
+
 export const list = query({
   args: { sessionToken: v.string() },
   handler: async (ctx, args) => {
@@ -74,6 +114,41 @@ export const create = mutation({
 
     return await ctx.db.insert("products", {
       ...args.product,
+      userId,
+      createdAt: now,
+      updatedAt: now,
+    });
+  },
+});
+
+/** Same shape as create, but updates an existing row when UPC or SKU matches (scan refresh). */
+export const upsertFromScan = mutation({
+  args: {
+    sessionToken: v.string(),
+    product: v.object(productFields),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const userId = await getSessionUserId(ctx, args.sessionToken);
+    const product = {
+      ...args.product,
+      sku: normalizeOptionalCode(args.product.sku),
+      upc: normalizeOptionalCode(args.product.upc),
+    };
+
+    const existing = await findExistingProductForScan(ctx, userId, product);
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        ...product,
+        updatedAt: now,
+      });
+
+      return existing._id;
+    }
+
+    return await ctx.db.insert("products", {
+      ...product,
       userId,
       createdAt: now,
       updatedAt: now,

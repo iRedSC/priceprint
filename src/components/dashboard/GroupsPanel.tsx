@@ -34,7 +34,7 @@ function GroupsPanel() {
     session ? { sessionToken: session.sessionToken } : "skip"
   )
   const createGroup = useMutation(api.groups.create)
-  const createProduct = useMutation(api.products.create)
+  const upsertProductFromScan = useMutation(api.products.upsertFromScan)
   const updateGroupMutation = useMutation(api.groups.update)
   const deleteGroupMutation = useMutation(api.groups.remove)
   const addGroupProducts = useMutation(api.groups.addProducts)
@@ -102,7 +102,7 @@ function GroupsPanel() {
       sessionToken: session.sessionToken,
       code,
     }) as ProductInput
-    const productId = await createProduct({ sessionToken: session.sessionToken, product })
+    const productId = await upsertProductFromScan({ sessionToken: session.sessionToken, product })
     await addGroupProducts({ sessionToken: session.sessionToken, groupId: group._id, productIds: [productId] })
 
     return product
