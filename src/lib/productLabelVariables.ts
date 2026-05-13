@@ -44,3 +44,29 @@ export function productToLabelLiveVariables(product: PrintableProduct): Record<s
 
   return out;
 }
+
+/** User-visible names for Label LIVE templates; keys match `productToLabelLiveVariables`. */
+export type LabelLiveProductVariableHelp = {
+  name: string;
+  description: string;
+};
+
+export const labelLiveProductVariableHelp: LabelLiveProductVariableHelp[] = [
+  { name: "name", description: "Product name" },
+  { name: "sku", description: "SKU (if set)" },
+  { name: "upc", description: "UPC (if set)" },
+  { name: "type", description: "Type (if set)" },
+  { name: "vendor", description: "Vendor (if set)" },
+  { name: "price", description: "Price" },
+  { name: "img", description: "Image URL (if set)" },
+  { name: "meta_json", description: "Meta field as JSON text (empty if unset)" },
+  { name: "_id", description: "Convex product id" },
+  { name: "createdAt", description: "Created timestamp (ms)" },
+  { name: "_creationTime", description: "Convex internal creation time (ms)" },
+  { name: "updatedAt", description: "Updated timestamp (if set)" },
+  { name: "printData_id", description: "Print history row id (if printed before)" },
+  { name: "printData_createdAt", description: "Print history created (ms)" },
+  { name: "printData_updatedAt", description: "Print history updated (if set)" },
+  { name: "printData_lastPrintedAt", description: "Last print time (if set)" },
+  { name: "printData_lastPrintedPrice", description: "Price at last print (if set)" },
+];
