@@ -5,6 +5,10 @@ export type LabelLiveBatchJob = {
   variables: Record<string, string>;
 };
 
+type LabelLiveBatchPayloadJob = Omit<LabelLiveBatchJob, "variables"> & {
+  variables: string;
+};
+
 function utf8ToBase64(payload: string) {
   return btoa(
     encodeURIComponent(payload).replace(
@@ -32,7 +36,11 @@ function openFallbackUri(payload: string) {
 }
 
 export async function sendLabelLiveJobs(jobs: LabelLiveBatchJob[]) {
-  const payload = JSON.stringify(jobs);
+  const payloadJobs: LabelLiveBatchPayloadJob[] = jobs.map((job) => ({
+    ...job,
+    variables: JSON.stringify(job.variables),
+  }));
+  const payload = JSON.stringify(payloadJobs);
   const url = `${BATCH_URL}?payload=${encodeURIComponent(utf8ToBase64(payload))}`;
 
   try {
