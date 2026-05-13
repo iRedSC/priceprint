@@ -10,20 +10,18 @@ type LastScannedFeedProps = {
 
 function LastScannedFeed({ items }: LastScannedFeedProps) {
   if (!items.length) {
-    return (
-      <p className="rounded-xl border bg-card p-3 text-sm text-muted-foreground">
-        Last scanned products will appear here.
-      </p>
-    )
+    return null
   }
 
+  const visibleItems = [...items].reverse()
+
   return (
-    <div className="grid gap-2">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        Last scanned
-      </p>
-      {items.map((item) => (
-        <div key={item.code} className="rounded-xl border bg-card p-3">
+    <div className="grid gap-2 [mask-image:linear-gradient(to_bottom,transparent,black_30%)]">
+      {visibleItems.map((item, index) => (
+        <div
+          key={item.code}
+          className={`rounded-xl border bg-card/95 p-3 shadow-lg transition-all duration-300 ${getFadeClassName(index, visibleItems.length)}`}
+        >
           <div className="flex items-center justify-between gap-2 text-sm font-medium">
             <span>{item.code}</span>
             <span className={getStatusClassName(item.status)}>{getStatusLabel(item.status)}</span>
@@ -33,6 +31,18 @@ function LastScannedFeed({ items }: LastScannedFeedProps) {
       ))}
     </div>
   )
+}
+
+function getFadeClassName(index: number, itemCount: number) {
+  if (itemCount < 3 || index === itemCount - 1) {
+    return "opacity-100"
+  }
+
+  if (index === 0) {
+    return "opacity-35"
+  }
+
+  return "opacity-70"
 }
 
 function getStatusClassName(status: ScanFeedItem["status"]) {

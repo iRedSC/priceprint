@@ -78,7 +78,10 @@ function GroupScanDialog({ group, onOpenChange, onScanProduct }: GroupScanDialog
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="md:hidden">
+      <DialogContent className="overflow-visible md:hidden">
+        <div className="pointer-events-none absolute inset-x-0 bottom-full mb-3 px-3">
+          <LastScannedFeed items={feed} />
+        </div>
         <DialogHeader>
           <DialogTitle>Scan into {group?.name}</DialogTitle>
           <DialogDescription>
@@ -98,7 +101,6 @@ function GroupScanDialog({ group, onOpenChange, onScanProduct }: GroupScanDialog
         >
           {busy ? "Adding product..." : holding ? "Scanning..." : "Hold to scan"}
         </Button>
-        <LastScannedFeed items={feed} />
       </DialogContent>
     </Dialog>
   )
