@@ -33,7 +33,8 @@ function LabelLiveVariablesInfo() {
         <PopoverHeader className="gap-1">
           <PopoverTitle>Label LIVE variables</PopoverTitle>
           <PopoverDescription className="text-xs leading-snug">
-            Use these exact names as variables in your design so print jobs fill correctly.
+            Use these exact names (UPPERCASE, like Label LIVE’s Data → Integrate) in your design so
+            print jobs fill correctly.
           </PopoverDescription>
         </PopoverHeader>
         <ul className="grid gap-2 text-xs">

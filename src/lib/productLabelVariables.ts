@@ -4,42 +4,48 @@ type PrintableProduct = Doc<"products"> & {
   printData?: Doc<"printData"> | null;
 };
 
-/** Flat string variables for Label LIVE templates (maps to matching variable names in the design). */
+/**
+ * Flat string variables for Label LIVE templates.
+ * Keys are UPPERCASE to match Label LIVE’s Integrate / `labellive://print` convention
+ * (e.g. NAME, SKU, PRICE, META — same as Data → Integrate in the app).
+ */
 export function productToLabelLiveVariables(product: PrintableProduct): Record<string, string> {
-  const out: Record<string, string> = {
-    _id: String(product._id),
-    name: product.name,
-    price: String(product.price),
-    createdAt: String(product.createdAt),
-    _creationTime: String(product._creationTime),
-  }
-
-  if (product.sku !== undefined) out.sku = product.sku;
-  if (product.upc !== undefined) out.upc = product.upc;
-  if (product.img !== undefined) out.img = product.img;
-  if (product.type !== undefined) out.type = product.type;
-  if (product.vendor !== undefined) out.vendor = product.vendor;
-
-  if (product.updatedAt !== undefined) out.updatedAt = String(product.updatedAt);
-
-  out.meta_json =
+  const metaText =
     product.meta === undefined
       ? ""
       : typeof product.meta === "string"
         ? product.meta
         : JSON.stringify(product.meta);
 
+  const out: Record<string, string> = {
+    NAME: product.name,
+    PRICE: String(product.price),
+    ID: String(product._id),
+    CREATED_AT: String(product.createdAt),
+    CREATION_TIME: String(product._creationTime),
+    META: metaText,
+    IMG: product.img ?? "",
+  };
+
+  if (product.sku !== undefined) out.SKU = product.sku;
+  if (product.upc !== undefined) out.UPC = product.upc;
+  if (product.type !== undefined) out.TYPE = product.type;
+  if (product.vendor !== undefined) out.VENDOR = product.vendor;
+  if (product.updatedAt !== undefined) out.UPDATED_AT = String(product.updatedAt);
+
   const pd = product.printData;
   if (!pd) {
     return out;
   }
 
-  out.printData_id = String(pd._id);
-  out.printData_createdAt = String(pd.createdAt);
-  if (pd.updatedAt !== undefined) out.printData_updatedAt = String(pd.updatedAt);
-  if (pd.lastPrintedAt !== undefined) out.printData_lastPrintedAt = String(pd.lastPrintedAt);
+  out.PRINTDATA_ID = String(pd._id);
+  out.PRINTDATA_CREATED_AT = String(pd.createdAt);
+  if (pd.updatedAt !== undefined) out.PRINTDATA_UPDATED_AT = String(pd.updatedAt);
+  if (pd.lastPrintedAt !== undefined) {
+    out.PRINTDATA_LAST_PRINTED_AT = String(pd.lastPrintedAt);
+  }
   if (pd.lastPrintedPrice !== undefined) {
-    out.printData_lastPrintedPrice = String(pd.lastPrintedPrice);
+    out.PRINTDATA_LAST_PRINTED_PRICE = String(pd.lastPrintedPrice);
   }
 
   return out;
@@ -52,21 +58,21 @@ export type LabelLiveProductVariableHelp = {
 };
 
 export const labelLiveProductVariableHelp: LabelLiveProductVariableHelp[] = [
-  { name: "name", description: "Product name" },
-  { name: "sku", description: "SKU (if set)" },
-  { name: "upc", description: "UPC (if set)" },
-  { name: "type", description: "Type (if set)" },
-  { name: "vendor", description: "Vendor (if set)" },
-  { name: "price", description: "Price" },
-  { name: "img", description: "Image URL (if set)" },
-  { name: "meta_json", description: "Meta field as JSON text (empty if unset)" },
-  { name: "_id", description: "Convex product id" },
-  { name: "createdAt", description: "Created timestamp (ms)" },
-  { name: "_creationTime", description: "Convex internal creation time (ms)" },
-  { name: "updatedAt", description: "Updated timestamp (if set)" },
-  { name: "printData_id", description: "Print history row id (if printed before)" },
-  { name: "printData_createdAt", description: "Print history created (ms)" },
-  { name: "printData_updatedAt", description: "Print history updated (if set)" },
-  { name: "printData_lastPrintedAt", description: "Last print time (if set)" },
-  { name: "printData_lastPrintedPrice", description: "Price at last print (if set)" },
+  { name: "NAME", description: "Product name" },
+  { name: "SKU", description: "SKU (if set)" },
+  { name: "UPC", description: "UPC (if set)" },
+  { name: "TYPE", description: "Type (if set)" },
+  { name: "VENDOR", description: "Vendor (if set)" },
+  { name: "PRICE", description: "Price" },
+  { name: "IMG", description: "Image URL (empty string if unset)" },
+  { name: "META", description: "Meta field as JSON text (empty if unset)" },
+  { name: "ID", description: "Convex product id" },
+  { name: "CREATED_AT", description: "Created timestamp (ms)" },
+  { name: "CREATION_TIME", description: "Convex internal creation time (ms)" },
+  { name: "UPDATED_AT", description: "Updated timestamp (if set)" },
+  { name: "PRINTDATA_ID", description: "Print history row id (if printed before)" },
+  { name: "PRINTDATA_CREATED_AT", description: "Print history created (ms)" },
+  { name: "PRINTDATA_UPDATED_AT", description: "Print history updated (if set)" },
+  { name: "PRINTDATA_LAST_PRINTED_AT", description: "Last print time (if set)" },
+  { name: "PRINTDATA_LAST_PRINTED_PRICE", description: "Price at last print (if set)" },
 ];
