@@ -64,8 +64,13 @@ export default defineSchema({
 
   printJobs: defineTable({
     userId: v.id("users"),
-    groupId: v.id("groups"),
-    scope: v.union(v.literal("all"), v.literal("out-of-date"), v.literal("unprinted")),
+    groupId: v.optional(v.id("groups")),
+    scope: v.union(
+      v.literal("all"),
+      v.literal("out-of-date"),
+      v.literal("unprinted"),
+      v.literal("single"),
+    ),
     status: v.union(v.literal("active"), v.literal("undone")),
     createdAt: v.number(),
     undoneAt: v.optional(v.number()),

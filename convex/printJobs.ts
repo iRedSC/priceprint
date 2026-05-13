@@ -177,6 +177,73 @@ export const recordGroupPrint = mutation({
   },
 });
 
+export const recordProductPrint = mutation({
+  args: {
+    sessionToken: v.string(),
+    productId: v.id("products"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getSessionUserId(ctx, args.sessionToken);
+    const product = await ctx.db.get(args.productId);
+
+    if (!product || product.userId !== userId) {
+      throw new ConvexError("Product not found.");
+    }
+
+    const existingPrint = await ctx.db
+      .query("printData")
+      .withIndex("by_user_product", (q) => q.eq("userId", userId).eq("productId", product._id))
+      .unique();
+
+    const now = Date.now();
+
+    type LineItem = {
+      productId: Id<"products">;
+      hadPrintDataRowBefore: boolean;
+      previousLastPrintedAt: number | undefined;
+      previousLastPrintedPrice: number | undefined;
+      printedAt: number;
+      printedPrice: number;
+    };
+
+    const lineItem: LineItem = {
+      productId: product._id,
+      hadPrintDataRowBefore: Boolean(existingPrint),
+      previousLastPrintedAt: existingPrint?.lastPrintedAt,
+      previousLastPrintedPrice: existingPrint?.lastPrintedPrice,
+      printedAt: now,
+      printedPrice: product.price,
+    };
+
+    if (existingPrint) {
+      await ctx.db.patch(existingPrint._id, {
+        lastPrintedAt: now,
+        lastPrintedPrice: product.price,
+        updatedAt: now,
+      });
+    } else {
+      await ctx.db.insert("printData", {
+        userId,
+        productId: product._id,
+        lastPrintedAt: now,
+        lastPrintedPrice: product.price,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+
+    const jobId = await ctx.db.insert("printJobs", {
+      userId,
+      scope: "single",
+      status: "active",
+      createdAt: now,
+      lineItems: [lineItem],
+    });
+
+    return { jobId, printedCount: 1 };
+  },
+});
+
 export const undoLatestPrintJob = mutation({
   args: { sessionToken: v.string() },
   handler: async (ctx, args) => {

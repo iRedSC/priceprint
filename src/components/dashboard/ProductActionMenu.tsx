@@ -1,4 +1,4 @@
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { MoreHorizontal, Pencil, Printer, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -15,9 +15,10 @@ type ProductActionMenuProps = {
   product: ProductRow
   onEdit: (product: ProductRow) => void
   onDelete: (product: ProductRow) => void
+  onPrint: (product: ProductRow) => void
 }
 
-function ProductActionMenu({ product, onEdit, onDelete }: ProductActionMenuProps) {
+function ProductActionMenu({ product, onEdit, onDelete, onPrint }: ProductActionMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -38,6 +39,11 @@ function ProductActionMenu({ product, onEdit, onDelete }: ProductActionMenuProps
           <Pencil />
           Edit
         </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => onPrint(product)}>
+          <Printer />
+          Print
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onSelect={() => onDelete(product)}>
           <Trash2 />
           Delete

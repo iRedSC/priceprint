@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from "lucide-react"
+import { Pencil, Printer, Trash2 } from "lucide-react"
 
 import {
   ContextMenuItem,
@@ -11,12 +11,14 @@ type ProductRowContextMenuProps = {
   product: ProductRow
   onEdit: (product: ProductRow) => void
   onDelete: (product: ProductRow) => void
+  onPrint: (product: ProductRow) => void
 }
 
 function ProductRowContextMenu({
   product,
   onEdit,
   onDelete,
+  onPrint,
 }: ProductRowContextMenuProps) {
   return (
     <>
@@ -26,6 +28,11 @@ function ProductRowContextMenu({
         <Pencil />
         Edit
       </ContextMenuItem>
+      <ContextMenuItem onSelect={() => onPrint(product)}>
+        <Printer />
+        Print
+      </ContextMenuItem>
+      <ContextMenuSeparator />
       <ContextMenuItem variant="destructive" onSelect={() => onDelete(product)}>
         <Trash2 />
         Delete
