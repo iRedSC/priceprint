@@ -34,6 +34,7 @@ type VirtualDataTableProps<TData, TValue> = {
   emptyMessage?: string
   height?: number
   rowHeight?: number
+  onRowClick?: (row: TData) => void
   renderRowMenu?: (row: TData) => React.ReactNode
 }
 
@@ -44,6 +45,7 @@ function VirtualDataTable<TData, TValue>({
   emptyMessage = "No results.",
   height = 420,
   rowHeight = 48,
+  onRowClick,
   renderRowMenu,
 }: VirtualDataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
@@ -59,6 +61,7 @@ function VirtualDataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
   })
   const rows = table.getRowModel().rows
+  const tableWidth = `max(100%, ${table.getTotalSize()}px)`
   const virtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => scrollRef.current,
@@ -73,7 +76,7 @@ function VirtualDataTable<TData, TValue>({
         className="overflow-auto touch-manipulation"
         style={{ height }}
       >
-        <Table className="grid min-w-max" style={{ width: table.getTotalSize() }}>
+        <Table className="grid" style={{ width: tableWidth }}>
           <TableHeader className="sticky top-0 z-10 grid bg-card">
             {table.getHeaderGroups().map((group) => (
               <TableRow key={group.id} className="flex hover:bg-transparent">
@@ -81,7 +84,7 @@ function VirtualDataTable<TData, TValue>({
                   <TableHead
                     key={header.id}
                     className="flex items-center"
-                    style={{ width: header.getSize() }}
+                    style={{ flex: `${header.getSize()} 1 0` }}
                   >
                     {header.isPlaceholder ? null : (
                       <SortHeader header={header}>
@@ -104,14 +107,15 @@ function VirtualDataTable<TData, TValue>({
                 const tableRow = (
                   <TableRow
                     key={row.id}
-                    className="absolute flex w-full"
+                    className={cn("absolute flex w-full", onRowClick && "cursor-pointer")}
+                    onClick={() => onRowClick?.(row.original)}
                     style={{ transform: `translateY(${virtualRow.start}px)` }}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
                         key={cell.id}
                         className="flex min-w-0 items-center overflow-hidden text-ellipsis"
-                        style={{ width: cell.column.getSize() }}
+                        style={{ flex: `${cell.column.getSize()} 1 0` }}
                       >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
