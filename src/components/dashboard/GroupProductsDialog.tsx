@@ -27,7 +27,7 @@ function GroupProductsDialog({
 }: GroupProductsDialogProps) {
   return (
     <Dialog open={Boolean(group)} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl">
+      <DialogContent className="md:max-w-4xl">
         {group && (
           <>
             <DialogHeader>

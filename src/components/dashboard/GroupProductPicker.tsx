@@ -81,7 +81,7 @@ function GroupProductPicker({ group, products, onAddProducts }: GroupProductPick
           Add Products
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-4xl">
+      <DialogContent className="md:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Add products</DialogTitle>
           <DialogDescription>Select one or more products to add to {group.name}.</DialogDescription>
