@@ -1,32 +1,87 @@
-import { Button } from "@/components/ui/button"
-import ActionCard from "./ActionCard"
-import StatCard from "./StatCard"
+import { useState } from "react"
+import { useMutation, useQuery } from "convex/react"
 
-function DashboardPanel() {
+import { readStoredSession } from "@/authSession"
+
+import DashboardHomeDesktop from "./DashboardHomeDesktop"
+import DashboardHomeMobile from "./DashboardHomeMobile"
+import type { DashboardSection } from "./DashboardPage"
+import { api } from "../../../convex/_generated/api"
+
+type DashboardPanelProps = {
+  onSelectSection: (section: DashboardSection) => void
+}
+
+function DashboardPanel({ onSelectSection }: DashboardPanelProps) {
+  const [session] = useState(readStoredSession)
+  const summary = useQuery(
+    api.dashboard.summary,
+    session ? { sessionToken: session.sessionToken } : "skip",
+  )
+  const createGroup = useMutation(api.groups.create)
+  const [addGroupOpen, setAddGroupOpen] = useState(false)
+
+  const pending = summary === undefined
+  const resume = summary ?? {
+    groupCount: 0,
+    scannedIntoGroupsToday: 0,
+    productCount: 0,
+    shopifyConnected: false,
+    groupsWithPrintAttention: 0,
+    shopDomain: undefined as string | undefined,
+    recentGroups: [],
+  }
+
+  const recentGroups =
+    resume.recentGroups?.map((group) => ({
+      _id: group._id,
+      name: group.name,
+      productCount: group.productCount,
+    })) ?? []
+
+  const addGroupMobile = async (name: string) => {
+    if (!session) {
+      return
+    }
+
+    await createGroup({ sessionToken: session.sessionToken, name })
+  }
+
+  const mobileResume = {
+    groupCount: resume.groupCount,
+    scannedIntoGroupsToday: resume.scannedIntoGroupsToday,
+    productCount: resume.productCount,
+    shopifyConnected: resume.shopifyConnected,
+    shopDomain: resume.shopDomain,
+  }
+
+  const desktopResume = {
+    ...mobileResume,
+    groupsWithPrintAttention: resume.groupsWithPrintAttention,
+  }
+
   return (
-    <section className="grid gap-4">
-      <div className="grid gap-3 sm:grid-cols-3">
-        <StatCard label="Active groups" value="6" helper="2 ready to print" />
-        <StatCard label="Products" value="148" helper="12 scanned today" />
-        <StatCard label="Connections" value="3" helper="Shopify synced" />
-      </div>
-
-      <div className="grid gap-3 md:grid-cols-2">
-        <ActionCard
-          title="Start a scan group"
-          detail="Create a group before scanning products in store."
-          action="New group"
-        />
-        <ActionCard
-          title="Print queue"
-          detail="Review completed groups and send labels to the printer."
-          action="Review"
+    <section className="grid gap-5">
+      <div className="grid gap-5 md:hidden">
+        <DashboardHomeMobile
+          resume={mobileResume}
+          pending={pending}
+          recentGroups={recentGroups}
+          onNavigate={onSelectSection}
+          onAddGroup={addGroupMobile}
+          addGroupOpen={addGroupOpen}
+          onAddGroupOpenChange={setAddGroupOpen}
         />
       </div>
 
-      <Button size="lg" className="h-12 touch-manipulation md:hidden">
-        Scan products
-      </Button>
+      <div className="hidden gap-5 md:grid">
+        <DashboardHomeDesktop
+          resume={desktopResume}
+          pending={pending}
+          recentGroups={recentGroups}
+          onNavigate={onSelectSection}
+        />
+      </div>
     </section>
   )
 }

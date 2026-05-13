@@ -11,15 +11,16 @@ type ActionCardProps = {
   title: string
   detail: string
   action: string
+  onAction?: () => void
 }
 
-function ActionCard({ title, detail, action }: ActionCardProps) {
+function ActionCard({ title, detail, action, onAction }: ActionCardProps) {
   return (
     <Card>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <CardAction>
-          <Button size="sm" variant="outline">
+          <Button type="button" size="sm" variant="outline" className="touch-manipulation" onClick={onAction}>
             {action}
           </Button>
         </CardAction>

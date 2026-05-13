@@ -19,10 +19,15 @@ import { Label } from "@/components/ui/label"
 type AddGroupDialogProps = {
   onAddGroup: (name: string) => Promise<void> | void
   triggerClassName?: string
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-function AddGroupDialog({ onAddGroup, triggerClassName }: AddGroupDialogProps) {
-  const [open, setOpen] = useState(false)
+function AddGroupDialog({ onAddGroup, triggerClassName, open: controlledOpen, onOpenChange }: AddGroupDialogProps) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
+  const controlled = controlledOpen !== undefined && onOpenChange !== undefined
+  const open = controlled ? controlledOpen : uncontrolledOpen
+  const setOpen = controlled ? onOpenChange : setUncontrolledOpen
   const [name, setName] = useState("")
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -38,15 +43,17 @@ function AddGroupDialog({ onAddGroup, triggerClassName }: AddGroupDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          size="icon"
-          aria-label="Add group"
-          className={cn("touch-manipulation", triggerClassName)}
-        >
-          <Plus />
-        </Button>
-      </DialogTrigger>
+      {!controlled ? (
+        <DialogTrigger asChild>
+          <Button
+            size="icon"
+            aria-label="Add group"
+            className={cn("touch-manipulation", triggerClassName)}
+          >
+            <Plus />
+          </Button>
+        </DialogTrigger>
+      ) : null}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add group</DialogTitle>

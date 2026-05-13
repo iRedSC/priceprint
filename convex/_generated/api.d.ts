@@ -10,6 +10,7 @@
 
 import type * as auth from "../auth.js";
 import type * as authModel from "../authModel.js";
+import type * as dashboard from "../dashboard.js";
 import type * as groups from "../groups.js";
 import type * as http from "../http.js";
 import type * as products from "../products.js";
@@ -25,6 +26,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   authModel: typeof authModel;
+  dashboard: typeof dashboard;
   groups: typeof groups;
   http: typeof http;
   products: typeof products;

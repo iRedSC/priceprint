@@ -13,7 +13,7 @@ import DashboardTabsDock from "./DashboardTabsDock"
 import GroupsPanel from "./GroupsPanel"
 import ProductsPanel from "./ProductsPanel"
 
-type DashboardSection = "dashboard" | "groups" | "products" | "connections"
+export type DashboardSection = "dashboard" | "groups" | "products" | "connections"
 
 const sectionLabels: Record<DashboardSection, string> = {
   dashboard: "Dashboard",
@@ -65,7 +65,7 @@ function DashboardPage() {
             </TabsList>
           </DashboardTabsDock>
           <TabsContent value="dashboard">
-            <DashboardPanel />
+            <DashboardPanel onSelectSection={setSection} />
           </TabsContent>
           <TabsContent value="groups">
             <GroupsPanel />
