@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import type { FormEvent } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -25,36 +25,44 @@ function EditProductDialog({
   onOpenChange,
   onUpdateProduct,
 }: EditProductDialogProps) {
-  const [name, setName] = useState("")
-  const [sku, setSku] = useState("")
-  const [upc, setUpc] = useState("")
-  const [type, setType] = useState("")
-  const [vendor, setVendor] = useState("")
-  const [price, setPrice] = useState("")
-  const [img, setImg] = useState("")
-  const [meta, setMeta] = useState("")
+  return (
+    <Dialog open={!!product} onOpenChange={onOpenChange}>
+      <DialogContent>
+        {product ? (
+          <EditProductForm
+            key={product._id}
+            product={product}
+            onOpenChange={onOpenChange}
+            onUpdateProduct={onUpdateProduct}
+          />
+        ) : null}
+      </DialogContent>
+    </Dialog>
+  )
+}
 
-  useEffect(() => {
-    if (!product) {
-      return
-    }
+type EditProductFormProps = {
+  product: ProductRow
+  onOpenChange: (open: boolean) => void
+  onUpdateProduct: (productId: ProductRow["_id"], product: ProductInput) => Promise<void> | void
+}
 
-    setName(product.name)
-    setSku(product.sku ?? "")
-    setUpc(product.upc ?? "")
-    setType(product.type ?? "")
-    setVendor(product.vendor ?? "")
-    setPrice(String(product.price))
-    setImg(product.img ?? "")
-    setMeta(formatMeta(product.meta))
-  }, [product])
+function EditProductForm({
+  product,
+  onOpenChange,
+  onUpdateProduct,
+}: EditProductFormProps) {
+  const [name, setName] = useState(product.name)
+  const [sku, setSku] = useState(product.sku ?? "")
+  const [upc, setUpc] = useState(product.upc ?? "")
+  const [type, setType] = useState(product.type ?? "")
+  const [vendor, setVendor] = useState(product.vendor ?? "")
+  const [price, setPrice] = useState(String(product.price))
+  const [img, setImg] = useState(product.img ?? "")
+  const [meta, setMeta] = useState(formatMeta(product.meta))
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-
-    if (!product) {
-      return
-    }
 
     const parsedPrice = Number(price)
     if (!name.trim() || !price.trim() || !Number.isFinite(parsedPrice)) {
@@ -75,27 +83,25 @@ function EditProductDialog({
   }
 
   return (
-    <Dialog open={!!product} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Edit product</DialogTitle>
-          <DialogDescription>Update the product details for this row.</DialogDescription>
-        </DialogHeader>
-        <form className="grid gap-4" onSubmit={handleSubmit}>
-          <ProductField id="edit-product-name" label="Product name" value={name} onChange={setName} />
-          <ProductField id="edit-product-sku" label="SKU" value={sku} onChange={setSku} />
-          <ProductField id="edit-product-upc" label="UPC" value={upc} onChange={setUpc} />
-          <ProductField id="edit-product-type" label="Type" value={type} onChange={setType} />
-          <ProductField id="edit-product-vendor" label="Vendor" value={vendor} onChange={setVendor} />
-          <ProductField id="edit-product-price" label="Price" type="number" value={price} onChange={setPrice} />
-          <ProductField id="edit-product-img" label="Image URL" value={img} onChange={setImg} />
-          <ProductField id="edit-product-meta" label="Meta JSON" value={meta} onChange={setMeta} />
-          <DialogFooter>
-            <Button type="submit">Save changes</Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+    <>
+      <DialogHeader>
+        <DialogTitle>Edit product</DialogTitle>
+        <DialogDescription>Update the product details for this row.</DialogDescription>
+      </DialogHeader>
+      <form className="grid gap-4" onSubmit={handleSubmit}>
+        <ProductField id="edit-product-name" label="Product name" value={name} onChange={setName} />
+        <ProductField id="edit-product-sku" label="SKU" value={sku} onChange={setSku} />
+        <ProductField id="edit-product-upc" label="UPC" value={upc} onChange={setUpc} />
+        <ProductField id="edit-product-type" label="Type" value={type} onChange={setType} />
+        <ProductField id="edit-product-vendor" label="Vendor" value={vendor} onChange={setVendor} />
+        <ProductField id="edit-product-price" label="Price" type="number" value={price} onChange={setPrice} />
+        <ProductField id="edit-product-img" label="Image URL" value={img} onChange={setImg} />
+        <ProductField id="edit-product-meta" label="Meta JSON" value={meta} onChange={setMeta} />
+        <DialogFooter>
+          <Button type="submit">Save changes</Button>
+        </DialogFooter>
+      </form>
+    </>
   )
 }
 

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { useMutation, useQuery } from "convex/react"
 
 import { readStoredSession, type AuthResult } from "@/authSession"
@@ -9,15 +9,19 @@ import ProductMobileActions from "./ProductMobileActions"
 import ProductMobileList from "./ProductMobileList"
 import ProductRowContextMenu from "./ProductRowContextMenu"
 import ProductTaskBar from "./ProductTaskBar"
-import { productColumns } from "./productColumns"
+import { createProductColumns } from "./productColumns"
 import { filterProducts } from "./productSearch"
 import { sortProducts, type ProductSort } from "./productSort"
-import type { ProductInput, ProductRow } from "./productTableData"
+import type { ProductEditableField, ProductInput, ProductRow } from "./productTableData"
+
+const EMPTY_PRODUCTS: ProductRow[] = []
+type OptimisticProductPatches = Partial<Record<ProductRow["_id"], Partial<ProductRow>>>
 
 function ProductsPanel() {
   const [search, setSearch] = useState("")
   const [mobileSort, setMobileSort] = useState<ProductSort>("updated")
   const [editingProduct, setEditingProduct] = useState<ProductRow | null>(null)
+  const [optimisticPatches, setOptimisticPatches] = useState<OptimisticProductPatches>({})
   const [session] = useState(readStoredSession)
   const products = useQuery(
     api.products.list,
@@ -27,7 +31,10 @@ function ProductsPanel() {
   const createProducts = useMutation(api.products.createMany)
   const updateProductMutation = useMutation(api.products.update)
   const deleteProductMutation = useMutation(api.products.remove)
-  const productRows = products ?? []
+  const productRows = useMemo(
+    () => (products ?? EMPTY_PRODUCTS).map((product) => ({ ...product, ...optimisticPatches[product._id] })),
+    [optimisticPatches, products]
+  )
   const addProduct = async (product: ProductInput) => {
     if (!session) {
       return
@@ -49,7 +56,45 @@ function ProductsPanel() {
 
     await updateProductMutation({ sessionToken: session.sessionToken, productId, product })
   }
-  const deleteProduct = async (product: ProductRow) => {
+  const updateProductField = useCallback(async (
+    product: ProductRow,
+    field: ProductEditableField,
+    value: string
+  ) => {
+    if (!session) {
+      return false
+    }
+
+    const fieldValue = parseProductField(field, value)
+    if (fieldValue === null) {
+      return false
+    }
+
+    const nextProduct = { ...toProductInput(product), [field]: fieldValue }
+    const updatedAt = Date.now()
+    setOptimisticPatches((patches) => ({
+      ...patches,
+      [product._id]: { ...patches[product._id], [field]: fieldValue, updatedAt },
+    }))
+
+    try {
+      await updateProductMutation({
+        sessionToken: session.sessionToken,
+        productId: product._id,
+        product: nextProduct,
+      })
+      return true
+    } catch (error) {
+      setOptimisticPatches((patches) => {
+        const rest = { ...patches }
+        delete rest[product._id]
+        return rest
+      })
+      window.alert(error instanceof Error ? error.message : "Could not update product.")
+      return false
+    }
+  }, [session, updateProductMutation])
+  const deleteProduct = useCallback(async (product: ProductRow) => {
     if (!session) {
       return
     }
@@ -63,7 +108,7 @@ function ProductsPanel() {
       sessionToken: session.sessionToken,
       productId: product._id,
     })
-  }
+  }, [deleteProductMutation, session])
   const filteredProducts = useMemo(
     () => filterProducts(productRows, search),
     [productRows, search]
@@ -71,6 +116,10 @@ function ProductsPanel() {
   const mobileProducts = useMemo(
     () => sortProducts(filteredProducts, mobileSort),
     [filteredProducts, mobileSort]
+  )
+  const columns = useMemo(
+    () => createProductColumns({ onFieldCommit: updateProductField }),
+    [updateProductField]
   )
 
   return (
@@ -85,6 +134,8 @@ function ProductsPanel() {
         <ProductMobileList
           products={mobileProducts}
           emptyMessage={getProductsMessage(session, products)}
+          onEdit={setEditingProduct}
+          onDelete={deleteProduct}
         />
       </div>
       <ProductMobileActions
@@ -94,7 +145,7 @@ function ProductsPanel() {
       />
       <div className="hidden min-w-0 md:block">
         <VirtualDataTable
-          columns={productColumns}
+          columns={columns}
           data={filteredProducts}
           emptyMessage={getProductsMessage(session, products)}
           height={460}
@@ -133,6 +184,32 @@ function getProductsMessage(
   }
 
   return "No products scanned yet."
+}
+
+function toProductInput(product: ProductRow): ProductInput {
+  return {
+    sku: product.sku,
+    upc: product.upc,
+    name: product.name,
+    img: product.img,
+    type: product.type,
+    vendor: product.vendor,
+    price: product.price,
+    meta: product.meta,
+  }
+}
+
+function parseProductField(field: ProductEditableField, value: string) {
+  if (field === "price") {
+    const price = Number(value)
+    return value.trim() && Number.isFinite(price) ? price : null
+  }
+
+  if (field === "name") {
+    return value.trim() || null
+  }
+
+  return value.trim() || undefined
 }
 
 export default ProductsPanel

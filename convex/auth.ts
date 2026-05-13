@@ -15,6 +15,8 @@ import { internal } from "./_generated/api";
 import type { Doc } from "./_generated/dataModel";
 import { action } from "./_generated/server";
 
+// The generated internal API type can create recursive action inference in this file.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const internalApi = internal as any;
 
 const OTP_MINUTES = 10;

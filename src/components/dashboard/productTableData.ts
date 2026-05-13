@@ -12,3 +12,4 @@ export type ProductInput = {
 }
 
 export type ProductRow = Doc<"products">
+export type ProductEditableField = "sku" | "upc" | "name" | "img" | "type" | "vendor" | "price"

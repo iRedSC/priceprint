@@ -8,19 +8,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import ProductActionMenu from "./ProductActionMenu"
 import { formatProductDate, formatProductMeta, formatProductPrice } from "./productFormat"
 import type { ProductRow } from "./productTableData"
 
 type ProductMobileCardProps = {
   product: ProductRow
+  onEdit: (product: ProductRow) => void
+  onDelete: (product: ProductRow) => void
 }
 
-function ProductMobileCard({ product }: ProductMobileCardProps) {
+function ProductMobileCard({ product, onEdit, onDelete }: ProductMobileCardProps) {
   const meta = formatProductMeta(product.meta)
 
   return (
     <Card size="sm" className="gap-2 py-3">
-      <CardHeader className="grid-cols-[minmax(0,1fr)_auto] gap-2 px-3.5">
+      <CardHeader className="grid-cols-[minmax(0,1fr)_auto_auto] gap-2 px-3.5">
         <div className="min-w-0">
           <CardTitle className="line-clamp-2 text-base">{product.name}</CardTitle>
           <CardDescription className="mt-1 flex flex-wrap gap-1.5">
@@ -36,6 +39,7 @@ function ProductMobileCard({ product }: ProductMobileCardProps) {
         <div className="min-w-20 text-right">
           <div className="text-lg font-semibold">{formatProductPrice(product.price)}</div>
         </div>
+        <ProductActionMenu product={product} onEdit={onEdit} onDelete={onDelete} />
       </CardHeader>
       <CardContent className="flex items-end justify-between gap-3 px-3.5">
         <div className="grid min-w-0 gap-1">

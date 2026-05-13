@@ -4,11 +4,15 @@ import type { ProductRow } from "./productTableData"
 type ProductMobileListProps = {
   products: ProductRow[]
   emptyMessage?: string
+  onEdit: (product: ProductRow) => void
+  onDelete: (product: ProductRow) => void
 }
 
 function ProductMobileList({
   products,
   emptyMessage = "No products scanned yet.",
+  onEdit,
+  onDelete,
 }: ProductMobileListProps) {
   if (!products.length) {
     return (
@@ -24,6 +28,8 @@ function ProductMobileList({
         <ProductMobileCard
           key={`${product.sku ?? product.upc ?? product.name}-${product.createdAt}`}
           product={product}
+          onEdit={onEdit}
+          onDelete={onDelete}
         />
       ))}
     </div>
