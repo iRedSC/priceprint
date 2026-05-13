@@ -46,7 +46,7 @@ function DashboardPage() {
         <Tabs value={section} onValueChange={handleSectionChange} className="min-w-0">
           <TabsList
             aria-label="Dashboard sections"
-            className="safe-area-bottom-nav fixed z-50 w-auto rounded-2xl bg-background/95 shadow-lg ring-1 ring-foreground/10 backdrop-blur sm:rounded-xl"
+            className="safe-area-bottom-nav fixed z-50 h-16 w-auto rounded-3xl bg-background/95 p-2 shadow-lg ring-1 ring-foreground/10 backdrop-blur sm:h-auto sm:rounded-xl sm:p-1"
           >
             <DashboardTabTrigger
               value="dashboard"

@@ -2,6 +2,7 @@ import { useState } from "react"
 import { ArrowUpDown } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import {
   Dialog,
   DialogContent,
@@ -19,9 +20,14 @@ import {
 type ProductSortButtonProps = {
   sort: ProductSort
   onSortChange: (sort: ProductSort) => void
+  triggerClassName?: string
 }
 
-function ProductSortButton({ sort, onSortChange }: ProductSortButtonProps) {
+function ProductSortButton({
+  sort,
+  onSortChange,
+  triggerClassName,
+}: ProductSortButtonProps) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -32,7 +38,7 @@ function ProductSortButton({ sort, onSortChange }: ProductSortButtonProps) {
           variant="outline"
           size="icon"
           aria-label={`Sort products by ${productSortLabels[sort]}`}
-          className="touch-manipulation"
+          className={cn("touch-manipulation", triggerClassName)}
         >
           <ArrowUpDown />
         </Button>

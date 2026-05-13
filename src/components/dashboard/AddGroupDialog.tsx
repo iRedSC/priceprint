@@ -3,6 +3,7 @@ import type { FormEvent } from "react"
 import { Plus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import {
   Dialog,
   DialogContent,
@@ -17,9 +18,10 @@ import { Label } from "@/components/ui/label"
 
 type AddGroupDialogProps = {
   onAddGroup: (name: string) => Promise<void> | void
+  triggerClassName?: string
 }
 
-function AddGroupDialog({ onAddGroup }: AddGroupDialogProps) {
+function AddGroupDialog({ onAddGroup, triggerClassName }: AddGroupDialogProps) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
 
@@ -37,7 +39,11 @@ function AddGroupDialog({ onAddGroup }: AddGroupDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="icon" aria-label="Add group" className="touch-manipulation">
+        <Button
+          size="icon"
+          aria-label="Add group"
+          className={cn("touch-manipulation", triggerClassName)}
+        >
           <Plus />
         </Button>
       </DialogTrigger>

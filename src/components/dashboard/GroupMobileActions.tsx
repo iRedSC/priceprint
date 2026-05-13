@@ -7,7 +7,10 @@ type GroupMobileActionsProps = {
 function GroupMobileActions({ onAddGroup }: GroupMobileActionsProps) {
   return (
     <div className="safe-area-group-actions fixed z-40 md:hidden">
-      <AddGroupDialog onAddGroup={onAddGroup} />
+      <AddGroupDialog
+        onAddGroup={onAddGroup}
+        triggerClassName="size-16 rounded-full shadow-xl ring-1 ring-foreground/10 [&_svg]:size-8"
+      />
     </div>
   )
 }

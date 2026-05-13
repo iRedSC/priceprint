@@ -129,6 +129,8 @@ function ProductsPanel() {
         onSearchChange={setSearch}
         onAddProduct={addProduct}
         onUploadProducts={uploadProducts}
+        sort={mobileSort}
+        onSortChange={setMobileSort}
       />
       <div className="md:hidden">
         <ProductMobileList
@@ -138,11 +140,7 @@ function ProductsPanel() {
           onDelete={deleteProduct}
         />
       </div>
-      <ProductMobileActions
-        onAddProduct={addProduct}
-        sort={mobileSort}
-        onSortChange={setMobileSort}
-      />
+      <ProductMobileActions onAddProduct={addProduct} />
       <div className="hidden min-w-0 md:block">
         <VirtualDataTable
           columns={columns}

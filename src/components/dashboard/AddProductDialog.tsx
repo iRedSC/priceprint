@@ -4,6 +4,7 @@ import { Plus } from "lucide-react"
 
 import ProductDialogField from "@/components/dashboard/ProductDialogField"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import {
   Dialog,
   DialogContent,
@@ -18,9 +19,10 @@ import { productDialogFields } from "./productDialogFields"
 
 type AddProductDialogProps = {
   onAddProduct: (product: ProductInput) => Promise<void> | void
+  triggerClassName?: string
 }
 
-function AddProductDialog({ onAddProduct }: AddProductDialogProps) {
+function AddProductDialog({ onAddProduct, triggerClassName }: AddProductDialogProps) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [sku, setSku] = useState("")
@@ -86,7 +88,11 @@ function AddProductDialog({ onAddProduct }: AddProductDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="icon" aria-label="Add product" className="touch-manipulation">
+        <Button
+          size="icon"
+          aria-label="Add product"
+          className={cn("touch-manipulation", triggerClassName)}
+        >
           <Plus />
         </Button>
       </DialogTrigger>

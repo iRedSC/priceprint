@@ -14,8 +14,8 @@ function DashboardTabTrigger({
   value,
 }: DashboardTabTriggerProps) {
   return (
-    <TabsTrigger value={value} className="flex-1 px-2" aria-label={label}>
-      <Icon aria-hidden="true" className="size-4 sm:hidden" />
+    <TabsTrigger value={value} className="h-12 flex-1 px-3 sm:h-9 sm:px-2" aria-label={label}>
+      <Icon aria-hidden="true" className="size-6 sm:hidden" />
       <span className="hidden sm:inline">{label}</span>
     </TabsTrigger>
   )

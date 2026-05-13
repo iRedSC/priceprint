@@ -1,21 +1,13 @@
 import { useEffect, useRef, useState } from "react"
 
 import AddProductDialog from "./AddProductDialog"
-import ProductSortButton from "./ProductSortButton"
-import type { ProductSort } from "./productSort"
 import type { ProductInput } from "./productTableData"
 
 type ProductMobileActionsProps = {
   onAddProduct: (product: ProductInput) => Promise<void> | void
-  sort: ProductSort
-  onSortChange: (sort: ProductSort) => void
 }
 
-function ProductMobileActions({
-  onAddProduct,
-  sort,
-  onSortChange,
-}: ProductMobileActionsProps) {
+function ProductMobileActions({ onAddProduct }: ProductMobileActionsProps) {
   const actionsRef = useRef<HTMLDivElement>(null)
   const restoreRef = useRef<number | null>(null)
   const [interacting, setInteracting] = useState(false)
@@ -60,12 +52,14 @@ function ProductMobileActions({
   return (
     <div
       ref={actionsRef}
-      className={`safe-area-product-actions fixed z-40 flex gap-2 rounded-2xl bg-background/95 p-2 shadow-lg ring-1 ring-foreground/10 backdrop-blur transition-opacity duration-150 md:hidden ${
+      className={`safe-area-product-actions fixed z-40 transition-opacity duration-150 md:hidden ${
         interacting ? "opacity-25" : "opacity-100"
       }`}
     >
-      <AddProductDialog onAddProduct={onAddProduct} />
-      <ProductSortButton sort={sort} onSortChange={onSortChange} />
+      <AddProductDialog
+        onAddProduct={onAddProduct}
+        triggerClassName="size-16 rounded-full shadow-xl ring-1 ring-foreground/10 [&_svg]:size-8"
+      />
     </div>
   )
 }
