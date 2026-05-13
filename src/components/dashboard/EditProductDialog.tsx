@@ -1,6 +1,7 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import type { FormEvent } from "react"
 
+import ProductDialogField from "@/components/dashboard/ProductDialogField"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -10,9 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import type { ProductInput, ProductRow } from "./productTableData"
+import { productDialogFields } from "./productDialogFields"
 
 type EditProductDialogProps = {
   product: ProductRow | null
@@ -60,6 +60,29 @@ function EditProductForm({
   const [price, setPrice] = useState(String(product.price))
   const [img, setImg] = useState(product.img ?? "")
   const [meta, setMeta] = useState(formatMeta(product.meta))
+  const inputRefs = useRef<Array<HTMLInputElement | null>>([])
+
+  const values = {
+    name,
+    sku,
+    upc,
+    type,
+    vendor,
+    price,
+    img,
+    meta,
+  }
+
+  const changeHandlers = {
+    name: setName,
+    sku: setSku,
+    upc: setUpc,
+    type: setType,
+    vendor: setVendor,
+    price: setPrice,
+    img: setImg,
+    meta: setMeta,
+  }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -89,42 +112,24 @@ function EditProductForm({
         <DialogDescription>Update the product details for this row.</DialogDescription>
       </DialogHeader>
       <form className="grid gap-4" onSubmit={handleSubmit}>
-        <ProductField id="edit-product-name" label="Product name" value={name} onChange={setName} />
-        <ProductField id="edit-product-sku" label="SKU" value={sku} onChange={setSku} />
-        <ProductField id="edit-product-upc" label="UPC" value={upc} onChange={setUpc} />
-        <ProductField id="edit-product-type" label="Type" value={type} onChange={setType} />
-        <ProductField id="edit-product-vendor" label="Vendor" value={vendor} onChange={setVendor} />
-        <ProductField id="edit-product-price" label="Price" type="number" value={price} onChange={setPrice} />
-        <ProductField id="edit-product-img" label="Image URL" value={img} onChange={setImg} />
-        <ProductField id="edit-product-meta" label="Meta JSON" value={meta} onChange={setMeta} />
+        {productDialogFields.map((field, index) => (
+          <ProductDialogField
+            key={field.key}
+            id={`edit-product-${field.key}`}
+            config={field}
+            value={values[field.key]}
+            onChange={changeHandlers[field.key]}
+            inputRef={(node) => {
+              inputRefs.current[index] = node
+            }}
+            onAdvance={() => inputRefs.current[index + 1]?.focus()}
+          />
+        ))}
         <DialogFooter>
           <Button type="submit">Save changes</Button>
         </DialogFooter>
       </form>
     </>
-  )
-}
-
-type ProductFieldProps = {
-  id: string
-  label: string
-  type?: string
-  value: string
-  onChange: (value: string) => void
-}
-
-function ProductField({ id, label, type = "text", value, onChange }: ProductFieldProps) {
-  return (
-    <div className="grid gap-2">
-      <Label htmlFor={id}>{label}</Label>
-      <Input
-        id={id}
-        type={type}
-        step={type === "number" ? "0.01" : undefined}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-      />
-    </div>
   )
 }
 

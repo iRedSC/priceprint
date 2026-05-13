@@ -67,6 +67,10 @@ function EditGroupForm({ group, onOpenChange, onUpdateGroup }: EditGroupFormProp
           <Label htmlFor="edit-group-name">Group name</Label>
           <Input
             id="edit-group-name"
+            autoFocus
+            enterKeyHint="done"
+            autoComplete="off"
+            autoCapitalize="words"
             value={name}
             onChange={(event) => setName(event.target.value)}
           />

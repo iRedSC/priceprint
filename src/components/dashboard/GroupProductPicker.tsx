@@ -87,17 +87,25 @@ function GroupProductPicker({ group, products, onAddProducts }: GroupProductPick
           <DialogDescription>Select one or more products to add to {group.name}.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-3">
-          <Input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search name, SKU, UPC, type, or vendor"
-            className="h-10"
-          />
-          <div className="max-h-[55svh] overflow-auto rounded-xl border touch-manipulation">
+          <div className="sticky top-0 z-10 -mx-5 bg-background px-5 pb-3 sm:static sm:mx-0 sm:px-0 sm:pb-0">
+            <Input
+              autoFocus
+              type="search"
+              inputMode="search"
+              enterKeyHint="search"
+              autoComplete="off"
+              spellCheck={false}
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search name, SKU, UPC, type, or vendor"
+              className="h-11"
+            />
+          </div>
+          <div className="max-h-[min(55svh,24rem)] overflow-auto overscroll-contain rounded-xl border touch-manipulation">
             <Table>
-              <TableHeader>
+              <TableHeader className="sticky top-0 z-10 bg-background">
                 <TableRow>
-                  <TableHead className="w-12">
+                  <TableHead className="w-14">
                     <span className="sr-only">Select</span>
                   </TableHead>
                   <TableHead>Product</TableHead>
@@ -111,18 +119,22 @@ function GroupProductPicker({ group, products, onAddProducts }: GroupProductPick
                   filteredProducts.map((product) => (
                     <TableRow
                       key={product._id}
-                      className="cursor-pointer"
+                      className="cursor-pointer touch-manipulation"
                       onClick={() => toggleProduct(product._id)}
                     >
-                      <TableCell>
-                        <input
-                          type="checkbox"
-                          className="size-4 touch-manipulation"
-                          checked={selectedIds.has(product._id)}
-                          onChange={() => toggleProduct(product._id)}
+                      <TableCell className="w-14 p-0">
+                        <label
+                          className="flex min-h-12 cursor-pointer items-center justify-center"
                           onClick={(event) => event.stopPropagation()}
-                          aria-label={`Select ${product.name}`}
-                        />
+                        >
+                          <input
+                            type="checkbox"
+                            className="size-5 touch-manipulation"
+                            checked={selectedIds.has(product._id)}
+                            onChange={() => toggleProduct(product._id)}
+                            aria-label={`Select ${product.name}`}
+                          />
+                        </label>
                       </TableCell>
                       <TableCell className="font-medium">{product.name}</TableCell>
                       <TableCell>{product.sku ?? "-"}</TableCell>

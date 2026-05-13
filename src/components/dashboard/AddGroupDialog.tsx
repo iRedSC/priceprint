@@ -49,7 +49,15 @@ function AddGroupDialog({ onAddGroup }: AddGroupDialogProps) {
         <form className="grid gap-4" onSubmit={handleSubmit}>
           <div className="grid gap-2">
             <Label htmlFor="group-name">Group name</Label>
-            <Input id="group-name" value={name} onChange={(event) => setName(event.target.value)} />
+            <Input
+              id="group-name"
+              autoFocus
+              enterKeyHint="done"
+              autoComplete="off"
+              autoCapitalize="words"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+            />
           </div>
           <DialogFooter>
             <Button type="submit">Add group</Button>

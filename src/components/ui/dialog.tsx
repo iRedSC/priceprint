@@ -41,24 +41,55 @@ function DialogContent({
   children,
   showCloseButton = true,
   style,
+  onFocusCapture,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
 }) {
   const viewportVars = useDialogViewportVars()
+  const contentRef = React.useRef<HTMLDivElement | null>(null)
+
+  React.useLayoutEffect(() => {
+    contentRef.current?.scrollTo({ top: 0 })
+  }, [])
+
+  const handleFocusCapture = React.useCallback(
+    (event: React.FocusEvent<HTMLDivElement>) => {
+      onFocusCapture?.(event)
+      if (event.defaultPrevented) {
+        return
+      }
+
+      const target = event.target
+      if (!(target instanceof HTMLElement) || !contentRef.current?.contains(target)) {
+        return
+      }
+
+      window.requestAnimationFrame(() => {
+        target.scrollIntoView({ block: "nearest", inline: "nearest" })
+      })
+    },
+    [onFocusCapture]
+  )
 
   return (
     <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Content
         data-slot="dialog-content"
+        ref={contentRef}
         className={cn(
-          "fixed inset-x-0 bottom-[var(--dialog-keyboard-inset)] z-50 grid max-h-[calc(var(--dialog-viewport-height)-0.75rem)] gap-5 overflow-y-auto overscroll-contain rounded-t-3xl border bg-background p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] text-base shadow-lg touch-manipulation sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl sm:p-6 sm:text-sm [&_[data-slot=button]]:min-h-11 sm:[&_[data-slot=button]]:min-h-8 [&_[data-slot=input]]:min-h-11 [&_[data-slot=input]]:px-3 sm:[&_[data-slot=input]]:min-h-8 sm:[&_[data-slot=input]]:px-2.5 [&_[data-slot=label]]:text-base sm:[&_[data-slot=label]]:text-sm [&_[data-slot=table]]:text-base sm:[&_[data-slot=table]]:text-sm",
+          "fixed inset-x-0 bottom-[var(--dialog-keyboard-inset)] z-50 grid max-h-[calc(var(--dialog-viewport-height)-0.75rem)] gap-5 overflow-y-auto overscroll-contain rounded-t-3xl border bg-background px-5 pt-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] text-base shadow-lg touch-manipulation sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl sm:px-6 sm:pt-6 sm:text-sm [&_[data-slot=button]]:min-h-11 sm:[&_[data-slot=button]]:min-h-8 [&_[data-slot=input]]:min-h-11 [&_[data-slot=input]]:px-3 sm:[&_[data-slot=input]]:min-h-8 sm:[&_[data-slot=input]]:px-2.5 [&_[data-slot=label]]:text-base sm:[&_[data-slot=label]]:text-sm [&_[data-slot=table]]:text-base sm:[&_[data-slot=table]]:text-sm",
           className
         )}
         style={{ ...viewportVars, ...style }}
+        onFocusCapture={handleFocusCapture}
         {...props}
       >
+        <div
+          aria-hidden="true"
+          className="mx-auto h-1.5 w-12 rounded-full bg-muted-foreground/30 sm:hidden"
+        />
         {children}
         {showCloseButton && (
           <DialogPrimitive.Close className="absolute top-3 right-3 inline-flex size-10 touch-manipulation items-center justify-center rounded-full opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none sm:size-8">
@@ -126,7 +157,7 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="dialog-footer"
       className={cn(
-        "flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-2 [&_[data-slot=button]]:w-full sm:[&_[data-slot=button]]:w-auto",
+        "sticky bottom-[calc(-1*max(1.25rem,env(safe-area-inset-bottom)))] -mx-5 mt-1 flex flex-col-reverse gap-3 border-t bg-background/95 px-5 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur supports-[backdrop-filter]:bg-background/85 sm:static sm:mx-0 sm:flex-row sm:justify-end sm:gap-2 sm:border-0 sm:bg-transparent sm:px-0 sm:pt-0 sm:pb-0 sm:backdrop-blur-none [&_[data-slot=button]]:w-full sm:[&_[data-slot=button]]:w-auto",
         className
       )}
       {...props}
