@@ -194,17 +194,26 @@
   .safe-area-bottom-nav {
     right: calc(1rem + env(safe-area-inset-right, 0px));
     bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(
+      1rem + env(safe-area-inset-bottom, 0px) + 100dvh - 100svh
+    );
     left: calc(1rem + env(safe-area-inset-left, 0px));
   }
 
   .safe-area-product-actions {
     bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(
+      5.75rem + env(safe-area-inset-bottom, 0px) + 100dvh - 100svh
+    );
     left: 50%;
     transform: translateX(-50%);
   }
 
   .safe-area-group-actions {
     bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(
+      5.75rem + env(safe-area-inset-bottom, 0px) + 100dvh - 100svh
+    );
     left: 50%;
     transform: translateX(-50%);
   }
