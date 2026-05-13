@@ -6,10 +6,12 @@ import VirtualDataTable from "@/components/data-table/VirtualDataTable"
 import { api } from "../../../convex/_generated/api"
 import { createGroupColumns } from "./groupColumns"
 import { filterGroups } from "./groupSearch"
+import EditGroupDialog from "./EditGroupDialog"
 import type { GroupProduct, GroupRow } from "./groupTableData"
 import GroupMobileActions from "./GroupMobileActions"
 import GroupMobileList from "./GroupMobileList"
 import GroupProductsDialog from "./GroupProductsDialog"
+import GroupRowContextMenu from "./GroupRowContextMenu"
 import GroupTaskBar from "./GroupTaskBar"
 import type { ProductRow } from "./productTableData"
 
@@ -19,6 +21,7 @@ const EMPTY_PRODUCTS: ProductRow[] = []
 function GroupsPanel() {
   const [search, setSearch] = useState("")
   const [selectedGroupId, setSelectedGroupId] = useState<GroupRow["_id"] | null>(null)
+  const [editingGroup, setEditingGroup] = useState<GroupRow | null>(null)
   const [session] = useState(readStoredSession)
   const groups = useQuery(
     api.groups.list,
@@ -29,6 +32,8 @@ function GroupsPanel() {
     session ? { sessionToken: session.sessionToken } : "skip"
   )
   const createGroup = useMutation(api.groups.create)
+  const updateGroupMutation = useMutation(api.groups.update)
+  const deleteGroupMutation = useMutation(api.groups.remove)
   const addGroupProducts = useMutation(api.groups.addProducts)
   const removeGroupProduct = useMutation(api.groups.removeProduct)
   const groupRows = groups ?? EMPTY_GROUPS
@@ -39,6 +44,7 @@ function GroupsPanel() {
     [groupRows, selectedGroupId]
   )
   const columns = useMemo(() => createGroupColumns(), [])
+  const openGroup = (group: GroupRow) => setSelectedGroupId(group._id)
 
   const addGroup = async (name: string) => {
     if (!session) {
@@ -46,6 +52,29 @@ function GroupsPanel() {
     }
 
     await createGroup({ sessionToken: session.sessionToken, name })
+  }
+
+  const updateGroup = async (groupId: GroupRow["_id"], name: string) => {
+    if (!session) {
+      return
+    }
+
+    await updateGroupMutation({ sessionToken: session.sessionToken, groupId, name })
+  }
+
+  const deleteGroup = async (group: GroupRow) => {
+    if (!session) {
+      return
+    }
+
+    const shouldDelete = window.confirm(`Delete "${group.name}"?`)
+    if (!shouldDelete) {
+      return
+    }
+
+    await deleteGroupMutation({ sessionToken: session.sessionToken, groupId: group._id })
+    setEditingGroup((current) => (current?._id === group._id ? null : current))
+    setSelectedGroupId((current) => (current === group._id ? null : current))
   }
 
   const addProducts = async (group: GroupRow, productIds: ProductRow["_id"][]) => {
@@ -75,7 +104,9 @@ function GroupsPanel() {
         <GroupMobileList
           groups={filteredGroups}
           emptyMessage={getGroupsMessage(session, groups)}
-          onOpen={(group) => setSelectedGroupId(group._id)}
+          onOpen={openGroup}
+          onEdit={setEditingGroup}
+          onDelete={deleteGroup}
         />
       </div>
       <GroupMobileActions onAddGroup={addGroup} />
@@ -86,9 +117,26 @@ function GroupsPanel() {
           emptyMessage={getGroupsMessage(session, groups)}
           height={460}
           rowHeight={56}
-          onRowClick={(group) => setSelectedGroupId(group._id)}
+          onRowClick={openGroup}
+          renderRowMenu={(group) => (
+            <GroupRowContextMenu
+              group={group}
+              onOpen={openGroup}
+              onEdit={setEditingGroup}
+              onDelete={deleteGroup}
+            />
+          )}
         />
       </div>
+      <EditGroupDialog
+        group={editingGroup}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingGroup(null)
+          }
+        }}
+        onUpdateGroup={updateGroup}
+      />
       <GroupProductsDialog
         group={selectedGroup}
         products={productRows}

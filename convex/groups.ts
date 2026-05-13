@@ -94,6 +94,59 @@ export const create = mutation({
   },
 });
 
+export const update = mutation({
+  args: {
+    sessionToken: v.string(),
+    groupId: v.id("groups"),
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const name = args.name.trim();
+    if (!name) {
+      throw new ConvexError("Group name is required.");
+    }
+
+    const userId = await getSessionUserId(ctx, args.sessionToken);
+    const group = await ctx.db.get(args.groupId);
+
+    if (!group || group.userId !== userId) {
+      throw new ConvexError("Group not found.");
+    }
+
+    await ctx.db.patch(args.groupId, {
+      name,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+export const remove = mutation({
+  args: {
+    sessionToken: v.string(),
+    groupId: v.id("groups"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getSessionUserId(ctx, args.sessionToken);
+    const group = await ctx.db.get(args.groupId);
+
+    if (!group || group.userId !== userId) {
+      throw new ConvexError("Group not found.");
+    }
+
+    const joins = await ctx.db
+      .query("productGroups")
+      .withIndex("by_group", (q) => q.eq("groupId", args.groupId))
+      .collect();
+
+    await Promise.all([
+      ...joins
+        .filter((join) => join.userId === userId)
+        .map((join) => ctx.db.delete(join._id)),
+      ctx.db.delete(args.groupId),
+    ]);
+  },
+});
+
 export const addProduct = mutation({
   args: {
     sessionToken: v.string(),
