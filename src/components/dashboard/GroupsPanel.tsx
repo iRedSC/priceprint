@@ -3,9 +3,13 @@ import { useAction, useMutation, useQuery } from "convex/react"
 
 import { readStoredSession, type AuthResult } from "@/authSession"
 import VirtualDataTable from "@/components/data-table/VirtualDataTable"
+import { sendLabelLiveJobs } from "@/lib/labelLiveBatch"
+import { productToLabelLiveVariables } from "@/lib/productLabelVariables"
 import { api } from "../../../convex/_generated/api"
 import { createGroupColumns } from "./groupColumns"
 import { filterGroups } from "./groupSearch"
+import type { GroupPrintScope } from "./groupPrintSelection"
+import { selectGroupProductsForPrint } from "./groupPrintSelection"
 import EditGroupDialog from "./EditGroupDialog"
 import type { GroupProduct, GroupRow } from "./groupTableData"
 import GroupMobileActions from "./GroupMobileActions"
@@ -31,6 +35,10 @@ function GroupsPanel() {
   )
   const products = useQuery(
     api.products.list,
+    session ? { sessionToken: session.sessionToken } : "skip"
+  )
+  const labelLiveDesignName = useQuery(
+    api.userPrefs.getLabelLiveDesign,
     session ? { sessionToken: session.sessionToken } : "skip"
   )
   const createGroup = useMutation(api.groups.create)
@@ -120,6 +128,44 @@ function GroupsPanel() {
     })
   }
 
+  const printGroupToLabelLive = async (group: GroupRow, scope: GroupPrintScope) => {
+    if (!session) {
+      window.alert("Sign in again to print.")
+      return
+    }
+
+    if (labelLiveDesignName === undefined) {
+      window.alert("Loading printer settings. Try again in a moment.")
+      return
+    }
+
+    const trimmedDesign = labelLiveDesignName?.trim()
+
+    if (!trimmedDesign) {
+      window.alert("Add your Label LIVE design name under Connections first.")
+      return
+    }
+
+    const picks = selectGroupProductsForPrint(group, scope)
+
+    if (!picks.length) {
+      window.alert("No products match this print option.")
+      return
+    }
+
+    const jobs = picks.map((product) => ({
+      design: trimmedDesign,
+      variables: productToLabelLiveVariables(product),
+    }))
+
+    try {
+      await sendLabelLiveJobs(jobs)
+      window.alert(`Sent ${jobs.length} label job(s) to Label LIVE.`)
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Could not reach Label LIVE.")
+    }
+  }
+
   return (
     <section className="grid min-w-0 gap-3">
       <GroupTaskBar search={search} onSearchChange={setSearch} onAddGroup={addGroup} />
@@ -131,6 +177,7 @@ function GroupsPanel() {
           onEdit={setEditingGroup}
           onDelete={deleteGroup}
           onScan={(group) => setScanningGroupId(group._id)}
+          onPrintGroup={printGroupToLabelLive}
         />
       </div>
       <GroupMobileActions onAddGroup={addGroup} />
@@ -148,6 +195,7 @@ function GroupsPanel() {
               onOpen={openGroup}
               onEdit={setEditingGroup}
               onDelete={deleteGroup}
+              onPrintGroup={printGroupToLabelLive}
             />
           )}
         />

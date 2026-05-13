@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { ScanBarcode } from "lucide-react"
 import { formatGroupDate } from "./groupFormat"
 import { countOutOfDateProducts, countUnprintedProducts } from "./groupPrintCounts"
+import type { GroupPrintScope } from "./groupPrintSelection"
 import type { GroupRow } from "./groupTableData"
 import GroupActionMenu from "./GroupActionMenu"
 import GroupPrintSummaryChips from "./GroupPrintSummaryChips"
@@ -19,9 +20,10 @@ type GroupMobileCardProps = {
   onEdit: (group: GroupRow) => void
   onDelete: (group: GroupRow) => void
   onScan: (group: GroupRow) => void
+  onPrintGroup: (group: GroupRow, scope: GroupPrintScope) => void
 }
 
-function GroupMobileCard({ group, onOpen, onEdit, onDelete, onScan }: GroupMobileCardProps) {
+function GroupMobileCard({ group, onOpen, onEdit, onDelete, onScan, onPrintGroup }: GroupMobileCardProps) {
   const unprinted = countUnprintedProducts(group)
   const outOfDate = countOutOfDateProducts(group)
 
@@ -40,6 +42,7 @@ function GroupMobileCard({ group, onOpen, onEdit, onDelete, onScan }: GroupMobil
           onOpen={onOpen}
           onEdit={onEdit}
           onDelete={onDelete}
+          onPrintGroup={onPrintGroup}
         />
       </CardHeader>
       <CardContent className="flex items-center justify-between gap-2 px-3.5 text-xs text-muted-foreground">

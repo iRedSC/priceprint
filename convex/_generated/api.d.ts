@@ -15,6 +15,7 @@ import type * as http from "../http.js";
 import type * as products from "../products.js";
 import type * as shopify from "../shopify.js";
 import type * as shopifyModel from "../shopifyModel.js";
+import type * as userPrefs from "../userPrefs.js";
 
 import type {
   ApiFromModules,
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   products: typeof products;
   shopify: typeof shopify;
   shopifyModel: typeof shopifyModel;
+  userPrefs: typeof userPrefs;
 }>;
 
 /**

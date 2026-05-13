@@ -1,4 +1,4 @@
-import { FolderOpen, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { FolderOpen, MoreHorizontal, Pencil, Printer, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import type { GroupPrintScope } from "./groupPrintSelection"
 import type { GroupRow } from "./groupTableData"
 
 type GroupActionMenuProps = {
@@ -16,9 +17,10 @@ type GroupActionMenuProps = {
   onOpen: (group: GroupRow) => void
   onEdit: (group: GroupRow) => void
   onDelete: (group: GroupRow) => void
+  onPrintGroup: (group: GroupRow, scope: GroupPrintScope) => void
 }
 
-function GroupActionMenu({ group, onOpen, onEdit, onDelete }: GroupActionMenuProps) {
+function GroupActionMenu({ group, onOpen, onEdit, onDelete, onPrintGroup }: GroupActionMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -43,6 +45,20 @@ function GroupActionMenu({ group, onOpen, onEdit, onDelete }: GroupActionMenuPro
           <Pencil />
           Edit
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => onPrintGroup(group, "all")}>
+          <Printer />
+          Print all
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => onPrintGroup(group, "out-of-date")}>
+          <Printer />
+          Print out of date
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => onPrintGroup(group, "unprinted")}>
+          <Printer />
+          Print unprinted
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onSelect={() => onDelete(group)}>
           <Trash2 />
           Delete
