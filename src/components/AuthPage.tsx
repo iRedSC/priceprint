@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { readStoredSession, type AuthResult } from '@/authSession'
+import type { AuthResult } from '@/authSession'
 import {
   Card,
   CardContent,
@@ -7,13 +6,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import AuthStatus from './AuthStatus'
 import EmailOtpSetup from './EmailOtpSetup'
 import PasskeySignIn from './PasskeySignIn'
 
-function AuthPage() {
-  const [session, setSession] = useState<AuthResult | null>(readStoredSession)
+type AuthPageProps = {
+  onSignedIn: (session: AuthResult) => void
+}
 
+function AuthPage({ onSignedIn }: AuthPageProps) {
   return (
     <main className="min-h-svh bg-muted/30 px-4 py-6 text-foreground sm:px-6 lg:px-8">
       <div className="mx-auto grid min-h-[calc(100svh-3rem)] w-full max-w-5xl content-center gap-8 lg:grid-cols-[1fr_420px] lg:items-center">
@@ -29,26 +29,20 @@ function AuthPage() {
         </section>
 
         <section className="grid gap-4" aria-label="Authentication options">
-          {session ? (
-            <AuthStatus session={session} onSignOut={() => setSession(null)} />
-          ) : (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardDescription>Returning user</CardDescription>
-                  <CardTitle>Use your passkey</CardTitle>
-                </CardHeader>
-                <CardContent className="grid gap-4">
-                  <p className="text-sm text-muted-foreground">
-                    Your browser will ask for your fingerprint, face, PIN, or
-                    security key.
-                  </p>
-                  <PasskeySignIn onSignedIn={setSession} />
-                </CardContent>
-              </Card>
-              <EmailOtpSetup onSignedIn={setSession} />
-            </>
-          )}
+          <Card>
+            <CardHeader>
+              <CardDescription>Returning user</CardDescription>
+              <CardTitle>Use your passkey</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <p className="text-sm text-muted-foreground">
+                Your browser will ask for your fingerprint, face, PIN, or
+                security key.
+              </p>
+              <PasskeySignIn onSignedIn={onSignedIn} />
+            </CardContent>
+          </Card>
+          <EmailOtpSetup onSignedIn={onSignedIn} />
         </section>
       </div>
     </main>

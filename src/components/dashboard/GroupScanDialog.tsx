@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -31,6 +31,13 @@ function GroupScanDialog({ group, onOpenChange, onScanProduct }: GroupScanDialog
   const updateFeed = (item: ScanFeedItem) => {
     setFeed((items) => [item, ...items.filter((current) => current.code !== item.code)].slice(0, 4))
   }
+
+  useEffect(() => {
+    if (!open) {
+      setHolding(false)
+      setFeed([])
+    }
+  }, [open])
 
   const handleCode = useCallback(async (code: string) => {
     if (!group || busy) {

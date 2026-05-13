@@ -278,7 +278,7 @@ async function findShopifyVariant(
           }
         }
       }`,
-      variables: { query: `${field}:${escapeShopifyQueryValue(code)}` },
+      variables: { query: `${field}:"${escapeShopifyQueryValue(code)}"` },
     }),
   });
 
