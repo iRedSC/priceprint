@@ -1,7 +1,7 @@
-import AuthPage from '@/components/AuthPage'
+import DashboardPage from "@/components/dashboard/DashboardPage"
 
 function App() {
-  return <AuthPage />
+  return <DashboardPage />
 }
 
 export default App
