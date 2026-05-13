@@ -1,6 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table"
 
 import ProductEditableCell from "./ProductEditableCell"
+import ProductImage from "./ProductImage"
 import ProductPrintedPriceNote from "./ProductPrintedPriceNote"
 import ProductPrintStatusChip from "./ProductPrintStatusChip"
 import { formatProductDate } from "./productFormat"
@@ -20,19 +21,14 @@ export function createProductColumns({ onFieldCommit }: ProductColumnOptions): C
     {
       accessorKey: "img",
       header: "Image",
-      size: 180,
-      cell: ({ row }) => {
-        const img = row.getValue<string | undefined>("img")
-
-        return (
-          <ProductEditableCell
-            product={row.original}
-            field="img"
-            value={img}
-            onCommit={onFieldCommit}
-          />
-        )
-      },
+      size: 96,
+      cell: ({ row }) => (
+        <ProductImage
+          src={row.getValue<string | undefined>("img")}
+          alt={row.original.name}
+          className="size-8"
+        />
+      ),
     },
     {
       accessorKey: "name",

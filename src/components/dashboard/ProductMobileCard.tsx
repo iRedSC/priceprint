@@ -9,9 +9,10 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import ProductActionMenu from "./ProductActionMenu"
+import ProductImage from "./ProductImage"
 import ProductPrintedPriceNote from "./ProductPrintedPriceNote"
 import ProductPrintStatusChip from "./ProductPrintStatusChip"
-import { formatProductDate, formatProductMeta, formatProductPrice } from "./productFormat"
+import { formatProductDate, formatProductPrice } from "./productFormat"
 import type { ProductRow } from "./productTableData"
 
 type ProductMobileCardProps = {
@@ -21,19 +22,22 @@ type ProductMobileCardProps = {
 }
 
 function ProductMobileCard({ product, onEdit, onDelete }: ProductMobileCardProps) {
-  const meta = formatProductMeta(product.meta)
-
   return (
     <Card size="sm" className="gap-2 py-3">
       <CardHeader className="grid-cols-[minmax(0,1fr)_auto_auto] gap-2 px-3.5">
         <div className="min-w-0">
-          <CardTitle className="line-clamp-2 text-base">{product.name}</CardTitle>
+          <div className="flex min-w-0 items-start gap-2">
+            <ProductImage
+              src={product.img}
+              alt={product.name}
+              className="size-10 rounded-lg"
+            />
+            <CardTitle className="line-clamp-2 min-w-0 text-base">{product.name}</CardTitle>
+          </div>
           <CardDescription className="mt-1 flex flex-wrap gap-1.5">
             {product.vendor ? <InfoChip icon={MapPin} value={product.vendor} /> : null}
             {product.type ? <InfoChip icon={Tag} value={product.type} /> : null}
-            {product.img ? <InfoChip value="image" /> : null}
-            {meta ? <InfoChip value={meta} /> : null}
-            {!product.vendor && !product.type && !product.img && !meta ? (
+            {!product.vendor && !product.type ? (
               <InfoChip value="No catalog details" />
             ) : null}
           </CardDescription>
