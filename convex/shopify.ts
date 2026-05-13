@@ -11,6 +11,48 @@ type ShopifyAccessTokenResponse = {
   scope?: string;
 };
 
+type ShopifyVariantNode = {
+  sku?: string | null;
+  barcode?: string | null;
+  price?: string | null;
+  image?: { url?: string | null } | null;
+  product?: {
+    title?: string | null;
+    vendor?: string | null;
+    productType?: string | null;
+    featuredImage?: { url?: string | null } | null;
+  } | null;
+};
+
+type ShopifyVariantSearchResponse = {
+  data?: {
+    productVariants?: {
+      nodes?: ShopifyVariantNode[];
+    };
+  };
+  errors?: { message?: string }[];
+};
+
+type ShopifyLookupProduct = {
+  sku?: string;
+  upc?: string;
+  name: string;
+  img?: string;
+  type?: string;
+  vendor?: string;
+  price: number;
+  meta: {
+    source: "shopify-scan";
+    scannedCode: string;
+    matchedField: "barcode" | "sku";
+  };
+};
+
+type ShopifyVariantMatch = {
+  field: "barcode" | "sku";
+  variant: ShopifyVariantNode;
+};
+
 const normalizeShopDomain = (value: string) => {
   const domain = value
     .trim()
@@ -171,6 +213,115 @@ export const currentConnection = query({
     };
   },
 });
+
+export const lookupProductByScannedCode = action({
+  args: {
+    sessionToken: v.string(),
+    code: v.string(),
+  },
+  handler: async (ctx, args): Promise<ShopifyLookupProduct> => {
+    const code = args.code.trim();
+    if (!code) {
+      throw new ConvexError("Scan a barcode before looking up a product.");
+    }
+
+    const connection: { shopDomain: string; accessToken: string } | null = await ctx.runQuery(internal.shopifyModel.currentActiveConnection, {
+      sessionToken: args.sessionToken,
+    });
+
+    if (!connection) {
+      throw new ConvexError("Connect Shopify before scanning products.");
+    }
+
+    const match: ShopifyVariantMatch | null =
+      (await findShopifyVariant(connection.shopDomain, connection.accessToken, "barcode", code)) ??
+      (await findShopifyVariant(connection.shopDomain, connection.accessToken, "sku", code));
+
+    if (!match) {
+      throw new ConvexError(`No Shopify product found for ${code}.`);
+    }
+
+    return toProductInput(match.variant, match.field, code);
+  },
+});
+
+async function findShopifyVariant(
+  shopDomain: string,
+  accessToken: string,
+  field: "barcode" | "sku",
+  code: string,
+): Promise<ShopifyVariantMatch | null> {
+  const response = await fetch(`https://${shopDomain}/admin/api/2025-10/graphql.json`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-shopify-access-token": accessToken,
+    },
+    body: JSON.stringify({
+      query: `query ProductVariantByCode($query: String!) {
+        productVariants(first: 1, query: $query) {
+          nodes {
+            sku
+            barcode
+            price
+            image {
+              url
+            }
+            product {
+              title
+              vendor
+              productType
+              featuredImage {
+                url
+              }
+            }
+          }
+        }
+      }`,
+      variables: { query: `${field}:${escapeShopifyQueryValue(code)}` },
+    }),
+  });
+
+  if (!response.ok) {
+    throw new ConvexError("Shopify product lookup failed. Try again.");
+  }
+
+  const result = (await response.json()) as ShopifyVariantSearchResponse;
+  if (result.errors?.length) {
+    throw new ConvexError(result.errors[0]?.message ?? "Shopify product lookup failed.");
+  }
+
+  const variant = result.data?.productVariants?.nodes?.[0];
+  return variant ? { field, variant } : null;
+}
+
+function escapeShopifyQueryValue(value: string) {
+  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
+
+function toProductInput(
+  variant: ShopifyVariantNode,
+  matchedField: "barcode" | "sku",
+  scannedCode: string,
+): ShopifyLookupProduct {
+  const product = variant.product;
+  const price = Number(variant.price ?? 0);
+
+  return {
+    sku: variant.sku || (matchedField === "sku" ? scannedCode : undefined),
+    upc: variant.barcode || (matchedField === "barcode" ? scannedCode : undefined),
+    name: product?.title || variant.sku || scannedCode,
+    img: variant.image?.url || product?.featuredImage?.url || undefined,
+    type: product?.productType || undefined,
+    vendor: product?.vendor || undefined,
+    price: Number.isFinite(price) ? price : 0,
+    meta: {
+      source: "shopify-scan",
+      scannedCode,
+      matchedField,
+    },
+  };
+}
 
 export const handleShopifyCallback = httpAction(async (ctx, request) => {
   const { clientId, clientSecret } = assertShopifyEnv();

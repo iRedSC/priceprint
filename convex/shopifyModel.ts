@@ -1,5 +1,5 @@
 import { ConvexError, v } from "convex/values";
-import { internalMutation } from "./_generated/server";
+import { internalMutation, internalQuery } from "./_generated/server";
 
 const hashValue = async (value: string) => {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
@@ -86,5 +86,32 @@ export const storeConnectionFromOAuth = internalMutation({
     }
 
     await ctx.db.patch(oauthState._id, { consumedAt: args.now });
+  },
+});
+
+export const currentActiveConnection = internalQuery({
+  args: { sessionToken: v.string() },
+  handler: async (ctx, args) => {
+    const tokenHash = await hashValue(args.sessionToken);
+    const session = await ctx.db
+      .query("authSessions")
+      .withIndex("by_token_hash", (q) => q.eq("tokenHash", tokenHash))
+      .unique();
+
+    if (!session || session.revokedAt || session.expiresAt < Date.now()) {
+      throw new ConvexError("Sign in again to scan Shopify products.");
+    }
+
+    const connections = await ctx.db
+      .query("shopifyConnections")
+      .withIndex("by_user", (q) => q.eq("userId", session.userId))
+      .collect();
+
+    return (
+      connections
+        .filter((connection) => connection.isActive)
+        .sort((a, b) => (b.updatedAt ?? b.createdAt) - (a.updatedAt ?? a.createdAt))
+        .at(0) ?? null
+    );
   },
 });

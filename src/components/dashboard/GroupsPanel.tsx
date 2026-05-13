@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { useMutation, useQuery } from "convex/react"
+import { useAction, useMutation, useQuery } from "convex/react"
 
 import { readStoredSession, type AuthResult } from "@/authSession"
 import VirtualDataTable from "@/components/data-table/VirtualDataTable"
@@ -12,8 +12,9 @@ import GroupMobileActions from "./GroupMobileActions"
 import GroupMobileList from "./GroupMobileList"
 import GroupProductsDialog from "./GroupProductsDialog"
 import GroupRowContextMenu from "./GroupRowContextMenu"
+import GroupScanDialog from "./GroupScanDialog"
 import GroupTaskBar from "./GroupTaskBar"
-import type { ProductRow } from "./productTableData"
+import type { ProductInput, ProductRow } from "./productTableData"
 
 const EMPTY_GROUPS: GroupRow[] = []
 const EMPTY_PRODUCTS: ProductRow[] = []
@@ -21,6 +22,7 @@ const EMPTY_PRODUCTS: ProductRow[] = []
 function GroupsPanel() {
   const [search, setSearch] = useState("")
   const [selectedGroupId, setSelectedGroupId] = useState<GroupRow["_id"] | null>(null)
+  const [scanningGroupId, setScanningGroupId] = useState<GroupRow["_id"] | null>(null)
   const [editingGroup, setEditingGroup] = useState<GroupRow | null>(null)
   const [session] = useState(readStoredSession)
   const groups = useQuery(
@@ -32,16 +34,22 @@ function GroupsPanel() {
     session ? { sessionToken: session.sessionToken } : "skip"
   )
   const createGroup = useMutation(api.groups.create)
+  const createProduct = useMutation(api.products.create)
   const updateGroupMutation = useMutation(api.groups.update)
   const deleteGroupMutation = useMutation(api.groups.remove)
   const addGroupProducts = useMutation(api.groups.addProducts)
   const removeGroupProduct = useMutation(api.groups.removeProduct)
+  const lookupScannedProduct = useAction(api.shopify.lookupProductByScannedCode)
   const groupRows = groups ?? EMPTY_GROUPS
   const productRows = products ?? EMPTY_PRODUCTS
   const filteredGroups = useMemo(() => filterGroups(groupRows, search), [groupRows, search])
   const selectedGroup = useMemo(
     () => groupRows.find((group) => group._id === selectedGroupId) ?? null,
     [groupRows, selectedGroupId]
+  )
+  const scanningGroup = useMemo(
+    () => groupRows.find((group) => group._id === scanningGroupId) ?? null,
+    [groupRows, scanningGroupId]
   )
   const columns = useMemo(() => createGroupColumns(), [])
   const openGroup = (group: GroupRow) => setSelectedGroupId(group._id)
@@ -85,6 +93,21 @@ function GroupsPanel() {
     await addGroupProducts({ sessionToken: session.sessionToken, groupId: group._id, productIds })
   }
 
+  const addScannedProduct = async (group: GroupRow, code: string): Promise<ProductInput> => {
+    if (!session) {
+      throw new Error("Sign in to scan products.")
+    }
+
+    const product = await lookupScannedProduct({
+      sessionToken: session.sessionToken,
+      code,
+    }) as ProductInput
+    const productId = await createProduct({ sessionToken: session.sessionToken, product })
+    await addGroupProducts({ sessionToken: session.sessionToken, groupId: group._id, productIds: [productId] })
+
+    return product
+  }
+
   const removeProduct = async (group: GroupRow, product: GroupProduct) => {
     if (!session) {
       return
@@ -107,6 +130,7 @@ function GroupsPanel() {
           onOpen={openGroup}
           onEdit={setEditingGroup}
           onDelete={deleteGroup}
+          onScan={(group) => setScanningGroupId(group._id)}
         />
       </div>
       <GroupMobileActions onAddGroup={addGroup} />
@@ -136,6 +160,15 @@ function GroupsPanel() {
           }
         }}
         onUpdateGroup={updateGroup}
+      />
+      <GroupScanDialog
+        group={scanningGroup}
+        onOpenChange={(open) => {
+          if (!open) {
+            setScanningGroupId(null)
+          }
+        }}
+        onScanProduct={addScannedProduct}
       />
       <GroupProductsDialog
         group={selectedGroup}

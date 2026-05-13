@@ -7,6 +7,7 @@ type GroupMobileListProps = {
   onOpen: (group: GroupRow) => void
   onEdit: (group: GroupRow) => void
   onDelete: (group: GroupRow) => void
+  onScan: (group: GroupRow) => void
 }
 
 function GroupMobileList({
@@ -15,6 +16,7 @@ function GroupMobileList({
   onOpen,
   onEdit,
   onDelete,
+  onScan,
 }: GroupMobileListProps) {
   if (!groups.length) {
     return <p className="rounded-xl border bg-card p-4 text-sm text-muted-foreground">{emptyMessage}</p>
@@ -29,6 +31,7 @@ function GroupMobileList({
           onOpen={onOpen}
           onEdit={onEdit}
           onDelete={onDelete}
+          onScan={onScan}
         />
       ))}
     </div>
