@@ -10,6 +10,7 @@
 
 import type * as auth from "../auth.js";
 import type * as authModel from "../authModel.js";
+import type * as products from "../products.js";
 import type * as shopify from "../shopify.js";
 
 import type {
@@ -21,6 +22,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   authModel: typeof authModel;
+  products: typeof products;
   shopify: typeof shopify;
 }>;
 
