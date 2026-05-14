@@ -15,7 +15,7 @@ function utf8ToBase64(payload: string) {
 }
 
 function labelliveBatchUri(payload: string) {
-  return `labellive://batch?payload=${encodeURIComponent(utf8ToBase64(payload))}`;
+  return `labellive://batch?payload=${utf8ToBase64(payload)}`;
 }
 
 function openLabelLiveUri(payload: string) {

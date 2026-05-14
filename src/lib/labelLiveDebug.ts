@@ -18,7 +18,7 @@ function utf8ToBase64(payload: string) {
 }
 
 function labelliveBatchHref(payloadJson: string) {
-  return `labellive://batch?payload=${encodeURIComponent(utf8ToBase64(payloadJson))}`;
+  return `labellive://batch?payload=${utf8ToBase64(payloadJson)}`;
 }
 
 function preview(text: string, max: number) {
