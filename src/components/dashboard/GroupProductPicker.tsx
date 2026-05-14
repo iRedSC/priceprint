@@ -24,7 +24,6 @@ import DashboardResponsiveList from "./DashboardResponsiveList"
 import GroupProductPickerMobileCard from "./GroupProductPickerMobileCard"
 import type { GroupRow } from "./groupTableData"
 import ProductImage from "./ProductImage"
-import { formatProductPrice } from "./productFormat"
 import { filterProducts } from "./productSearch"
 import type { ProductRow } from "./productTableData"
 
@@ -134,8 +133,8 @@ function GroupProductPicker({ group, products, onAddProducts }: GroupProductPick
                     </TableHead>
                     <TableHead className="w-16">Image</TableHead>
                     <TableHead>Product</TableHead>
+                    <TableHead>Variant</TableHead>
                     <TableHead>SKU</TableHead>
-                    <TableHead>Price</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -164,8 +163,8 @@ function GroupProductPicker({ group, products, onAddProducts }: GroupProductPick
                           <ProductImage src={product.img} alt={product.name} className="size-9" />
                         </TableCell>
                         <TableCell className="font-medium">{product.name}</TableCell>
+                        <TableCell>{product.variant ?? "-"}</TableCell>
                         <TableCell>{product.sku ?? "-"}</TableCell>
-                        <TableCell>{formatProductPrice(product.price)}</TableCell>
                       </TableRow>
                     ))
                   ) : (

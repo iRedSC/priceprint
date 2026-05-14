@@ -24,7 +24,7 @@ function GroupProductPickerMobileCard({
             onChange={() => onToggle(product._id)}
             aria-label={`Select ${product.name}`}
           />
-          <ProductModalSummary product={product} />
+          <ProductModalSummary product={product} omitPrice />
         </label>
       </CardContent>
     </Card>

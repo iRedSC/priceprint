@@ -75,11 +75,9 @@ function GroupProductsTable({
                   </TableHead>
                   <TableHead className="w-16">Image</TableHead>
                   <TableHead>Product</TableHead>
+                  <TableHead>Variant</TableHead>
                   <TableHead>SKU</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead className="w-12">
-                    <span className="sr-only">Actions</span>
-                  </TableHead>
+                  <TableHead className="w-12">Delete</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

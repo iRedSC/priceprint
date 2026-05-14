@@ -10,7 +10,6 @@ import GroupProductReorderHandle from "./GroupProductReorderHandle"
 import type { GroupProduct } from "./groupTableData"
 import { GROUP_PRODUCT_SORTABLE_TRANSITION } from "./GroupProductSortTransition"
 import ProductImage from "./ProductImage"
-import { formatProductPrice } from "./productFormat"
 
 type GroupProductSortableTableRowProps = {
   product: GroupProduct
@@ -42,8 +41,8 @@ function GroupProductSortableTableRow({ product, onRemoveProduct }: GroupProduct
         <ProductImage src={product.img} alt={product.name} className="size-9" />
       </TableCell>
       <TableCell className="font-medium">{product.name}</TableCell>
+      <TableCell>{product.variant ?? "-"}</TableCell>
       <TableCell>{product.sku ?? "-"}</TableCell>
-      <TableCell>{formatProductPrice(product.price)}</TableCell>
       <TableCell>
         <Button
           type="button"
