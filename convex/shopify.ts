@@ -69,7 +69,31 @@ type ShopifyPricingSyncConnection = Pick<
   "_id" | "userId" | "shopDomain" | "accessToken"
 >;
 
-type ShopifyPricingSyncProduct = Pick<Doc<"products">, "_id" | "sku" | "upc" | "price">;
+type ShopifyPricingSyncProduct = Pick<
+  Doc<"products">,
+  "_id" | "sku" | "upc" | "name" | "img" | "type" | "variant" | "vendor" | "price"
+>;
+
+type ShopifyCatalogFillFields = {
+  sku?: string;
+  upc?: string;
+  name: string;
+  img?: string;
+  type?: string;
+  variantLabel?: string;
+  vendor?: string;
+};
+
+type ShopifyMergePatch = {
+  price?: number;
+  sku?: string;
+  upc?: string;
+  name?: string;
+  img?: string;
+  type?: string;
+  variant?: string;
+  vendor?: string;
+};
 
 type ShopifyPricingSyncResult = {
   checked: number;
@@ -389,16 +413,32 @@ export const listPricingSyncProducts = internalQuery({
       _id: product._id,
       sku: product.sku,
       upc: product.upc,
+      name: product.name,
+      img: product.img,
+      type: product.type,
+      variant: product.variant,
+      vendor: product.vendor,
       price: product.price,
     }));
   },
 });
 
-export const updateProductPriceFromShopify = internalMutation({
+const mergePatchValidator = v.object({
+  price: v.optional(v.number()),
+  sku: v.optional(v.string()),
+  upc: v.optional(v.string()),
+  name: v.optional(v.string()),
+  img: v.optional(v.string()),
+  type: v.optional(v.string()),
+  variant: v.optional(v.string()),
+  vendor: v.optional(v.string()),
+});
+
+export const mergeProductFromShopifySync = internalMutation({
   args: {
     userId: v.id("users"),
     productId: v.id("products"),
-    price: v.number(),
+    patch: mergePatchValidator,
     now: v.number(),
   },
   handler: async (ctx, args) => {
@@ -409,7 +449,7 @@ export const updateProductPriceFromShopify = internalMutation({
     }
 
     await ctx.db.patch(args.productId, {
-      price: args.price,
+      ...args.patch,
       updatedAt: args.now,
     });
   },
@@ -479,6 +519,76 @@ async function findShopifyVariant(
   return variant ? { field, variant } : null;
 }
 
+function shopifyVariantToCatalogFields(variant: ShopifyVariantNode): ShopifyCatalogFillFields {
+  const product = variant.product;
+  const variantLabel = normalizeShopifyVariantTitle(variant.title);
+  const sku = variant.sku?.trim() || undefined;
+  const barcode = variant.barcode?.trim() || undefined;
+  const title = product?.title?.trim();
+
+  return {
+    sku,
+    upc: barcode,
+    name: title || sku || "",
+    img: variant.image?.url || product?.featuredImage?.url || undefined,
+    type: product?.productType?.trim() || undefined,
+    variantLabel,
+    vendor: product?.vendor?.trim() || undefined,
+  };
+}
+
+function fieldMissing(value: string | undefined) {
+  return !value?.trim();
+}
+
+function buildPricingSyncPatch(
+  product: ShopifyPricingSyncProduct,
+  variant: ShopifyVariantNode,
+): { patch: ShopifyMergePatch } | "invalid-price" {
+  const price = Number(variant.price);
+
+  if (!Number.isFinite(price)) {
+    return "invalid-price";
+  }
+
+  const src = shopifyVariantToCatalogFields(variant);
+  const patch: ShopifyMergePatch = {};
+
+  if (price !== product.price) {
+    patch.price = price;
+  }
+
+  if (fieldMissing(product.sku) && src.sku) {
+    patch.sku = src.sku;
+  }
+
+  if (fieldMissing(product.upc) && src.upc) {
+    patch.upc = src.upc;
+  }
+
+  if (fieldMissing(product.name) && src.name.trim()) {
+    patch.name = src.name.trim();
+  }
+
+  if (fieldMissing(product.img) && src.img?.trim()) {
+    patch.img = src.img.trim();
+  }
+
+  if (fieldMissing(product.type) && src.type) {
+    patch.type = src.type;
+  }
+
+  if (fieldMissing(product.variant) && src.variantLabel) {
+    patch.variant = src.variantLabel;
+  }
+
+  if (fieldMissing(product.vendor) && src.vendor) {
+    patch.vendor = src.vendor;
+  }
+
+  return { patch };
+}
+
 async function refreshConnectionProductPrices(
   ctx: ActionCtx,
   connection: ShopifyPricingSyncConnection,
@@ -503,21 +613,22 @@ async function refreshConnectionProductPrices(
         continue;
       }
 
-      const price = Number(match.variant.price);
+      const sync = buildPricingSyncPatch(product, match.variant);
 
-      if (!Number.isFinite(price)) {
+      if (sync === "invalid-price") {
         result.failed += 1;
         continue;
       }
 
-      if (price === product.price) {
+      const keys = Object.keys(sync.patch) as (keyof ShopifyMergePatch)[];
+      if (!keys.length) {
         continue;
       }
 
-      await ctx.runMutation(internal.shopify.updateProductPriceFromShopify, {
+      await ctx.runMutation(internal.shopify.mergeProductFromShopifySync, {
         userId: connection.userId,
         productId: product._id,
-        price,
+        patch: sync.patch,
         now: Date.now(),
       });
       result.updated += 1;

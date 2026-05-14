@@ -63,15 +63,17 @@ function AddProductDialog({ onAddProduct, triggerClassName }: AddProductDialogPr
   }
 
   const applyShopifyImport = (product: ShopifySkuImportPayload) => {
-    setName(product.name)
-    setSku(product.sku ?? sku)
-    setUpc(product.upc ?? "")
-    setType(product.type ?? "")
-    setVariant(product.variant ?? "")
-    setVendor(product.vendor ?? "")
+    const empty = (value: string) => !value.trim()
+
+    setName(empty(name) ? product.name : name)
+    setSku(empty(sku) ? (product.sku ?? sku) : sku)
+    setUpc(empty(upc) ? (product.upc ?? "") : upc)
+    setType(empty(type) ? (product.type ?? "") : type)
+    setVariant(empty(variant) ? (product.variant ?? "") : variant)
+    setVendor(empty(vendor) ? (product.vendor ?? "") : vendor)
     setPrice(String(product.price))
-    setImg(product.img ?? "")
-    setMeta(formatMeta(product.meta))
+    setImg(empty(img) ? (product.img ?? "") : img)
+    setMeta(empty(meta) ? formatMeta(product.meta) : meta)
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
