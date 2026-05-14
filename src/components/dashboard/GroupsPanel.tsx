@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useAction, useMutation, useQuery } from "convex/react"
 import { toast } from "sonner"
 
@@ -26,6 +26,12 @@ import GroupRowContextMenu from "./GroupRowContextMenu"
 import GroupScanDialog from "./GroupScanDialog"
 import GroupTaskBar from "./GroupTaskBar"
 import LabelLiveDebugDialog from "./LabelLiveDebugDialog"
+import {
+  applyOptimisticGroupProductOrder,
+  pruneStaleGroupOrderPatches,
+  removeOptimisticGroupOrderPatch,
+  type OptimisticGroupOrders,
+} from "./optimisticGroupProductOrder"
 import type { ProductInput, ProductRow } from "./productTableData"
 
 const EMPTY_GROUPS: GroupRow[] = []
@@ -37,6 +43,7 @@ function GroupsPanel() {
   const [scanningGroupId, setScanningGroupId] = useState<GroupRow["_id"] | null>(null)
   const [editingGroup, setEditingGroup] = useState<GroupRow | null>(null)
   const [labelLiveDebug, setLabelLiveDebug] = useState<LabelLiveDebugMessage | null>(null)
+  const [optimisticGroupOrders, setOptimisticGroupOrders] = useState<OptimisticGroupOrders>({})
   const [session] = useState(readStoredSession)
   const groups = useQuery(
     api.groups.list,
@@ -61,14 +68,31 @@ function GroupsPanel() {
   const lookupScannedProduct = useAction(api.shopify.lookupProductByScannedCode)
   const groupRows = groups ?? EMPTY_GROUPS
   const productRows = products ?? EMPTY_PRODUCTS
-  const filteredGroups = useMemo(() => filterGroups(groupRows, search), [groupRows, search])
+
+  useEffect(() => {
+    if (groups === undefined) {
+      return
+    }
+
+    setOptimisticGroupOrders((prev) => pruneStaleGroupOrderPatches(prev, groups))
+  }, [groups])
+
+  const displayGroupRows = useMemo(
+    () =>
+      groupRows.map((group) =>
+        applyOptimisticGroupProductOrder(group, optimisticGroupOrders[group._id]),
+      ),
+    [groupRows, optimisticGroupOrders],
+  )
+
+  const filteredGroups = useMemo(() => filterGroups(displayGroupRows, search), [displayGroupRows, search])
   const selectedGroup = useMemo(
-    () => groupRows.find((group) => group._id === selectedGroupId) ?? null,
-    [groupRows, selectedGroupId]
+    () => displayGroupRows.find((group) => group._id === selectedGroupId) ?? null,
+    [displayGroupRows, selectedGroupId],
   )
   const scanningGroup = useMemo(
-    () => groupRows.find((group) => group._id === scanningGroupId) ?? null,
-    [groupRows, scanningGroupId]
+    () => displayGroupRows.find((group) => group._id === scanningGroupId) ?? null,
+    [displayGroupRows, scanningGroupId],
   )
   const columns = useMemo(() => createGroupColumns(), [])
   const openGroup = (group: GroupRow) => setSelectedGroupId(group._id)
@@ -139,17 +163,35 @@ function GroupsPanel() {
     })
   }
 
-  const reorderGroupProducts = async (group: GroupRow, orderedProductIds: GroupProduct["_id"][]) => {
-    if (!session) {
-      return
-    }
+  const reorderGroupProducts = useCallback(
+    async (group: GroupRow, orderedProductIds: GroupProduct["_id"][]) => {
+      if (!session) {
+        return
+      }
 
-    await reorderGroupProductsMutation({
-      sessionToken: session.sessionToken,
-      groupId: group._id,
-      orderedProductIds,
-    })
-  }
+      const updatedAt = Date.now()
+      const groupId = group._id
+      setOptimisticGroupOrders((prev) => ({
+        ...prev,
+        [groupId]: { orderedProductIds, updatedAt },
+      }))
+
+      try {
+        await reorderGroupProductsMutation({
+          sessionToken: session.sessionToken,
+          groupId,
+          orderedProductIds,
+        })
+        setOptimisticGroupOrders((prev) => removeOptimisticGroupOrderPatch(prev, groupId, updatedAt))
+      } catch (error) {
+        setOptimisticGroupOrders((prev) => removeOptimisticGroupOrderPatch(prev, groupId, updatedAt))
+        toast.error("Could not save product order.", {
+          description: error instanceof Error ? error.message : "Try again.",
+        })
+      }
+    },
+    [session, reorderGroupProductsMutation],
+  )
 
   const printGroupToLabelLive = async (group: GroupRow, scope: GroupPrintScope) => {
     if (!session) {
