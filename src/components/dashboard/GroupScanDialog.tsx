@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { triggerHapticFeedback } from "@/lib/haptics"
 import CameraPreview from "./CameraPreview"
 import type { GroupRow } from "./groupTableData"
 import LastScannedFeed from "./LastScannedFeed"
@@ -42,6 +43,7 @@ function GroupScanDialog({ group, onOpenChange, onScanProduct }: GroupScanDialog
 
     setScanSuccessKey((key) => key + 1)
     setScanSucceeded(true)
+    triggerHapticFeedback()
     scanSuccessTimeoutRef.current = window.setTimeout(() => {
       setScanSucceeded(false)
       scanSuccessTimeoutRef.current = null

@@ -2,6 +2,7 @@ import * as React from "react"
 import { Slot } from "radix-ui"
 
 import { buttonVariants, type ButtonVariants } from "@/components/ui/buttonVariants"
+import { triggerHapticFeedback } from "@/lib/haptics"
 import { cn } from "@/lib/utils"
 
 function Button({
@@ -9,12 +10,23 @@ function Button({
   variant = "default",
   size = "default",
   asChild = false,
+  onPointerDown,
   ...props
 }: React.ComponentProps<"button"> &
   ButtonVariants & {
     asChild?: boolean
   }) {
   const Comp = asChild ? Slot.Root : "button"
+  const handlePointerDown: React.PointerEventHandler<HTMLButtonElement> = (event) => {
+    const ariaDisabled = props["aria-disabled"]
+    const disabled = props.disabled || ariaDisabled === true || ariaDisabled === "true"
+
+    if (!disabled && event.button === 0) {
+      triggerHapticFeedback()
+    }
+
+    onPointerDown?.(event)
+  }
 
   return (
     <Comp
@@ -22,6 +34,7 @@ function Button({
       data-variant={variant}
       data-size={size}
       className={cn(buttonVariants({ variant, size, className }))}
+      onPointerDown={handlePointerDown}
       {...props}
     />
   )
