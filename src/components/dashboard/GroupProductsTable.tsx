@@ -1,12 +1,6 @@
-import {
-  closestCenter,
-  DndContext,
-  DragOverlay,
-  type DragEndEvent,
-  type DragStartEvent,
-} from "@dnd-kit/core"
+import { closestCenter, DndContext, type DragEndEvent } from "@dnd-kit/core"
 import { SortableContext, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable"
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo } from "react"
 
 import {
   Table,
@@ -35,17 +29,11 @@ function GroupProductsTable({
 }: GroupProductsTableProps) {
   const isMd = useMinWidthMd()
   const sensors = useGroupProductsSortSensors()
-  const [dragId, setDragId] = useState<GroupProduct["_id"] | null>(null)
 
   const sortableIds = useMemo(() => products.map((p) => p._id), [products])
 
-  const handleDragStart = useCallback(({ active }: DragStartEvent) => {
-    setDragId(active.id as GroupProduct["_id"])
-  }, [])
-
   const handleDragEnd = useCallback(
     async ({ active, over }: DragEndEvent) => {
-      setDragId(null)
       if (!over || active.id === over.id) {
         return
       }
@@ -60,10 +48,6 @@ function GroupProductsTable({
     [products, sortableIds, onReorderProducts],
   )
 
-  const handleDragCancel = useCallback(() => {
-    setDragId(null)
-  }, [])
-
   if (!products.length) {
     return (
       <p className="rounded-xl border p-4 text-sm text-muted-foreground">
@@ -72,17 +56,13 @@ function GroupProductsTable({
     )
   }
 
-  const activeProduct = dragId ? products.find((p) => p._id === dragId) : null
-
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
       onDragEnd={(e) => {
         void handleDragEnd(e)
       }}
-      onDragCancel={handleDragCancel}
     >
       <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
         {isMd ? (
@@ -125,12 +105,6 @@ function GroupProductsTable({
           </div>
         )}
       </SortableContext>
-
-      <DragOverlay dropAnimation={null}>
-        {activeProduct ? (
-          <div className="rounded-xl border bg-card p-3 text-sm shadow-lg">{activeProduct.name}</div>
-        ) : null}
-      </DragOverlay>
     </DndContext>
   )
 }

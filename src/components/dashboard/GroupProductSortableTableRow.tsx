@@ -4,8 +4,11 @@ import { Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { TableCell, TableRow } from "@/components/ui/table"
+import { cn } from "@/lib/utils"
+
 import GroupProductReorderHandle from "./GroupProductReorderHandle"
 import type { GroupProduct } from "./groupTableData"
+import { GROUP_PRODUCT_SORTABLE_TRANSITION } from "./GroupProductSortTransition"
 import ProductImage from "./ProductImage"
 import { formatProductPrice } from "./productFormat"
 
@@ -17,6 +20,7 @@ type GroupProductSortableTableRowProps = {
 function GroupProductSortableTableRow({ product, onRemoveProduct }: GroupProductSortableTableRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: product._id,
+    transition: GROUP_PRODUCT_SORTABLE_TRANSITION,
   })
 
   return (
@@ -26,7 +30,10 @@ function GroupProductSortableTableRow({ product, onRemoveProduct }: GroupProduct
         transform: CSS.Transform.toString(transform),
         transition,
       }}
-      className={isDragging ? "z-50 bg-muted/30 opacity-80" : undefined}
+      className={cn(
+        isDragging &&
+          "relative z-50 shadow-md outline outline-1 outline-ring bg-card/[0.98]",
+      )}
     >
       <TableCell className="w-10 text-center align-middle">
         <GroupProductReorderHandle attributes={attributes} listeners={listeners} />
