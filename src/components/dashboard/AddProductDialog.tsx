@@ -91,7 +91,7 @@ function AddProductDialog({ onAddProduct, triggerClassName }: AddProductDialogPr
         <Button
           size="icon"
           aria-label="Add product"
-          className={cn("touch-manipulation", triggerClassName)}
+          className={cn("size-10 touch-manipulation", triggerClassName)}
         >
           <Plus />
         </Button>

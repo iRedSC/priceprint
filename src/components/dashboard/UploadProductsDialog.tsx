@@ -50,7 +50,7 @@ function UploadProductsDialog({ onUploadProducts }: UploadProductsDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon" aria-label="Upload CSV" className="touch-manipulation">
+        <Button variant="outline" size="icon" aria-label="Upload CSV" className="size-10 touch-manipulation">
           <Upload />
         </Button>
       </DialogTrigger>

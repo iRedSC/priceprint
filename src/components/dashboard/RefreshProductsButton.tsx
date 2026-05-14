@@ -17,16 +17,14 @@ function RefreshProductsButton({
     <Button
       type="button"
       variant="outline"
-      size="sm"
-      className="h-10 touch-manipulation gap-2"
+      size="icon"
+      className="size-10 touch-manipulation"
       disabled={isRefreshing}
+      aria-label="Refresh Shopify prices"
+      title="Refresh Shopify prices"
       onClick={onRefreshProducts}
     >
       <Icon className={isRefreshing ? "size-4 animate-spin" : "size-4"} />
-      <span className="hidden sm:inline">
-        {isRefreshing ? "Refreshing..." : "Refresh prices"}
-      </span>
-      <span className="sm:hidden">Refresh</span>
     </Button>
   )
 }
