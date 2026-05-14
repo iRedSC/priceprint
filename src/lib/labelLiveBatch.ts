@@ -1,7 +1,5 @@
 import { variablesToRjson } from "./labelLiveRjson";
 
-const BATCH_URL = "http://127.0.0.1:11180/api/v1/batch";
-
 export type LabelLiveBatchJob = {
   design: string;
   variables: Record<string, string>;
@@ -20,7 +18,7 @@ function labelliveBatchUri(payload: string) {
   return `labellive://batch?payload=${encodeURIComponent(utf8ToBase64(payload))}`;
 }
 
-function openFallbackUri(payload: string) {
+function openLabelLiveUri(payload: string) {
   const href = labelliveBatchUri(payload);
   const a = document.createElement("a");
 
@@ -48,16 +46,8 @@ function buildBatchPayloadJson(jobs: LabelLiveBatchJob[]) {
   return JSON.stringify(jobs.map(jobToLabelLiveParams));
 }
 
-async function readError(res: Response) {
-  try {
-    return await res.text();
-  } catch {
-    return "";
-  }
-}
-
 export type SendLabelLiveJobsResult = {
-  /** True when fetch to localhost failed and `labellive://batch?payload=…` was opened instead. */
+  /** Kept for callers that still distinguish HTTP fallback flows. */
   openedLabelliveFallback: boolean;
 };
 
@@ -69,25 +59,8 @@ export async function sendLabelLiveJobs(
   }
 
   const payloadJson = buildBatchPayloadJson(jobs);
-  const payloadB64 = utf8ToBase64(payloadJson);
-  const batchUrl = `${BATCH_URL}?payload=${encodeURIComponent(payloadB64)}`;
-
-  try {
-    const res = await fetch(batchUrl);
-    const text = await readError(res);
-    if (res.ok) {
-      return { openedLabelliveFallback: false };
-    }
-    if (res.status === 404 || res.status === 405) {
-      openFallbackUri(payloadJson);
-      return { openedLabelliveFallback: true };
-    }
-    throw new Error(text || `HTTP ${res.status}`);
-  } catch (error) {
-    if (error instanceof TypeError) {
-      openFallbackUri(payloadJson);
-      return { openedLabelliveFallback: true };
-    }
-    throw error;
-  }
+  // HTTP can print only when Label LIVE is already open. Opening the protocol
+  // directly keeps the launch tied to the user's click, so browsers allow it.
+  openLabelLiveUri(payloadJson);
+  return { openedLabelliveFallback: false };
 }
