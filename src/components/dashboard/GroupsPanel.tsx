@@ -1,12 +1,14 @@
 import { useMemo, useState } from "react"
 import { useAction, useMutation, useQuery } from "convex/react"
+import { toast } from "sonner"
 
 import { readStoredSession, type AuthResult } from "@/authSession"
 import VirtualDataTable from "@/components/data-table/VirtualDataTable"
 import { sendLabelLiveJobs } from "@/lib/labelLiveBatch"
 import {
-  alertLabelLiveProtocolFallback,
-  alertLabelLiveSendFailed,
+  buildLabelLiveProtocolFallbackMessage,
+  buildLabelLiveSendFailedMessage,
+  type LabelLiveDebugMessage,
 } from "@/lib/labelLiveDebug"
 import { productToLabelLiveVariables } from "@/lib/productLabelVariables"
 import { api } from "../../../convex/_generated/api"
@@ -22,6 +24,7 @@ import GroupProductsDialog from "./GroupProductsDialog"
 import GroupRowContextMenu from "./GroupRowContextMenu"
 import GroupScanDialog from "./GroupScanDialog"
 import GroupTaskBar from "./GroupTaskBar"
+import LabelLiveDebugDialog from "./LabelLiveDebugDialog"
 import type { ProductInput, ProductRow } from "./productTableData"
 
 const EMPTY_GROUPS: GroupRow[] = []
@@ -32,6 +35,7 @@ function GroupsPanel() {
   const [selectedGroupId, setSelectedGroupId] = useState<GroupRow["_id"] | null>(null)
   const [scanningGroupId, setScanningGroupId] = useState<GroupRow["_id"] | null>(null)
   const [editingGroup, setEditingGroup] = useState<GroupRow | null>(null)
+  const [labelLiveDebug, setLabelLiveDebug] = useState<LabelLiveDebugMessage | null>(null)
   const [session] = useState(readStoredSession)
   const groups = useQuery(
     api.groups.list,
@@ -135,12 +139,12 @@ function GroupsPanel() {
 
   const printGroupToLabelLive = async (group: GroupRow, scope: GroupPrintScope) => {
     if (!session) {
-      window.alert("Sign in again to print.")
+      toast.error("Sign in again to print.")
       return
     }
 
     if (labelLiveSettings === undefined) {
-      window.alert("Loading printer settings. Try again in a moment.")
+      toast.info("Loading printer settings. Try again in a moment.")
       return
     }
 
@@ -148,19 +152,19 @@ function GroupsPanel() {
     const trimmedPrinterId = labelLiveSettings?.printerId?.trim()
 
     if (!trimmedDesign) {
-      window.alert("Add your Label LIVE design name under Connections first.")
+      toast.error("Add your Label LIVE design name under Connections first.")
       return
     }
 
     if (!trimmedPrinterId) {
-      window.alert("Add your Label LIVE printer ID under Connections first.")
+      toast.error("Add your Label LIVE printer ID under Connections first.")
       return
     }
 
     const picks = selectGroupProductsForPrint(group, scope)
 
     if (!picks.length) {
-      window.alert("No products match this print option.")
+      toast.info("No products match this print option.")
       return
     }
 
@@ -188,18 +192,33 @@ function GroupsPanel() {
       }
 
       if (openedLabelliveFallback) {
-        alertLabelLiveProtocolFallback(
+        const debugMessage = buildLabelLiveProtocolFallbackMessage(
           jobs,
           historyNote
             ? `${historyNote}\n\n(${jobs.length} job(s) triggered.)`
             : `(${jobs.length} job(s) triggered.)`,
         )
+        setLabelLiveDebug(debugMessage)
+        toast.warning(debugMessage.title, {
+          description: debugMessage.description,
+        })
         return
       }
 
-      window.alert(`Sent ${jobs.length} label job(s) to Label LIVE.${historyNote ? `\n\n${historyNote}` : ""}`)
+      if (historyNote) {
+        toast.warning(`Sent ${jobs.length} label job(s), but history did not save.`, {
+          description: historyNote,
+        })
+        return
+      }
+
+      toast.success(`Sent ${jobs.length} label job(s) to Label LIVE.`)
     } catch (error) {
-      alertLabelLiveSendFailed(error, jobs)
+      const debugMessage = buildLabelLiveSendFailedMessage(error, jobs)
+      setLabelLiveDebug(debugMessage)
+      toast.error(debugMessage.title, {
+        description: debugMessage.description,
+      })
     }
   }
 
@@ -270,6 +289,14 @@ function GroupsPanel() {
         }}
         onAddProducts={addProducts}
         onRemoveProduct={removeProduct}
+      />
+      <LabelLiveDebugDialog
+        message={labelLiveDebug}
+        onOpenChange={(open) => {
+          if (!open) {
+            setLabelLiveDebug(null)
+          }
+        }}
       />
     </section>
   )

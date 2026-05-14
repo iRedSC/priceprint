@@ -1,16 +1,19 @@
 import { useCallback, useMemo, useState } from "react"
 import { useMutation, useQuery } from "convex/react"
+import { toast } from "sonner"
 
 import { readStoredSession, type AuthResult } from "@/authSession"
 import VirtualDataTable from "@/components/data-table/VirtualDataTable"
 import { sendLabelLiveJobs } from "@/lib/labelLiveBatch"
 import {
-  alertLabelLiveProtocolFallback,
-  alertLabelLiveSendFailed,
+  buildLabelLiveProtocolFallbackMessage,
+  buildLabelLiveSendFailedMessage,
+  type LabelLiveDebugMessage,
 } from "@/lib/labelLiveDebug"
 import { productToLabelLiveVariables } from "@/lib/productLabelVariables"
 import { api } from "../../../convex/_generated/api"
 import EditProductDialog from "./EditProductDialog"
+import LabelLiveDebugDialog from "./LabelLiveDebugDialog"
 import ProductMobileActions from "./ProductMobileActions"
 import ProductMobileList from "./ProductMobileList"
 import ProductRowContextMenu from "./ProductRowContextMenu"
@@ -27,6 +30,7 @@ function ProductsPanel() {
   const [search, setSearch] = useState("")
   const [mobileSort, setMobileSort] = useState<ProductSort>("updated")
   const [editingProduct, setEditingProduct] = useState<ProductRow | null>(null)
+  const [labelLiveDebug, setLabelLiveDebug] = useState<LabelLiveDebugMessage | null>(null)
   const [optimisticPatches, setOptimisticPatches] = useState<OptimisticProductPatches>({})
   const [session] = useState(readStoredSession)
   const products = useQuery(
@@ -123,12 +127,12 @@ function ProductsPanel() {
 
   const printProductToLabelLive = async (product: ProductRow) => {
     if (!session) {
-      window.alert("Sign in again to print.")
+      toast.error("Sign in again to print.")
       return
     }
 
     if (labelLiveSettings === undefined) {
-      window.alert("Loading printer settings. Try again in a moment.")
+      toast.info("Loading printer settings. Try again in a moment.")
       return
     }
 
@@ -136,12 +140,12 @@ function ProductsPanel() {
     const trimmedPrinterId = labelLiveSettings?.printerId?.trim()
 
     if (!trimmedDesign) {
-      window.alert("Add your Label LIVE design name under Connections first.")
+      toast.error("Add your Label LIVE design name under Connections first.")
       return
     }
 
     if (!trimmedPrinterId) {
-      window.alert("Add your Label LIVE printer ID under Connections first.")
+      toast.error("Add your Label LIVE printer ID under Connections first.")
       return
     }
 
@@ -170,18 +174,33 @@ function ProductsPanel() {
       }
 
       if (openedLabelliveFallback) {
-        alertLabelLiveProtocolFallback(
+        const debugMessage = buildLabelLiveProtocolFallbackMessage(
           jobs,
           historyNote
             ? `${historyNote}\n\n(${jobs.length} job(s) triggered.)`
             : `(${jobs.length} job(s) triggered.)`,
         )
+        setLabelLiveDebug(debugMessage)
+        toast.warning(debugMessage.title, {
+          description: debugMessage.description,
+        })
         return
       }
 
-      window.alert(`Sent ${jobs.length} label job(s) to Label LIVE.${historyNote ? `\n\n${historyNote}` : ""}`)
+      if (historyNote) {
+        toast.warning(`Sent ${jobs.length} label job(s), but history did not save.`, {
+          description: historyNote,
+        })
+        return
+      }
+
+      toast.success(`Sent ${jobs.length} label job(s) to Label LIVE.`)
     } catch (error) {
-      alertLabelLiveSendFailed(error, jobs)
+      const debugMessage = buildLabelLiveSendFailedMessage(error, jobs)
+      setLabelLiveDebug(debugMessage)
+      toast.error(debugMessage.title, {
+        description: debugMessage.description,
+      })
     }
   }
 
@@ -243,6 +262,14 @@ function ProductsPanel() {
           }
         }}
         onUpdateProduct={updateProduct}
+      />
+      <LabelLiveDebugDialog
+        message={labelLiveDebug}
+        onOpenChange={(open) => {
+          if (!open) {
+            setLabelLiveDebug(null)
+          }
+        }}
       />
     </section>
   )

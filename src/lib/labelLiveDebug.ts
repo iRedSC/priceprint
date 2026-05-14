@@ -5,6 +5,12 @@ export type LabelLiveDebugJob = {
   variables: Record<string, string>;
 };
 
+export type LabelLiveDebugMessage = {
+  title: string;
+  description: string;
+  detail: string;
+};
+
 function preview(text: string, max: number) {
   if (text.length <= max) {
     return text;
@@ -64,26 +70,33 @@ export function logLabelLiveDebug(jobs: LabelLiveDebugJob[]) {
   console.error("[Label LIVE integration debug]\n\n" + text);
 }
 
-const ALERT_MAX = 14_000;
-
-export function alertLabelLiveSendFailed(error: unknown, jobs: LabelLiveDebugJob[]) {
+export function buildLabelLiveSendFailedMessage(
+  error: unknown,
+  jobs: LabelLiveDebugJob[],
+): LabelLiveDebugMessage {
   logLabelLiveDebug(jobs);
   const base = error instanceof Error ? error.message : "Could not reach Label LIVE.";
   const detail = buildLabelLiveDebugText(jobs);
-  const combined = `${base}\n\n--- Generated integration details (full text also in console: F12) ---\n\n${detail}`;
-  window.alert(combined.length > ALERT_MAX ? combined.slice(0, ALERT_MAX) + "\n…" : combined);
+  return {
+    title: "Could not send labels",
+    description: base,
+    detail,
+  };
 }
 
 /** When `sendLabelLiveJobs` falls back to opening `labellive://` (HTTP to localhost failed). */
-export function alertLabelLiveProtocolFallback(jobs: LabelLiveDebugJob[], extraFooter?: string) {
+export function buildLabelLiveProtocolFallbackMessage(
+  jobs: LabelLiveDebugJob[],
+  extraFooter?: string,
+): LabelLiveDebugMessage {
   logLabelLiveDebug(jobs);
-  const detail = buildLabelLiveDebugText(jobs);
-  let combined =
-    "The browser could not reach Label LIVE over HTTP (localhost:11180), so a labellive:// URL was opened instead.\n\n" +
-    "If Label LIVE shows an error, inspect this payload (full text also in console: F12):\n\n" +
-    detail;
-  if (extraFooter?.trim()) {
-    combined += `\n\n${extraFooter.trim()}`;
-  }
-  window.alert(combined.length > ALERT_MAX ? combined.slice(0, ALERT_MAX) + "\n…" : combined);
+  const footer = extraFooter?.trim();
+  return {
+    title: "Opened Label LIVE fallback",
+    description:
+      "The browser could not reach Label LIVE over HTTP, so a labellive:// URL was opened instead.",
+    detail: footer
+      ? `${buildLabelLiveDebugText(jobs)}\n\n${footer}`
+      : buildLabelLiveDebugText(jobs),
+  };
 }
