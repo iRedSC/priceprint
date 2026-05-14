@@ -22,6 +22,8 @@ function openLabelLiveUri(payload: string) {
   const href = labelliveBatchUri(payload);
   const a = document.createElement("a");
 
+  console.info("[Label LIVE] Opening URL:", href);
+
   a.href = href;
   a.rel = "noreferrer noopener";
   a.style.display = "none";
