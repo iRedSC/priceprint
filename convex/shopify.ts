@@ -290,6 +290,38 @@ export const lookupProductByScannedCode = action({
   },
 });
 
+export const lookupProductBySku = action({
+  args: {
+    sessionToken: v.string(),
+    sku: v.string(),
+  },
+  handler: async (ctx, args): Promise<ShopifyLookupProduct> => {
+    const sku = args.sku.trim();
+    if (!sku) {
+      throw new ConvexError("Enter a SKU to look up.");
+    }
+
+    const connection: { shopDomain: string; accessToken: string } | null = await ctx.runQuery(
+      internal.shopifyModel.currentActiveConnection,
+      {
+        sessionToken: args.sessionToken,
+      },
+    );
+
+    if (!connection) {
+      throw new ConvexError("Connect Shopify before importing products.");
+    }
+
+    const match = await findShopifyVariant(connection.shopDomain, connection.accessToken, "sku", sku);
+
+    if (!match) {
+      throw new ConvexError(`No Shopify product found for SKU ${sku}.`);
+    }
+
+    return toProductInput(match.variant, match.field, sku);
+  },
+});
+
 export const refreshProductPrices = action({
   args: { sessionToken: v.string() },
   handler: async (ctx, args): Promise<ShopifyPricingSyncResult> => {

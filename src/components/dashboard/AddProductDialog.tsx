@@ -2,6 +2,7 @@ import { useRef, useState } from "react"
 import type { FormEvent } from "react"
 import { Plus } from "lucide-react"
 
+import { readStoredSession } from "@/authSession"
 import ProductDialogField from "@/components/dashboard/ProductDialogField"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -14,6 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import ShopifySkuFetchButton, { type ShopifySkuImportPayload } from "./ShopifySkuFetchButton"
 import type { ProductInput } from "./productTableData"
 import { productDialogFields } from "./productDialogFields"
 
@@ -23,6 +25,7 @@ type AddProductDialogProps = {
 }
 
 function AddProductDialog({ onAddProduct, triggerClassName }: AddProductDialogProps) {
+  const [session] = useState(readStoredSession)
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [sku, setSku] = useState("")
@@ -54,6 +57,17 @@ function AddProductDialog({ onAddProduct, triggerClassName }: AddProductDialogPr
     price: setPrice,
     img: setImg,
     meta: setMeta,
+  }
+
+  const applyShopifyImport = (product: ShopifySkuImportPayload) => {
+    setName(product.name)
+    setSku(product.sku ?? sku)
+    setUpc(product.upc ?? "")
+    setType(product.type ?? "")
+    setVendor(product.vendor ?? "")
+    setPrice(String(product.price))
+    setImg(product.img ?? "")
+    setMeta(formatMeta(product.meta))
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -113,6 +127,15 @@ function AddProductDialog({ onAddProduct, triggerClassName }: AddProductDialogPr
                 inputRefs.current[index] = node
               }}
               onAdvance={() => inputRefs.current[index + 1]?.focus()}
+              trailingSlot={
+                field.key === "sku" ? (
+                  <ShopifySkuFetchButton
+                    sku={sku}
+                    sessionToken={session?.sessionToken ?? null}
+                    onImported={applyShopifyImport}
+                  />
+                ) : undefined
+              }
             />
           ))}
           <DialogFooter>
@@ -122,6 +145,14 @@ function AddProductDialog({ onAddProduct, triggerClassName }: AddProductDialogPr
       </DialogContent>
     </Dialog>
   )
+}
+
+function formatMeta(meta: unknown) {
+  if (!meta) {
+    return ""
+  }
+
+  return typeof meta === "string" ? meta : JSON.stringify(meta)
 }
 
 function parseMeta(value: string) {

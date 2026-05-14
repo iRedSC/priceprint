@@ -1,4 +1,4 @@
-import type { KeyboardEvent, Ref } from "react"
+import type { KeyboardEvent, ReactNode, Ref } from "react"
 
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,9 +12,18 @@ type ProductDialogFieldProps = {
   onChange: (value: string) => void
   inputRef?: Ref<HTMLInputElement>
   onAdvance?: () => void
+  trailingSlot?: ReactNode
 }
 
-function ProductDialogField({ id, config, value, onChange, inputRef, onAdvance }: ProductDialogFieldProps) {
+function ProductDialogField({
+  id,
+  config,
+  value,
+  onChange,
+  inputRef,
+  onAdvance,
+  trailingSlot,
+}: ProductDialogFieldProps) {
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (config.enterKeyHint !== "next" || event.key !== "Enter" || event.shiftKey || event.metaKey || event.ctrlKey || event.altKey) {
       return
@@ -24,25 +33,37 @@ function ProductDialogField({ id, config, value, onChange, inputRef, onAdvance }
     onAdvance?.()
   }
 
+  const input = (
+    <Input
+      ref={inputRef}
+      id={id}
+      type={config.type ?? "text"}
+      inputMode={config.inputMode}
+      enterKeyHint={config.enterKeyHint}
+      autoComplete={config.autoComplete}
+      autoCapitalize={config.autoCapitalize}
+      spellCheck={config.spellCheck}
+      pattern={config.pattern}
+      step={config.step}
+      autoFocus={config.autoFocus}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      onKeyDown={handleKeyDown}
+      className={trailingSlot ? "min-w-0 flex-1" : undefined}
+    />
+  )
+
   return (
     <div className="grid gap-2">
       <Label htmlFor={id}>{config.label}</Label>
-      <Input
-        ref={inputRef}
-        id={id}
-        type={config.type ?? "text"}
-        inputMode={config.inputMode}
-        enterKeyHint={config.enterKeyHint}
-        autoComplete={config.autoComplete}
-        autoCapitalize={config.autoCapitalize}
-        spellCheck={config.spellCheck}
-        pattern={config.pattern}
-        step={config.step}
-        autoFocus={config.autoFocus}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        onKeyDown={handleKeyDown}
-      />
+      {trailingSlot ? (
+        <div className="flex gap-2">
+          {input}
+          {trailingSlot}
+        </div>
+      ) : (
+        input
+      )}
     </div>
   )
 }
