@@ -15,7 +15,7 @@ function ProductModalSummary({ product, omitPrice = false }: ProductModalSummary
       <div className="min-w-0 flex-1">
         <p className="line-clamp-2 font-medium leading-snug">{product.name}</p>
         <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-          {omitPrice ? <span>Variant {product.variant ?? "-"}</span> : null}
+          <span>Variant {product.variant ?? "-"}</span>
           <span>SKU {product.sku ?? "-"}</span>
           {!omitPrice ? <span>UPC {product.upc ?? "-"}</span> : null}
         </div>
