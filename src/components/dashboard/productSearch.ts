@@ -1,6 +1,6 @@
 import type { ProductRow } from "./productTableData"
 
-const searchableFields = ["name", "sku", "upc", "type", "vendor"] as const
+const searchableFields = ["name", "sku", "upc", "type", "variant", "vendor"] as const
 
 function fuzzyMatch(value: string | undefined, query: string) {
   if (!value) {

@@ -25,7 +25,16 @@ import { sortProducts, type ProductSort } from "./productSort"
 import type { ProductEditableField, ProductInput, ProductRow } from "./productTableData"
 
 const EMPTY_PRODUCTS: ProductRow[] = []
-const PRODUCT_EDITABLE_FIELDS: ProductEditableField[] = ["sku", "upc", "name", "img", "type", "vendor", "price"]
+const PRODUCT_EDITABLE_FIELDS: ProductEditableField[] = [
+  "sku",
+  "upc",
+  "name",
+  "img",
+  "type",
+  "variant",
+  "vendor",
+  "price",
+]
 type OptimisticProductFieldPatch = {
   baseValue: ProductRow[ProductEditableField]
   value: ProductRow[ProductEditableField]
@@ -345,6 +354,7 @@ function toProductInput(product: ProductRow): ProductInput {
     name: product.name,
     img: product.img,
     type: product.type,
+    variant: product.variant,
     vendor: product.vendor,
     price: product.price,
     meta: product.meta,

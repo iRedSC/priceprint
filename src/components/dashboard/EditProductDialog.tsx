@@ -56,6 +56,7 @@ function EditProductForm({
   const [sku, setSku] = useState(product.sku ?? "")
   const [upc, setUpc] = useState(product.upc ?? "")
   const [type, setType] = useState(product.type ?? "")
+  const [variant, setVariant] = useState(product.variant ?? "")
   const [vendor, setVendor] = useState(product.vendor ?? "")
   const [price, setPrice] = useState(String(product.price))
   const [img, setImg] = useState(product.img ?? "")
@@ -67,6 +68,7 @@ function EditProductForm({
     sku,
     upc,
     type,
+    variant,
     vendor,
     price,
     img,
@@ -78,6 +80,7 @@ function EditProductForm({
     sku: setSku,
     upc: setUpc,
     type: setType,
+    variant: setVariant,
     vendor: setVendor,
     price: setPrice,
     img: setImg,
@@ -98,6 +101,7 @@ function EditProductForm({
       name: name.trim(),
       img: img.trim() || undefined,
       type: type.trim() || undefined,
+      variant: variant.trim() || undefined,
       vendor: vendor.trim() || undefined,
       price: parsedPrice,
       meta: parseMeta(meta),

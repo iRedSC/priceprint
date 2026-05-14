@@ -21,6 +21,7 @@ type ShopifyAccessTokenResponse = {
 };
 
 type ShopifyVariantNode = {
+  title?: string | null;
   sku?: string | null;
   barcode?: string | null;
   price?: string | null;
@@ -48,6 +49,7 @@ type ShopifyLookupProduct = {
   name: string;
   img?: string;
   type?: string;
+  variant?: string;
   vendor?: string;
   price: number;
   meta: {
@@ -442,6 +444,7 @@ async function findShopifyVariant(
       query: `query ProductVariantByCode($query: String!) {
         productVariants(first: 1, query: $query) {
           nodes {
+            title
             sku
             barcode
             price
@@ -571,6 +574,7 @@ function toProductInput(
 ): ShopifyLookupProduct {
   const product = variant.product;
   const price = Number(variant.price ?? 0);
+  const variantLabel = normalizeShopifyVariantTitle(variant.title);
 
   return {
     sku: variant.sku || (matchedField === "sku" ? scannedCode : undefined),
@@ -578,6 +582,7 @@ function toProductInput(
     name: product?.title || variant.sku || scannedCode,
     img: variant.image?.url || product?.featuredImage?.url || undefined,
     type: product?.productType || undefined,
+    variant: variantLabel,
     vendor: product?.vendor || undefined,
     price: Number.isFinite(price) ? price : 0,
     meta: {
@@ -586,6 +591,14 @@ function toProductInput(
       matchedField,
     },
   };
+}
+
+function normalizeShopifyVariantTitle(title: string | null | undefined) {
+  const trimmed = title?.trim();
+  if (!trimmed || trimmed === "Default Title") {
+    return undefined;
+  }
+  return trimmed;
 }
 
 export const handleShopifyCallback = httpAction(async (ctx, request) => {

@@ -8,6 +8,7 @@ const productFields = {
   name: v.string(),
   img: v.optional(v.string()),
   type: v.optional(v.string()),
+  variant: v.optional(v.string()),
   vendor: v.optional(v.string()),
   price: v.number(),
   meta: v.optional(v.any()),

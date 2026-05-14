@@ -1,7 +1,7 @@
 import type { ProductInput } from "./productTableData"
 
 export const productCsvExample =
-  "name,sku,upc,type,vendor,price,img,meta\nOrganic apple juice,SKU-1001,092834761203,Beverage,North Market,4.99,,{}\nSourdough loaf,SKU-1002,092834761204,Bakery,Bakery Co,6.49,,{}\n"
+  "name,sku,upc,type,variant,vendor,price,img,meta\nOrganic apple juice,SKU-1001,092834761203,Beverage,1L,North Market,4.99,,{}\nSourdough loaf,SKU-1002,092834761204,Bakery,Large,Bakery Co,6.49,,{}\n"
 
 function splitCsvLine(line: string) {
   return line.match(/("([^"]|"")*"|[^,]+)/g)?.map((value) =>
@@ -28,6 +28,7 @@ export function parseProductCsv(text: string): ProductInput[] {
         upc: getValue("upc") || undefined,
         img: getValue("img") || undefined,
         type: getValue("type") || undefined,
+        variant: getValue("variant") || undefined,
         vendor: getValue("vendor") || undefined,
         price,
         meta: parseMeta(getValue("meta")),

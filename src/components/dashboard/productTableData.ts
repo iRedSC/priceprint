@@ -6,6 +6,7 @@ export type ProductInput = {
   name: string
   img?: string
   type?: string
+  variant?: string
   vendor?: string
   price: number
   meta?: unknown
@@ -15,4 +16,12 @@ export type ProductPrintStatus = "up-to-date" | "not-printed" | "needs-reprinted
 export type ProductRow = Doc<"products"> & {
   printData?: Doc<"printData"> | null
 }
-export type ProductEditableField = "sku" | "upc" | "name" | "img" | "type" | "vendor" | "price"
+export type ProductEditableField =
+  | "sku"
+  | "upc"
+  | "name"
+  | "img"
+  | "type"
+  | "variant"
+  | "vendor"
+  | "price"

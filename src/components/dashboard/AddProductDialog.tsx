@@ -31,6 +31,7 @@ function AddProductDialog({ onAddProduct, triggerClassName }: AddProductDialogPr
   const [sku, setSku] = useState("")
   const [upc, setUpc] = useState("")
   const [type, setType] = useState("")
+  const [variant, setVariant] = useState("")
   const [vendor, setVendor] = useState("")
   const [price, setPrice] = useState("")
   const [img, setImg] = useState("")
@@ -42,6 +43,7 @@ function AddProductDialog({ onAddProduct, triggerClassName }: AddProductDialogPr
     sku,
     upc,
     type,
+    variant,
     vendor,
     price,
     img,
@@ -53,6 +55,7 @@ function AddProductDialog({ onAddProduct, triggerClassName }: AddProductDialogPr
     sku: setSku,
     upc: setUpc,
     type: setType,
+    variant: setVariant,
     vendor: setVendor,
     price: setPrice,
     img: setImg,
@@ -64,6 +67,7 @@ function AddProductDialog({ onAddProduct, triggerClassName }: AddProductDialogPr
     setSku(product.sku ?? sku)
     setUpc(product.upc ?? "")
     setType(product.type ?? "")
+    setVariant(product.variant ?? "")
     setVendor(product.vendor ?? "")
     setPrice(String(product.price))
     setImg(product.img ?? "")
@@ -84,6 +88,7 @@ function AddProductDialog({ onAddProduct, triggerClassName }: AddProductDialogPr
       name: name.trim(),
       img: img.trim() || undefined,
       type: type.trim() || undefined,
+      variant: variant.trim() || undefined,
       vendor: vendor.trim() || undefined,
       price: parsedPrice,
       meta: parseMeta(meta),
@@ -92,6 +97,7 @@ function AddProductDialog({ onAddProduct, triggerClassName }: AddProductDialogPr
     setSku("")
     setUpc("")
     setType("")
+    setVariant("")
     setVendor("")
     setPrice("")
     setImg("")

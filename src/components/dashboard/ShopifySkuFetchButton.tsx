@@ -11,6 +11,7 @@ export type ShopifySkuImportPayload = {
   sku?: string
   upc?: string
   type?: string
+  variant?: string
   vendor?: string
   price: number
   img?: string
@@ -46,6 +47,7 @@ function ShopifySkuFetchButton({ sku, sessionToken, onImported }: ShopifySkuFetc
         sku: product.sku,
         upc: product.upc,
         type: product.type,
+        variant: product.variant,
         vendor: product.vendor,
         price: product.price,
         img: product.img,

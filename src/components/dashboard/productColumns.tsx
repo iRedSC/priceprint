@@ -87,6 +87,20 @@ export function createProductColumns({ onFieldCommit }: ProductColumnOptions): C
       ),
     },
     {
+      accessorKey: "variant",
+      header: "Variant",
+      size: 130,
+      cell: ({ row }) => (
+        <ProductEditableCell
+          key={getEditableCellKey(row.original, "variant")}
+          product={row.original}
+          field="variant"
+          value={row.getValue<string | undefined>("variant")}
+          onCommit={onFieldCommit}
+        />
+      ),
+    },
+    {
       accessorKey: "vendor",
       header: "Vendor",
       size: 160,

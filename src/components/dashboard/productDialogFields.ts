@@ -5,6 +5,7 @@ export type ProductFieldKey =
   | "sku"
   | "upc"
   | "type"
+  | "variant"
   | "vendor"
   | "price"
   | "img"
@@ -29,6 +30,7 @@ export const productDialogFields: ProductFieldConfig[] = [
   { key: "sku", label: "SKU", enterKeyHint: "next", autoComplete: "off", autoCapitalize: "characters", spellCheck: false },
   { key: "upc", label: "UPC", inputMode: "numeric", enterKeyHint: "next", autoComplete: "off", pattern: "[0-9]*", spellCheck: false },
   { key: "type", label: "Type", enterKeyHint: "next", autoCapitalize: "words" },
+  { key: "variant", label: "Variant", enterKeyHint: "next", autoCapitalize: "words" },
   { key: "vendor", label: "Vendor", enterKeyHint: "next", autoComplete: "organization", autoCapitalize: "words" },
   { key: "price", label: "Price", type: "number", inputMode: "decimal", enterKeyHint: "next", autoComplete: "off", step: "0.01", spellCheck: false },
   { key: "img", label: "Image URL", type: "url", inputMode: "url", enterKeyHint: "next", autoComplete: "url", autoCapitalize: "none", spellCheck: false },

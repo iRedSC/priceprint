@@ -1,4 +1,4 @@
-import { CalendarPlus, MapPin, RefreshCw, Tag } from "lucide-react"
+import { CalendarPlus, Layers, MapPin, RefreshCw, Tag } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 import {
@@ -38,7 +38,8 @@ function ProductMobileCard({ product, onEdit, onDelete, onPrint }: ProductMobile
           <CardDescription className="mt-1 flex flex-wrap gap-1.5">
             {product.vendor ? <InfoChip icon={MapPin} value={product.vendor} /> : null}
             {product.type ? <InfoChip icon={Tag} value={product.type} /> : null}
-            {!product.vendor && !product.type ? (
+            {product.variant ? <InfoChip icon={Layers} value={product.variant} /> : null}
+            {!product.vendor && !product.type && !product.variant ? (
               <InfoChip value="No catalog details" />
             ) : null}
           </CardDescription>
