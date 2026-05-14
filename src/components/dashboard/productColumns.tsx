@@ -36,6 +36,7 @@ export function createProductColumns({ onFieldCommit }: ProductColumnOptions): C
       size: 240,
       cell: ({ row }) => (
         <ProductEditableCell
+          key={getEditableCellKey(row.original, "name")}
           product={row.original}
           field="name"
           value={row.getValue<string>("name")}
@@ -49,6 +50,7 @@ export function createProductColumns({ onFieldCommit }: ProductColumnOptions): C
       size: 130,
       cell: ({ row }) => (
         <ProductEditableCell
+          key={getEditableCellKey(row.original, "sku")}
           product={row.original}
           field="sku"
           value={row.getValue<string | undefined>("sku")}
@@ -62,6 +64,7 @@ export function createProductColumns({ onFieldCommit }: ProductColumnOptions): C
       size: 170,
       cell: ({ row }) => (
         <ProductEditableCell
+          key={getEditableCellKey(row.original, "upc")}
           product={row.original}
           field="upc"
           value={row.getValue<string | undefined>("upc")}
@@ -75,6 +78,7 @@ export function createProductColumns({ onFieldCommit }: ProductColumnOptions): C
       size: 130,
       cell: ({ row }) => (
         <ProductEditableCell
+          key={getEditableCellKey(row.original, "type")}
           product={row.original}
           field="type"
           value={row.getValue<string | undefined>("type")}
@@ -88,6 +92,7 @@ export function createProductColumns({ onFieldCommit }: ProductColumnOptions): C
       size: 160,
       cell: ({ row }) => (
         <ProductEditableCell
+          key={getEditableCellKey(row.original, "vendor")}
           product={row.original}
           field="vendor"
           value={row.getValue<string | undefined>("vendor")}
@@ -109,6 +114,7 @@ export function createProductColumns({ onFieldCommit }: ProductColumnOptions): C
       cell: ({ row }) => (
         <div className="flex min-w-0 items-center gap-0.5">
           <ProductEditableCell
+            key={getEditableCellKey(row.original, "price")}
             product={row.original}
             field="price"
             value={row.getValue<number>("price")}
@@ -134,4 +140,8 @@ export function createProductColumns({ onFieldCommit }: ProductColumnOptions): C
       cell: ({ row }) => formatProductDate(row.getValue<number | undefined>("updatedAt")),
     },
   ]
+}
+
+function getEditableCellKey(product: ProductRow, field: ProductEditableField) {
+  return `${product._id}:${field}:${String(product[field] ?? "")}`
 }
