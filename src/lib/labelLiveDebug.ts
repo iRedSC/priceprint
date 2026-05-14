@@ -38,34 +38,6 @@ function printUri(design: string, printerId: string, variablesJson: string) {
   return `labellive://print?${params.join("&")}`;
 }
 
-function base64Encode(text: string) {
-  const bytes = new TextEncoder().encode(text);
-  let binary = "";
-
-  for (const byte of bytes) {
-    binary += String.fromCharCode(byte);
-  }
-
-  return btoa(binary);
-}
-
-function batchPayload(jobs: LabelLiveDebugJob[]) {
-  return jobs.map((job) => ({
-    design: job.design,
-    variables: JSON.stringify(job.variables),
-    printer: job.printerId,
-    window: "show",
-    copies: "1",
-  }));
-}
-
-function batchUri(jobs: LabelLiveDebugJob[]) {
-  const payloadJson = JSON.stringify(batchPayload(jobs));
-  const encodedPayload = encodeURIComponent(base64Encode(payloadJson));
-
-  return `labellive://batch?payload=${encodedPayload}`;
-}
-
 /** Human-readable integration details for troubleshooting (URLs, bodies, payload sizes). */
 export function buildLabelLiveDebugText(jobs: LabelLiveDebugJob[]): string {
   if (!jobs.length) {
@@ -82,18 +54,13 @@ export function buildLabelLiveDebugText(jobs: LabelLiveDebugJob[]): string {
   const design = jobs[0]!.design;
   const printerId = jobs[0]!.printerId;
   const variablesJson = variablesRowsToJson(jobs.map((job) => job.variables));
-  const href = jobs.length === 1 ? printUri(design, printerId, variablesJson) : batchUri(jobs);
+  const href = printUri(design, printerId, variablesJson);
 
-  out += jobs.length === 1 ? "=== Print URI ===\n" : "=== Batch print URI ===\n";
+  out += jobs.length === 1 ? "=== Print URI ===\n" : "=== Multi-label print URI ===\n";
   out += `${preview(href, 8000)}\n`;
 
-  if (jobs.length === 1) {
-    out += "\n=== Decoded variables JSON ===\n";
-    out += `${preview(variablesJson, 8000)}\n`;
-  } else {
-    out += "\n=== Decoded batch payload JSON ===\n";
-    out += `${preview(JSON.stringify(batchPayload(jobs), null, 2), 8000)}\n`;
-  }
+  out += "\n=== Decoded variables JSON ===\n";
+  out += `${preview(variablesJson, 8000)}\n`;
 
   return out;
 }
