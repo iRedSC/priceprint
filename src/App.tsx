@@ -8,9 +8,15 @@ import { Toaster } from "@/components/ui/sonner"
 function App() {
   const [session, setSession] = useState<AuthResult | null>(readStoredSession)
 
+  const handleSignOut = () => setSession(null)
+
   return (
     <>
-      {session ? <DashboardPage /> : <AuthPage onSignedIn={setSession} />}
+      {session ? (
+        <DashboardPage onSignOut={handleSignOut} />
+      ) : (
+        <AuthPage onSignedIn={setSession} />
+      )}
       <Toaster richColors position="top-center" />
     </>
   )

@@ -7,6 +7,10 @@ import {
   TabsList,
 } from "@/components/ui/tabs"
 import SettingsPanel from "./SettingsPanel"
+
+type DashboardPageProps = {
+  onSignOut: () => void
+}
 import DashboardTabTrigger from "./DashboardTabTrigger"
 import DashboardTabsDock from "./DashboardTabsDock"
 import GroupsPanel from "./GroupsPanel"
@@ -24,7 +28,7 @@ function isDashboardSection(value: string): value is DashboardSection {
   return value in sectionLabels
 }
 
-function DashboardPage() {
+function DashboardPage({ onSignOut }: DashboardPageProps) {
   const [section, setSection] = useState<DashboardSection>("groups")
 
   const handleSectionChange = (value: string) => {
@@ -64,7 +68,7 @@ function DashboardPage() {
             <ProductsPanel />
           </TabsContent>
           <TabsContent value="settings">
-            <SettingsPanel />
+            <SettingsPanel onSignOut={onSignOut} />
           </TabsContent>
         </Tabs>
       </div>
