@@ -4,16 +4,10 @@ import { useState, type FormEvent } from 'react'
 import { api } from '../../convex/_generated/api'
 import { storeSession, type AuthResult } from '@/authSession'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
 import { Label } from '@/components/ui/label'
+import { storePasskeyHintEmail } from '@/lib/passkeyHintStorage'
 
 type EmailOtpSetupProps = {
   onSignedIn: (session: AuthResult) => void
@@ -57,6 +51,7 @@ function EmailOtpSetup({ onSignedIn }: EmailOtpSetupProps) {
       const session = await completeSetup({ challengeId, response, origin })
 
       storeSession(session)
+      storePasskeyHintEmail(session.email)
       onSignedIn(session)
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Could not create passkey.')
@@ -66,53 +61,55 @@ function EmailOtpSetup({ onSignedIn }: EmailOtpSetupProps) {
   }
 
   return (
-    <form onSubmit={codeSent ? handleCreatePasskey : handleRequestOtp}>
-      <Card>
-        <CardHeader>
-          <CardDescription>New device or first sign-up</CardDescription>
-          <CardTitle>Email code, then passkey</CardTitle>
-          <CardDescription>
-            We will email a one-time code, then your browser will save a passkey
-            for future sign-ins.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              autoComplete="email webauthn"
-              inputMode="email"
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="you@example.com"
-              required
-              type="email"
-              value={email}
-            />
-          </div>
-          {codeSent ? (
-            <div className="grid gap-2">
-              <Label htmlFor="code">Code</Label>
-              <Input
-                id="code"
-                autoComplete="one-time-code"
-                inputMode="numeric"
-                maxLength={6}
-                onChange={(event) => setCode(event.target.value)}
-                placeholder="123456"
-                required
-                value={code}
-              />
-            </div>
-          ) : null}
-          {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
-        </CardContent>
-        <CardFooter>
-          <Button type="submit" variant="secondary" className="w-full" disabled={isBusy}>
-            {codeSent ? 'Create passkey' : 'Email me a code'}
-          </Button>
-        </CardFooter>
-      </Card>
+    <form
+      onSubmit={codeSent ? handleCreatePasskey : handleRequestOtp}
+      className="grid gap-4 touch-manipulation"
+    >
+      {!codeSent ? (
+        <div className="grid gap-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            autoComplete="email webauthn"
+            inputMode="email"
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="you@example.com"
+            required
+            type="email"
+            value={email}
+          />
+        </div>
+      ) : (
+        <div className="grid gap-2">
+          <Label id="otp-label">One-time code</Label>
+          <p className="text-sm text-muted-foreground">
+            Sent to <span className="font-medium text-foreground/80">{email.trim()}</span>
+          </p>
+          <InputOTP
+            maxLength={6}
+            value={code}
+            onChange={setCode}
+            containerClassName="w-full justify-center sm:justify-start"
+            aria-labelledby="otp-label"
+            autoComplete="one-time-code"
+          >
+            <InputOTPGroup className="w-full min-w-0 justify-center sm:justify-start">
+              {Array.from({ length: 6 }, (_, index) => (
+                <InputOTPSlot key={index} index={index} className="size-10 sm:size-9" />
+              ))}
+            </InputOTPGroup>
+          </InputOTP>
+        </div>
+      )}
+      {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
+      <Button
+        type="submit"
+        variant="secondary"
+        className="w-full touch-manipulation"
+        disabled={isBusy || (codeSent && code.length !== 6)}
+      >
+        {codeSent ? 'Create passkey' : 'Email me a code'}
+      </Button>
     </form>
   )
 }

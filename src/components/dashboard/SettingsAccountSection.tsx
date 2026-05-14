@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { LogOut } from "lucide-react"
+import { LogOutIcon } from "lucide-react"
 
 import {
   clearStoredSession,
@@ -45,8 +45,8 @@ function SettingsAccountSection({ onSignOut }: SettingsAccountSectionProps) {
           className="w-full touch-manipulation gap-2"
           onClick={handleLogout}
         >
-          <LogOut className="size-4" aria-hidden />
-          Log out
+          <LogOutIcon className="size-4" aria-hidden />
+          Sign out
         </Button>
       </CardFooter>
     </Card>

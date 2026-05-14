@@ -1,13 +1,5 @@
 import type { AuthResult } from '@/authSession'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import EmailOtpSetup from './EmailOtpSetup'
-import PasskeySignIn from './PasskeySignIn'
+import AuthSignInCard from './AuthSignInCard'
 
 type AuthPageProps = {
   onSignedIn: (session: AuthResult) => void
@@ -23,26 +15,13 @@ function AuthPage({ onSignedIn }: AuthPageProps) {
             Sign in to scan, review, and print labels.
           </h1>
           <p className="mt-4 max-w-xl text-base text-muted-foreground sm:text-lg">
-            Use a passkey for fast return access. If this is your first time,
-            verify your email and create a passkey for this device.
+            Returning on this device? Use your saved passkey. New here or another account? Verify
+            your email and add a passkey for quick sign-in next time.
           </p>
         </section>
 
-        <section className="grid gap-4" aria-label="Authentication options">
-          <Card>
-            <CardHeader>
-              <CardDescription>Returning user</CardDescription>
-              <CardTitle>Use your passkey</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4">
-              <p className="text-sm text-muted-foreground">
-                Your browser will ask for your fingerprint, face, PIN, or
-                security key.
-              </p>
-              <PasskeySignIn onSignedIn={onSignedIn} />
-            </CardContent>
-          </Card>
-          <EmailOtpSetup onSignedIn={onSignedIn} />
+        <section className="grid gap-4" aria-label="Sign in">
+          <AuthSignInCard onSignedIn={onSignedIn} />
         </section>
       </div>
     </main>
