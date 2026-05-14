@@ -19,7 +19,7 @@ function GroupProductMobileCard({ product, onRemoveProduct }: GroupProductMobile
           type="button"
           variant="ghost"
           size="icon"
-          className="shrink-0 touch-manipulation"
+          className="size-10 shrink-0 touch-manipulation"
           aria-label={`Remove ${product.name}`}
           onClick={() => onRemoveProduct(product)}
         >

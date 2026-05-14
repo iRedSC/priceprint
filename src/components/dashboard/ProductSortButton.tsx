@@ -38,7 +38,7 @@ function ProductSortButton({
           variant="outline"
           size="icon"
           aria-label={`Sort products by ${productSortLabels[sort]}`}
-          className={cn("touch-manipulation", triggerClassName)}
+          className={cn("size-10 touch-manipulation", triggerClassName)}
         >
           <ArrowUpDown />
         </Button>

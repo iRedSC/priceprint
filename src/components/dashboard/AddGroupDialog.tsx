@@ -48,7 +48,7 @@ function AddGroupDialog({ onAddGroup, triggerClassName, open: controlledOpen, on
           <Button
             size="icon"
             aria-label="Add group"
-            className={cn("touch-manipulation", triggerClassName)}
+            className={cn("size-10 touch-manipulation", triggerClassName)}
           >
             <Plus />
           </Button>

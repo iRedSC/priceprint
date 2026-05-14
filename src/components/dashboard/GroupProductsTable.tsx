@@ -62,7 +62,7 @@ function GroupProductsTable({ products, onRemoveProduct }: GroupProductsTablePro
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="touch-manipulation"
+                    className="size-10 touch-manipulation"
                     aria-label={`Remove ${product.name}`}
                     onClick={() => onRemoveProduct(product)}
                   >

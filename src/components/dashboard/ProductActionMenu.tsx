@@ -25,8 +25,8 @@ function ProductActionMenu({ product, onEdit, onDelete, onPrint }: ProductAction
         <Button
           type="button"
           variant="ghost"
-          size="icon-sm"
-          className="touch-manipulation"
+          size="icon"
+          className="size-10 touch-manipulation"
           aria-label={`Open actions for ${product.name}`}
         >
           <MoreHorizontal />

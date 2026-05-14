@@ -56,7 +56,7 @@ function UndoLastPrintButton({ sessionToken, className }: UndoLastPrintButtonPro
         size="icon"
         disabled={disabled}
         aria-label="Undo last print batch"
-        className={cn("touch-manipulation", className)}
+        className={cn("size-10 touch-manipulation", className)}
         onClick={() => setConfirmOpen(true)}
       >
         <Undo2 />

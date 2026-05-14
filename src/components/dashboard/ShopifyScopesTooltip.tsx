@@ -21,7 +21,7 @@ function ShopifyScopesTooltip({ scopes }: ShopifyScopesTooltipProps) {
           type="button"
           variant="ghost"
           size="icon"
-          className="size-9 shrink-0 touch-manipulation text-muted-foreground hover:text-foreground"
+          className="size-10 shrink-0 touch-manipulation text-muted-foreground hover:text-foreground"
           aria-label="OAuth scopes"
         >
           <Info className="size-4" strokeWidth={2} />

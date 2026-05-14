@@ -27,8 +27,8 @@ function GroupActionMenu({ group, onOpen, onEdit, onDelete, onPrintGroup }: Grou
         <Button
           type="button"
           variant="ghost"
-          size="icon-sm"
-          className="touch-manipulation"
+          size="icon"
+          className="size-10 touch-manipulation"
           aria-label={`Open actions for ${group.name}`}
         >
           <MoreHorizontal />
