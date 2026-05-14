@@ -27,14 +27,10 @@ function GroupScanDialog({ group, onOpenChange, onScanProduct }: GroupScanDialog
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const scanSuccessTimeoutRef = useRef<number | null>(null)
   const [holding, setHolding] = useState(false)
-  const [feed, setFeed] = useState<ScanFeedItem[]>([])
+  const [lastScanned, setLastScanned] = useState<ScanFeedItem | null>(null)
   const [busy, setBusy] = useState(false)
   const [scanSucceeded, setScanSucceeded] = useState(false)
   const [scanSuccessKey, setScanSuccessKey] = useState(0)
-
-  const updateFeed = (item: ScanFeedItem) => {
-    setFeed((items) => [item, ...items.filter((current) => current.code !== item.code)].slice(0, 4))
-  }
 
   const flashScanSuccess = () => {
     if (scanSuccessTimeoutRef.current) {
@@ -57,7 +53,7 @@ function GroupScanDialog({ group, onOpenChange, onScanProduct }: GroupScanDialog
         scanSuccessTimeoutRef.current = null
       }
       setHolding(false)
-      setFeed([])
+      setLastScanned(null)
       setScanSucceeded(false)
       setScanSuccessKey(0)
     }
@@ -79,13 +75,13 @@ function GroupScanDialog({ group, onOpenChange, onScanProduct }: GroupScanDialog
     setHolding(false)
     flashScanSuccess()
     setBusy(true)
-    updateFeed({ code, detail: "Checking Shopify...", status: "loading" })
+    setLastScanned({ code, detail: "Checking Shopify...", status: "loading" })
 
     try {
       const product = await onScanProduct(group, code)
-      updateFeed({ code, detail: product.name, status: "added" })
+      setLastScanned({ code, detail: product.name, status: "added" })
     } catch (error) {
-      updateFeed({
+      setLastScanned({
         code,
         detail: error instanceof Error ? error.message : "Could not add this product.",
         status: "error",
@@ -120,7 +116,7 @@ function GroupScanDialog({ group, onOpenChange, onScanProduct }: GroupScanDialog
         </DialogHeader>
         <div className="relative isolate">
           <div className="pointer-events-none absolute inset-x-0 bottom-full z-10 mb-2 max-h-[min(30vh,10rem)] overflow-hidden">
-            {feed.length > 0 ? <LastScannedFeed items={feed} /> : null}
+            <LastScannedFeed item={lastScanned} />
           </div>
           <CameraPreview
             videoRef={videoRef}
