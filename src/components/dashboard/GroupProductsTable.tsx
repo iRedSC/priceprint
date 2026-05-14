@@ -12,6 +12,7 @@ import {
 import DashboardResponsiveList from "./DashboardResponsiveList"
 import GroupProductMobileCard from "./GroupProductMobileCard"
 import type { GroupProduct } from "./groupTableData"
+import ProductImage from "./ProductImage"
 import { formatProductPrice } from "./productFormat"
 
 type GroupProductsTableProps = {
@@ -38,9 +39,9 @@ function GroupProductsTable({ products, onRemoveProduct }: GroupProductsTablePro
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-16">Image</TableHead>
               <TableHead>Product</TableHead>
               <TableHead>SKU</TableHead>
-              <TableHead>UPC</TableHead>
               <TableHead>Price</TableHead>
               <TableHead className="w-12">
                 <span className="sr-only">Actions</span>
@@ -50,9 +51,11 @@ function GroupProductsTable({ products, onRemoveProduct }: GroupProductsTablePro
           <TableBody>
             {products.map((product) => (
               <TableRow key={product._id}>
+                <TableCell>
+                  <ProductImage src={product.img} alt={product.name} className="size-9" />
+                </TableCell>
                 <TableCell className="font-medium">{product.name}</TableCell>
                 <TableCell>{product.sku ?? "-"}</TableCell>
-                <TableCell>{product.upc ?? "-"}</TableCell>
                 <TableCell>{formatProductPrice(product.price)}</TableCell>
                 <TableCell>
                   <Button
