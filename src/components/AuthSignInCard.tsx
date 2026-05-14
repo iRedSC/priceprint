@@ -1,4 +1,7 @@
 import type { AuthResult } from '@/authSession'
+import AuthPasskeyBootLoading from './AuthPasskeyBootLoading'
+import AuthPasskeyReturnView from './AuthPasskeyReturnView'
+import EmailOtpSetup from './EmailOtpSetup'
 import {
   Card,
   CardContent,
@@ -6,13 +9,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { usePasskeySignIn } from '@/hooks/usePasskeySignIn'
+import { browserSupportsWebAuthn } from '@simplewebauthn/browser'
 import {
   clearPasskeyHintEmail,
   readPasskeyHintEmail,
 } from '@/lib/passkeyHintStorage'
-import { useState } from 'react'
-import AuthPasskeyReturnView from './AuthPasskeyReturnView'
-import EmailOtpSetup from './EmailOtpSetup'
+import { useCallback, useEffect, useState } from 'react'
 
 type AuthSignInCardProps = {
   onSignedIn: (session: AuthResult) => void
@@ -21,8 +24,39 @@ type AuthSignInCardProps = {
 function AuthSignInCard({ onSignedIn }: AuthSignInCardProps) {
   const [hintEmail, setHintEmail] = useState(() => readPasskeyHintEmail())
   const [useOtherAccount, setUseOtherAccount] = useState(false)
+  const [boot, setBoot] = useState<'checking' | 'ready'>('checking')
 
   const showPasskeyReturn = Boolean(hintEmail) && !useOtherAccount
+
+  const onSession = useCallback(
+    (session: AuthResult) => {
+      setHintEmail(session.email)
+      setUseOtherAccount(false)
+      onSignedIn(session)
+    },
+    [onSignedIn],
+  )
+
+  const tryPasskeySignIn = usePasskeySignIn(onSession)
+
+  useEffect(() => {
+    let cancelled = false
+    const run = async () => {
+      if (!browserSupportsWebAuthn()) {
+        if (!cancelled) setBoot('ready')
+        return
+      }
+      try {
+        await tryPasskeySignIn()
+      } catch {
+        if (!cancelled) setBoot('ready')
+      }
+    }
+    void run()
+    return () => {
+      cancelled = true
+    }
+  }, [tryPasskeySignIn])
 
   const handleDifferentAccount = () => {
     clearPasskeyHintEmail()
@@ -33,7 +67,12 @@ function AuthSignInCard({ onSignedIn }: AuthSignInCardProps) {
   return (
     <Card>
       <CardHeader>
-        {showPasskeyReturn ? (
+        {boot === 'checking' ? (
+          <>
+            <CardDescription>PricePrint</CardDescription>
+            <CardTitle className="text-xl sm:text-2xl">Signing in…</CardTitle>
+          </>
+        ) : showPasskeyReturn ? (
           <>
             <CardDescription>Returning on this device</CardDescription>
             <CardTitle>Sign in with your passkey</CardTitle>
@@ -50,20 +89,16 @@ function AuthSignInCard({ onSignedIn }: AuthSignInCardProps) {
         )}
       </CardHeader>
       <CardContent className="grid gap-4">
-        {showPasskeyReturn ? (
+        {boot === 'checking' ? (
+          <AuthPasskeyBootLoading />
+        ) : showPasskeyReturn ? (
           <AuthPasskeyReturnView
             email={hintEmail!}
             onDifferentAccount={handleDifferentAccount}
-            onSignedIn={onSignedIn}
+            onSignedIn={onSession}
           />
         ) : (
-          <EmailOtpSetup
-            onSignedIn={(session) => {
-              setHintEmail(session.email)
-              setUseOtherAccount(false)
-              onSignedIn(session)
-            }}
-          />
+          <EmailOtpSetup onSignedIn={onSession} />
         )}
       </CardContent>
     </Card>
