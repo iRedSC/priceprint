@@ -25,7 +25,14 @@ import { sortProducts, type ProductSort } from "./productSort"
 import type { ProductEditableField, ProductInput, ProductRow } from "./productTableData"
 
 const EMPTY_PRODUCTS: ProductRow[] = []
-type OptimisticProductPatches = Partial<Record<ProductRow["_id"], Partial<ProductRow>>>
+const PRODUCT_EDITABLE_FIELDS: ProductEditableField[] = ["sku", "upc", "name", "img", "type", "vendor", "price"]
+type OptimisticProductFieldPatch = {
+  baseValue: ProductRow[ProductEditableField]
+  value: ProductRow[ProductEditableField]
+  updatedAt: number
+}
+type OptimisticProductPatch = Partial<Record<ProductEditableField, OptimisticProductFieldPatch>>
+type OptimisticProductPatches = Partial<Record<ProductRow["_id"], OptimisticProductPatch>>
 
 function ProductsPanel() {
   const [search, setSearch] = useState("")
@@ -50,7 +57,7 @@ function ProductsPanel() {
   const recordProductPrintMutation = useMutation(api.printJobs.recordProductPrint)
   const refreshProductPrices = useAction(api.shopify.refreshProductPrices)
   const productRows = useMemo(
-    () => (products ?? EMPTY_PRODUCTS).map((product) => ({ ...product, ...optimisticPatches[product._id] })),
+    () => (products ?? EMPTY_PRODUCTS).map((product) => applyOptimisticPatches(product, optimisticPatches[product._id])),
     [optimisticPatches, products]
   )
   const addProduct = async (product: ProductInput) => {
@@ -90,10 +97,22 @@ function ProductsPanel() {
 
     const nextProduct = { ...toProductInput(product), [field]: fieldValue }
     const updatedAt = Date.now()
-    setOptimisticPatches((patches) => ({
-      ...patches,
-      [product._id]: { ...patches[product._id], [field]: fieldValue, updatedAt },
-    }))
+    setOptimisticPatches((patches) => {
+      const fieldPatch = patches[product._id]?.[field]
+      const baseValue = fieldPatch && fieldPatch.value === product[field] ? fieldPatch.baseValue : product[field]
+
+      return {
+        ...patches,
+        [product._id]: {
+          ...patches[product._id],
+          [field]: {
+            baseValue,
+            value: fieldValue,
+            updatedAt,
+          },
+        },
+      }
+    })
 
     try {
       await updateProductMutation({
@@ -346,6 +365,32 @@ function parseProductField(field: ProductEditableField, value: string) {
   }
 
   return value.trim() || undefined
+}
+
+function applyOptimisticPatches(product: ProductRow, patches: OptimisticProductPatch | undefined): ProductRow {
+  if (!patches) {
+    return product
+  }
+
+  let nextProduct = product
+  let latestUpdatedAt: number | undefined
+
+  for (const field of PRODUCT_EDITABLE_FIELDS) {
+    const patch = patches[field]
+
+    if (!patch || product[field] !== patch.baseValue) {
+      continue
+    }
+
+    nextProduct = { ...nextProduct, [field]: patch.value }
+    latestUpdatedAt = Math.max(latestUpdatedAt ?? 0, patch.updatedAt)
+  }
+
+  if (latestUpdatedAt !== undefined) {
+    nextProduct = { ...nextProduct, updatedAt: Math.max(nextProduct.updatedAt ?? 0, latestUpdatedAt) }
+  }
+
+  return nextProduct
 }
 
 export default ProductsPanel
