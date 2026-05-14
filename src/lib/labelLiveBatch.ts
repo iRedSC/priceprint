@@ -1,10 +1,6 @@
-const BATCH_URL = "http://127.0.0.1:11180/api/v1/batch";
+import { variablesToRjson } from "./labelLiveRjson";
 
-/** Prefer v4.5+ multi-job HTTP print (one design); paths are tried in order. */
-const PRINT_URLS = [
-  "http://127.0.0.1:11180/api/v1/print",
-  "http://127.0.0.1:11180/api/print",
-] as const;
+const BATCH_URL = "http://127.0.0.1:11180/api/v1/batch";
 
 export type LabelLiveBatchJob = {
   design: string;
@@ -38,14 +34,14 @@ function openFallbackUri(payload: string) {
 }
 
 /**
- * Batch items mirror HTTP print (`design` + `variables` JSON object).
- * URLs use RJSON (`NAME:'…'`), but POST and batch payloads use JSON objects; META etc. stays one string — avoids RJSON choking on commas/colons inside JSON text.
+ * Batch items mirror `labellive://print` params. The outer payload is JSON,
+ * but `variables` itself is Label LIVE's RJSON string format.
  */
 function jobToLabelLiveParams(job: LabelLiveBatchJob): {
   design: string;
-  variables: Record<string, string>;
+  variables: string;
 } {
-  return { design: job.design, variables: job.variables };
+  return { design: job.design, variables: variablesToRjson(job.variables) };
 }
 
 function buildBatchPayloadJson(jobs: LabelLiveBatchJob[]) {
@@ -57,47 +53,6 @@ async function readError(res: Response) {
     return await res.text();
   } catch {
     return "";
-  }
-}
-
-/**
- * Multi-job with one design (HTTP v4.5+): `variables` is a JSON array of objects.
- * See Label LIVE guide: variables may be a single object or an array (HTTP).
- */
-async function tryPostMultiJobPrint(design: string, variableRows: Record<string, string>[]) {
-  const variablesJson =
-    variableRows.length === 1
-      ? JSON.stringify(variableRows[0])
-      : JSON.stringify(variableRows);
-  const body = new URLSearchParams({ design, variables: variablesJson });
-
-  for (const url of PRINT_URLS) {
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: body.toString(),
-      });
-      const text = await readError(res);
-      if (res.ok) {
-        return true;
-      }
-      if (res.status !== 404 && res.status !== 405) {
-        throw new Error(text || `HTTP ${res.status}`);
-      }
-    } catch (error) {
-      if (!(error instanceof TypeError)) {
-        throw error;
-      }
-    }
-  }
-  return false;
-}
-
-function assertSameDesign(jobs: LabelLiveBatchJob[]) {
-  const design = jobs[0]?.design;
-  if (!design || !jobs.every((j) => j.design === design)) {
-    throw new Error("Label LIVE batch jobs must use the same design.");
   }
 }
 
@@ -113,44 +68,21 @@ export async function sendLabelLiveJobs(
     return { openedLabelliveFallback: false };
   }
 
-  assertSameDesign(jobs);
-  const design = jobs[0]!.design;
-  const variableRows = jobs.map((j) => j.variables);
-
-  if (await tryPostMultiJobPrint(design, variableRows)) {
-    return { openedLabelliveFallback: false };
-  }
-
   const payloadJson = buildBatchPayloadJson(jobs);
   const payloadB64 = utf8ToBase64(payloadJson);
+  const batchUrl = `${BATCH_URL}?payload=${encodeURIComponent(payloadB64)}`;
 
   try {
-    const resBody = await fetch(BATCH_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ payload: payloadB64 }).toString(),
-    });
-    const bodyText = await readError(resBody);
-    if (resBody.ok) {
+    const res = await fetch(batchUrl);
+    const text = await readError(res);
+    if (res.ok) {
       return { openedLabelliveFallback: false };
     }
-    if (resBody.status !== 404 && resBody.status !== 405) {
-      throw new Error(bodyText || `HTTP ${resBody.status}`);
+    if (res.status === 404 || res.status === 405) {
+      openFallbackUri(payloadJson);
+      return { openedLabelliveFallback: true };
     }
-  } catch (error) {
-    if (!(error instanceof TypeError)) {
-      throw error;
-    }
-  }
-
-  try {
-    const res = await fetch(`${BATCH_URL}?payload=${encodeURIComponent(payloadB64)}`, {
-      method: "POST",
-    });
-    const text = await readError(res);
-    if (!res.ok) {
-      throw new Error(text || `HTTP ${res.status}`);
-    }
+    throw new Error(text || `HTTP ${res.status}`);
   } catch (error) {
     if (error instanceof TypeError) {
       openFallbackUri(payloadJson);
@@ -158,6 +90,4 @@ export async function sendLabelLiveJobs(
     }
     throw error;
   }
-
-  return { openedLabelliveFallback: false };
 }

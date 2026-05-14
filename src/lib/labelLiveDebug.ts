@@ -1,3 +1,5 @@
+import { variablesToRjson } from "./labelLiveRjson";
+
 /** Same shape as jobs passed to `sendLabelLiveJobs` (standalone type avoids circular imports). */
 export type LabelLiveDebugJob = {
   design: string;
@@ -5,11 +7,6 @@ export type LabelLiveDebugJob = {
 };
 
 const BATCH_URL = "http://127.0.0.1:11180/api/v1/batch";
-
-const PRINT_URLS = [
-  "http://127.0.0.1:11180/api/v1/print",
-  "http://127.0.0.1:11180/api/print",
-] as const;
 
 function utf8ToBase64(payload: string) {
   return btoa(
@@ -33,7 +30,10 @@ function preview(text: string, max: number) {
 
 function batchPayloadJson(jobs: LabelLiveDebugJob[]) {
   return JSON.stringify(
-    jobs.map((job) => ({ design: job.design, variables: job.variables })),
+    jobs.map((job) => ({
+      design: job.design,
+      variables: variablesToRjson(job.variables),
+    })),
   );
 }
 
@@ -43,22 +43,7 @@ export function buildLabelLiveDebugText(jobs: LabelLiveDebugJob[]): string {
     return "(no jobs)";
   }
 
-  const designs = new Set(jobs.map((j) => j.design));
-  let out =
-    designs.size > 1 ? "WARNING: job list has multiple designs (unsupported).\n\n" : "";
-
-  const design = jobs[0]!.design;
-  const variableRows = jobs.map((j) => j.variables);
-  const variablesJson =
-    variableRows.length === 1
-      ? JSON.stringify(variableRows[0])
-      : JSON.stringify(variableRows);
-  const formBody = new URLSearchParams({ design, variables: variablesJson }).toString();
-
-  out += "=== Multi-job print tries (POST, application/x-www-form-urlencoded) ===\n";
-  for (const url of PRINT_URLS) {
-    out += `\nPOST ${url}\nBody:\n${preview(formBody, 4000)}\n`;
-  }
+  let out = "";
 
   const payloadJson = batchPayloadJson(jobs);
   const payloadB64 = utf8ToBase64(payloadJson);
@@ -67,10 +52,10 @@ export function buildLabelLiveDebugText(jobs: LabelLiveDebugJob[]): string {
   out += "\n=== Batch: decoded JSON (what Label LIVE should parse after base64 decode) ===\n";
   out += `${preview(payloadJson, 8000)}\n`;
 
-  out += "\n=== Batch: POST " + BATCH_URL + " (body) ===\n";
+  out += "\n=== Batch: payload parameter ===\n";
   out += `payload (base64, ${payloadB64.length} chars): ${preview(payloadB64, 200)}\n`;
 
-  out += "\n=== Batch: POST with query payload (full URI length " + batchQueryUrl.length + " chars) ===\n";
+  out += "\n=== Batch: HTTP GET with query payload (full URI length " + batchQueryUrl.length + " chars) ===\n";
   out += `${preview(batchQueryUrl, 8000)}\n`;
 
   out += "\n=== labellive:// fallback (if HTTP to localhost failed) ===\n";
@@ -100,7 +85,7 @@ export function alertLabelLiveProtocolFallback(jobs: LabelLiveDebugJob[], extraF
   logLabelLiveDebug(jobs);
   const detail = buildLabelLiveDebugText(jobs);
   let combined =
-    "The browser could not POST to Label LIVE (localhost:11180), so a labellive:// URL was opened instead.\n\n" +
+    "The browser could not reach Label LIVE over HTTP (localhost:11180), so a labellive:// URL was opened instead.\n\n" +
     "If Label LIVE shows an error, inspect this payload (full text also in console: F12):\n\n" +
     detail;
   if (extraFooter?.trim()) {
