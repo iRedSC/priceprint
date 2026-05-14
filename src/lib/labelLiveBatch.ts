@@ -24,6 +24,30 @@ function printUri(design: string, printerId: string, variablesJson: string) {
   return `labellive://print?${params.join("&")}`;
 }
 
+function base64Encode(text: string) {
+  const bytes = new TextEncoder().encode(text);
+  let binary = "";
+
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+
+  return btoa(binary);
+}
+
+function batchUri(jobs: LabelLiveBatchJob[]) {
+  const payload = jobs.map((job) => ({
+    design: job.design,
+    variables: JSON.stringify(job.variables),
+    printer: job.printerId,
+    window: "show",
+    copies: "1",
+  }));
+  const encodedPayload = encodeURIComponent(base64Encode(JSON.stringify(payload)));
+
+  return `labellive://batch?payload=${encodedPayload}`;
+}
+
 function openLabelLiveUri(href: string) {
   const a = document.createElement("a");
 
@@ -67,6 +91,7 @@ export async function sendLabelLiveJobs(
   const design = jobs[0]!.design;
   const printerId = jobs[0]!.printerId;
   const variablesJson = variablesRowsToJson(jobs.map((job) => job.variables));
-  openLabelLiveUri(printUri(design, printerId, variablesJson));
+  const href = jobs.length === 1 ? printUri(design, printerId, variablesJson) : batchUri(jobs);
+  openLabelLiveUri(href);
   return { openedLabelliveFallback: false };
 }
