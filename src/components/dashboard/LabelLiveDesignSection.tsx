@@ -17,21 +17,23 @@ import { api } from "../../../convex/_generated/api";
 
 function LabelLiveDesignSection() {
   const [session] = useState(readStoredSession);
-  const serverName = useQuery(
-    api.userPrefs.getLabelLiveDesign,
+  const serverSettings = useQuery(
+    api.userPrefs.getLabelLiveSettings,
     session ? { sessionToken: session.sessionToken } : "skip",
   );
-  const setDesign = useMutation(api.userPrefs.setLabelLiveDesignName);
+  const setSettings = useMutation(api.userPrefs.setLabelLiveSettings);
 
-  const [input, setInput] = useState("");
+  const [designName, setDesignName] = useState("");
+  const [printerId, setPrinterId] = useState("");
   const [message, setMessage] = useState("");
   const [isBusy, setIsBusy] = useState(false);
 
   useEffect(() => {
-    if (serverName !== undefined) {
-      setInput(serverName ?? "");
+    if (serverSettings !== undefined) {
+      setDesignName(serverSettings?.designName ?? "");
+      setPrinterId(serverSettings?.printerId ?? "");
     }
-  }, [serverName]);
+  }, [serverSettings]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -44,16 +46,20 @@ function LabelLiveDesignSection() {
     setMessage("");
 
     try {
-      await setDesign({ sessionToken: session.sessionToken, designName: input });
-      setMessage("Saved Label LIVE design name.");
+      await setSettings({
+        sessionToken: session.sessionToken,
+        designName,
+        printerId,
+      });
+      setMessage("Saved Label LIVE settings.");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Could not save design name.");
+      setMessage(error instanceof Error ? error.message : "Could not save Label LIVE settings.");
     } finally {
       setIsBusy(false);
     }
   };
 
-  const disabled = Boolean(!session || serverName === undefined);
+  const disabled = Boolean(!session || serverSettings === undefined);
 
   return (
     <form onSubmit={handleSubmit}>
@@ -65,19 +71,29 @@ function LabelLiveDesignSection() {
         <CardContent className="grid gap-4">
           <p className="text-sm text-muted-foreground">
             Enter the pinned design filename (without{" "}
-            <code className="text-xs">.lsc</code>) from Label LIVE. Group print commands use{" "}
-            <code className="text-xs">localhost:11180</code>
-            {""} HTTP or{" "}
-            <code className="text-xs">labellive://batch</code> if the app is blocking the request.
+            <code className="text-xs">.lsc</code>) and printer ID from Label LIVE. Print commands use{" "}
+            <code className="text-xs">labellive://print</code>.
           </p>
           <div className="grid gap-2">
             <Label htmlFor="label-live-design">Design name</Label>
             <Input
               id="label-live-design"
               disabled={disabled}
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              placeholder="my-price-label"
+              value={designName}
+              onChange={(event) => setDesignName(event.target.value)}
+              placeholder="retail-label"
+              autoCapitalize="none"
+              autoCorrect="off"
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="label-live-printer">Printer ID</Label>
+            <Input
+              id="label-live-printer"
+              disabled={disabled}
+              value={printerId}
+              onChange={(event) => setPrinterId(event.target.value)}
+              placeholder="Rollo-USB-588U0461721"
               autoCapitalize="none"
               autoCorrect="off"
             />

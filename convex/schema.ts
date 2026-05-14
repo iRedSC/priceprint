@@ -12,6 +12,7 @@ export default defineSchema({
     username: v.optional(v.string()),
     lastLoginAt: v.optional(v.number()),
     labelLiveDesignName: v.optional(v.string()),
+    labelLivePrinterId: v.optional(v.string()),
     ...timestamps,
   })
     .index("by_email", ["email"])

@@ -33,8 +33,8 @@ function ProductsPanel() {
     api.products.list,
     session ? { sessionToken: session.sessionToken } : "skip"
   )
-  const labelLiveDesignName = useQuery(
-    api.userPrefs.getLabelLiveDesign,
+  const labelLiveSettings = useQuery(
+    api.userPrefs.getLabelLiveSettings,
     session ? { sessionToken: session.sessionToken } : "skip"
   )
   const createProduct = useMutation(api.products.create)
@@ -127,21 +127,28 @@ function ProductsPanel() {
       return
     }
 
-    if (labelLiveDesignName === undefined) {
+    if (labelLiveSettings === undefined) {
       window.alert("Loading printer settings. Try again in a moment.")
       return
     }
 
-    const trimmedDesign = labelLiveDesignName?.trim()
+    const trimmedDesign = labelLiveSettings?.designName?.trim()
+    const trimmedPrinterId = labelLiveSettings?.printerId?.trim()
 
     if (!trimmedDesign) {
       window.alert("Add your Label LIVE design name under Connections first.")
       return
     }
 
+    if (!trimmedPrinterId) {
+      window.alert("Add your Label LIVE printer ID under Connections first.")
+      return
+    }
+
     const jobs = [
       {
         design: trimmedDesign,
+        printerId: trimmedPrinterId,
         variables: productToLabelLiveVariables(product),
       },
     ]

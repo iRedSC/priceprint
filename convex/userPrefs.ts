@@ -37,6 +37,19 @@ export const getLabelLiveDesign = query({
   },
 });
 
+export const getLabelLiveSettings = query({
+  args: { sessionToken: v.string() },
+  handler: async (ctx, args) => {
+    const userId = await getSessionUserId(ctx, args.sessionToken);
+    const user = await ctx.db.get(userId);
+
+    return {
+      designName: user?.labelLiveDesignName?.trim() ?? null,
+      printerId: user?.labelLivePrinterId?.trim() ?? null,
+    };
+  },
+});
+
 export const setLabelLiveDesignName = mutation({
   args: { sessionToken: v.string(), designName: v.string() },
   handler: async (ctx, args) => {
@@ -45,6 +58,25 @@ export const setLabelLiveDesignName = mutation({
 
     await ctx.db.patch(userId, {
       labelLiveDesignName: trimmed || undefined,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+export const setLabelLiveSettings = mutation({
+  args: {
+    sessionToken: v.string(),
+    designName: v.string(),
+    printerId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getSessionUserId(ctx, args.sessionToken);
+    const designName = args.designName.trim();
+    const printerId = args.printerId.trim();
+
+    await ctx.db.patch(userId, {
+      labelLiveDesignName: designName || undefined,
+      labelLivePrinterId: printerId || undefined,
       updatedAt: Date.now(),
     });
   },

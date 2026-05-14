@@ -1,8 +1,7 @@
-import { variablesToRjson } from "./labelLiveRjson";
-
 /** Same shape as jobs passed to `sendLabelLiveJobs` (standalone type avoids circular imports). */
 export type LabelLiveDebugJob = {
   design: string;
+  printerId: string;
   variables: Record<string, string>;
 };
 
@@ -13,20 +12,24 @@ function preview(text: string, max: number) {
   return `${text.slice(0, max)}\n… (${text.length} characters total)`;
 }
 
-function variablesRowsToRjson(rows: Record<string, string>[]) {
+function variablesRowsToJson(rows: Record<string, string>[]) {
   if (rows.length === 1) {
-    return variablesToRjson(rows[0]!);
+    return JSON.stringify(rows[0]);
   }
 
-  return `[${rows.map((row) => `{${variablesToRjson(row)}}`).join(",")}]`;
+  return JSON.stringify(rows);
 }
 
-function escapeLabelLiveParam(value: string) {
-  return value.replace(/&/g, "\\&");
-}
+function printUri(design: string, printerId: string, variablesJson: string) {
+  const params = [
+    `design=${encodeURIComponent(design)}`,
+    `variables=${encodeURIComponent(variablesJson)}`,
+    `printer=${encodeURIComponent(printerId)}`,
+    "window=show",
+    "copies=1",
+  ];
 
-function printUri(design: string, variables: string) {
-  return `labellive://print?design=${escapeLabelLiveParam(design)}&variables=${escapeLabelLiveParam(variables)}`;
+  return `labellive://print?${params.join("&")}`;
 }
 
 /** Human-readable integration details for troubleshooting (URLs, bodies, payload sizes). */
@@ -36,18 +39,22 @@ export function buildLabelLiveDebugText(jobs: LabelLiveDebugJob[]): string {
   }
 
   const designs = new Set(jobs.map((job) => job.design));
+  const printerIds = new Set(jobs.map((job) => job.printerId));
   let out =
-    designs.size > 1 ? "WARNING: multi-label printing requires one shared design.\n\n" : "";
+    designs.size > 1 || printerIds.size > 1
+      ? "WARNING: multi-label printing requires one shared design and printer.\n\n"
+      : "";
 
   const design = jobs[0]!.design;
-  const variables = variablesRowsToRjson(jobs.map((job) => job.variables));
-  const href = printUri(design, variables);
+  const printerId = jobs[0]!.printerId;
+  const variablesJson = variablesRowsToJson(jobs.map((job) => job.variables));
+  const href = printUri(design, printerId, variablesJson);
 
   out += "=== Multi-label print URI ===\n";
   out += `${preview(href, 8000)}\n`;
 
-  out += "\n=== Decoded variables value ===\n";
-  out += `${preview(variables, 8000)}\n`;
+  out += "\n=== Decoded variables JSON ===\n";
+  out += `${preview(variablesJson, 8000)}\n`;
 
   return out;
 }

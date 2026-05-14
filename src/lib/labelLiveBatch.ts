@@ -1,24 +1,27 @@
-import { variablesToRjson } from "./labelLiveRjson";
-
 export type LabelLiveBatchJob = {
   design: string;
+  printerId: string;
   variables: Record<string, string>;
 };
 
-function variablesRowsToRjson(rows: Record<string, string>[]) {
+function variablesRowsToJson(rows: Record<string, string>[]) {
   if (rows.length === 1) {
-    return variablesToRjson(rows[0]!);
+    return JSON.stringify(rows[0]);
   }
 
-  return `[${rows.map((row) => `{${variablesToRjson(row)}}`).join(",")}]`;
+  return JSON.stringify(rows);
 }
 
-function escapeLabelLiveParam(value: string) {
-  return value.replace(/&/g, "\\&");
-}
+function printUri(design: string, printerId: string, variablesJson: string) {
+  const params = [
+    `design=${encodeURIComponent(design)}`,
+    `variables=${encodeURIComponent(variablesJson)}`,
+    `printer=${encodeURIComponent(printerId)}`,
+    "window=show",
+    "copies=1",
+  ];
 
-function printUri(design: string, variables: string) {
-  return `labellive://print?design=${escapeLabelLiveParam(design)}&variables=${escapeLabelLiveParam(variables)}`;
+  return `labellive://print?${params.join("&")}`;
 }
 
 function openLabelLiveUri(href: string) {
@@ -35,10 +38,15 @@ function openLabelLiveUri(href: string) {
   a.remove();
 }
 
-function assertSameDesign(jobs: LabelLiveBatchJob[]) {
+function assertSameSettings(jobs: LabelLiveBatchJob[]) {
   const design = jobs[0]?.design;
-  if (!design || !jobs.every((job) => job.design === design)) {
-    throw new Error("Label LIVE multi-label printing requires one shared design.");
+  const printerId = jobs[0]?.printerId;
+  if (
+    !design ||
+    !printerId ||
+    !jobs.every((job) => job.design === design && job.printerId === printerId)
+  ) {
+    throw new Error("Label LIVE multi-label printing requires one shared design and printer.");
   }
 }
 
@@ -54,10 +62,11 @@ export async function sendLabelLiveJobs(
     return { openedLabelliveFallback: false };
   }
 
-  assertSameDesign(jobs);
+  assertSameSettings(jobs);
 
   const design = jobs[0]!.design;
-  const variables = variablesRowsToRjson(jobs.map((job) => job.variables));
-  openLabelLiveUri(printUri(design, variables));
+  const printerId = jobs[0]!.printerId;
+  const variablesJson = variablesRowsToJson(jobs.map((job) => job.variables));
+  openLabelLiveUri(printUri(design, printerId, variablesJson));
   return { openedLabelliveFallback: false };
 }
