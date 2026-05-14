@@ -1,7 +1,16 @@
 import { ConvexError, v } from "convex/values";
-import { action, httpAction, query, type QueryCtx } from "./_generated/server";
+import {
+  action,
+  httpAction,
+  internalAction,
+  internalMutation,
+  internalQuery,
+  query,
+  type ActionCtx,
+  type QueryCtx,
+} from "./_generated/server";
 import { internal } from "./_generated/api";
-import type { Id } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 
 const SHOPIFY_SCOPES = ["read_products"];
 const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
@@ -51,6 +60,20 @@ type ShopifyLookupProduct = {
 type ShopifyVariantMatch = {
   field: "barcode" | "sku";
   variant: ShopifyVariantNode;
+};
+
+type ShopifyPricingSyncConnection = Pick<
+  Doc<"shopifyConnections">,
+  "_id" | "userId" | "shopDomain" | "accessToken"
+>;
+
+type ShopifyPricingSyncProduct = Pick<Doc<"products">, "_id" | "sku" | "upc" | "price">;
+
+type ShopifyPricingSyncResult = {
+  checked: number;
+  updated: number;
+  skipped: number;
+  failed: number;
 };
 
 const normalizeShopDomain = (value: string) => {
@@ -267,6 +290,110 @@ export const lookupProductByScannedCode = action({
   },
 });
 
+export const refreshProductPrices = action({
+  args: { sessionToken: v.string() },
+  handler: async (ctx, args): Promise<ShopifyPricingSyncResult> => {
+    const connection: ShopifyPricingSyncConnection | null = await ctx.runQuery(
+      internal.shopifyModel.currentActiveConnection,
+      { sessionToken: args.sessionToken },
+    );
+
+    if (!connection) {
+      throw new ConvexError("Connect Shopify before refreshing prices.");
+    }
+
+    return await refreshConnectionProductPrices(ctx, connection);
+  },
+});
+
+export const refreshAllProductPrices = internalAction({
+  args: {},
+  handler: async (ctx): Promise<ShopifyPricingSyncResult & { connections: number }> => {
+    const connections: ShopifyPricingSyncConnection[] = await ctx.runQuery(
+      internal.shopify.listActivePricingSyncConnections,
+      {},
+    );
+    const totals = { connections: connections.length, checked: 0, updated: 0, skipped: 0, failed: 0 };
+
+    for (const connection of connections) {
+      const result = await refreshConnectionProductPrices(ctx, connection);
+      totals.checked += result.checked;
+      totals.updated += result.updated;
+      totals.skipped += result.skipped;
+      totals.failed += result.failed;
+    }
+
+    return totals;
+  },
+});
+
+export const listActivePricingSyncConnections = internalQuery({
+  args: {},
+  handler: async (ctx): Promise<ShopifyPricingSyncConnection[]> => {
+    const connections = await ctx.db.query("shopifyConnections").collect();
+
+    return connections
+      .filter((connection) => connection.isActive)
+      .map((connection) => ({
+        _id: connection._id,
+        userId: connection.userId,
+        shopDomain: connection.shopDomain,
+        accessToken: connection.accessToken,
+      }));
+  },
+});
+
+export const listPricingSyncProducts = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args): Promise<ShopifyPricingSyncProduct[]> => {
+    const products = await ctx.db
+      .query("products")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .collect();
+
+    return products.map((product) => ({
+      _id: product._id,
+      sku: product.sku,
+      upc: product.upc,
+      price: product.price,
+    }));
+  },
+});
+
+export const updateProductPriceFromShopify = internalMutation({
+  args: {
+    userId: v.id("users"),
+    productId: v.id("products"),
+    price: v.number(),
+    now: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const product = await ctx.db.get(args.productId);
+
+    if (!product || product.userId !== args.userId) {
+      throw new ConvexError("Product not found.");
+    }
+
+    await ctx.db.patch(args.productId, {
+      price: args.price,
+      updatedAt: args.now,
+    });
+  },
+});
+
+export const markPricingSyncComplete = internalMutation({
+  args: {
+    connectionId: v.id("shopifyConnections"),
+    now: v.number(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.connectionId, {
+      lastSyncAt: args.now,
+      updatedAt: args.now,
+    });
+  },
+});
+
 async function findShopifyVariant(
   shopDomain: string,
   accessToken: string,
@@ -315,6 +442,90 @@ async function findShopifyVariant(
 
   const variant = result.data?.productVariants?.nodes?.[0];
   return variant ? { field, variant } : null;
+}
+
+async function refreshConnectionProductPrices(
+  ctx: ActionCtx,
+  connection: ShopifyPricingSyncConnection,
+): Promise<ShopifyPricingSyncResult> {
+  const products: ShopifyPricingSyncProduct[] = await ctx.runQuery(
+    internal.shopify.listPricingSyncProducts,
+    { userId: connection.userId },
+  );
+  const result: ShopifyPricingSyncResult = {
+    checked: products.length,
+    updated: 0,
+    skipped: 0,
+    failed: 0,
+  };
+
+  for (const product of products) {
+    try {
+      const match = await findCurrentShopifyVariant(connection, product);
+
+      if (!match) {
+        result.skipped += 1;
+        continue;
+      }
+
+      const price = Number(match.variant.price);
+
+      if (!Number.isFinite(price)) {
+        result.failed += 1;
+        continue;
+      }
+
+      if (price === product.price) {
+        continue;
+      }
+
+      await ctx.runMutation(internal.shopify.updateProductPriceFromShopify, {
+        userId: connection.userId,
+        productId: product._id,
+        price,
+        now: Date.now(),
+      });
+      result.updated += 1;
+    } catch {
+      result.failed += 1;
+    }
+  }
+
+  await ctx.runMutation(internal.shopify.markPricingSyncComplete, {
+    connectionId: connection._id,
+    now: Date.now(),
+  });
+
+  return result;
+}
+
+async function findCurrentShopifyVariant(
+  connection: ShopifyPricingSyncConnection,
+  product: ShopifyPricingSyncProduct,
+) {
+  if (product.upc) {
+    const barcodeMatch = await findShopifyVariant(
+      connection.shopDomain,
+      connection.accessToken,
+      "barcode",
+      product.upc,
+    );
+
+    if (barcodeMatch) {
+      return barcodeMatch;
+    }
+  }
+
+  if (!product.sku) {
+    return null;
+  }
+
+  return await findShopifyVariant(
+    connection.shopDomain,
+    connection.accessToken,
+    "sku",
+    product.sku,
+  );
 }
 
 function escapeShopifyQueryValue(value: string) {

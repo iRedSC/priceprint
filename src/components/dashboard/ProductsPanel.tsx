@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react"
-import { useMutation, useQuery } from "convex/react"
+import { useAction, useMutation, useQuery } from "convex/react"
 import { toast } from "sonner"
 
 import { readStoredSession, type AuthResult } from "@/authSession"
@@ -33,6 +33,7 @@ function ProductsPanel() {
   const [editingProduct, setEditingProduct] = useState<ProductRow | null>(null)
   const [labelLiveDebug, setLabelLiveDebug] = useState<LabelLiveDebugMessage | null>(null)
   const [optimisticPatches, setOptimisticPatches] = useState<OptimisticProductPatches>({})
+  const [isRefreshingProducts, setIsRefreshingProducts] = useState(false)
   const [session] = useState(readStoredSession)
   const products = useQuery(
     api.products.list,
@@ -47,6 +48,7 @@ function ProductsPanel() {
   const updateProductMutation = useMutation(api.products.update)
   const deleteProductMutation = useMutation(api.products.remove)
   const recordProductPrintMutation = useMutation(api.printJobs.recordProductPrint)
+  const refreshProductPrices = useAction(api.shopify.refreshProductPrices)
   const productRows = useMemo(
     () => (products ?? EMPTY_PRODUCTS).map((product) => ({ ...product, ...optimisticPatches[product._id] })),
     [optimisticPatches, products]
@@ -125,6 +127,31 @@ function ProductsPanel() {
       productId: product._id,
     })
   }, [deleteProductMutation, session])
+
+  const refreshProducts = async () => {
+    if (!session) {
+      toast.error("Sign in again to refresh prices.")
+      return
+    }
+
+    setIsRefreshingProducts(true)
+
+    try {
+      const result = await refreshProductPrices({ sessionToken: session.sessionToken })
+      toast.success(`Updated ${result.updated} product price${result.updated === 1 ? "" : "s"}.`, {
+        description:
+          result.failed > 0
+            ? `${result.failed} product${result.failed === 1 ? "" : "s"} could not refresh.`
+            : `${result.checked} product${result.checked === 1 ? "" : "s"} checked.`,
+      })
+    } catch (error) {
+      toast.error("Could not refresh Shopify prices.", {
+        description: error instanceof Error ? error.message : "Try again in a moment.",
+      })
+    } finally {
+      setIsRefreshingProducts(false)
+    }
+  }
 
   const printProductToLabelLive = async (product: ProductRow) => {
     if (!session) {
@@ -225,6 +252,8 @@ function ProductsPanel() {
         onSearchChange={setSearch}
         onAddProduct={addProduct}
         onUploadProducts={uploadProducts}
+        isRefreshingProducts={isRefreshingProducts}
+        onRefreshProducts={refreshProducts}
         sort={mobileSort}
         onSortChange={setMobileSort}
       />

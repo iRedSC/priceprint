@@ -3,6 +3,7 @@ import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import AddProductDialog from "./AddProductDialog"
 import ProductSortButton from "./ProductSortButton"
+import RefreshProductsButton from "./RefreshProductsButton"
 import UploadProductsDialog from "./UploadProductsDialog"
 import type { ProductSort } from "./productSort"
 import type { ProductInput } from "./productTableData"
@@ -12,6 +13,8 @@ type ProductTaskBarProps = {
   onSearchChange: (search: string) => void
   onAddProduct: (product: ProductInput) => Promise<void> | void
   onUploadProducts: (products: ProductInput[]) => Promise<void> | void
+  isRefreshingProducts: boolean
+  onRefreshProducts: () => Promise<void> | void
   sort: ProductSort
   onSortChange: (sort: ProductSort) => void
 }
@@ -21,6 +24,8 @@ function ProductTaskBar({
   onSearchChange,
   onAddProduct,
   onUploadProducts,
+  isRefreshingProducts,
+  onRefreshProducts,
   sort,
   onSortChange,
 }: ProductTaskBarProps) {
@@ -29,6 +34,10 @@ function ProductTaskBar({
       <div className="hidden gap-2 md:flex">
         <AddProductDialog onAddProduct={onAddProduct} />
         <UploadProductsDialog onUploadProducts={onUploadProducts} />
+        <RefreshProductsButton
+          isRefreshing={isRefreshingProducts}
+          onRefreshProducts={onRefreshProducts}
+        />
       </div>
       <div className="flex min-w-0 gap-2 sm:w-80">
         <div className="relative min-w-0 flex-1">
@@ -38,6 +47,12 @@ function ProductTaskBar({
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder="Search name, SKU, UPC, type, or vendor"
             className="h-10 pl-9"
+          />
+        </div>
+        <div className="md:hidden">
+          <RefreshProductsButton
+            isRefreshing={isRefreshingProducts}
+            onRefreshProducts={onRefreshProducts}
           />
         </div>
         <div className="md:hidden">
