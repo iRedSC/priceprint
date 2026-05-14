@@ -5,6 +5,7 @@ import { readStoredSession } from "@/authSession";
 import { Button } from "@/components/ui/button";
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
@@ -14,6 +15,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api } from "../../../convex/_generated/api";
+
+import LabelLiveVariablesInfo from "./LabelLiveVariablesInfo";
 
 function LabelLiveDesignSection() {
   const [session] = useState(readStoredSession);
@@ -67,6 +70,9 @@ function LabelLiveDesignSection() {
         <CardHeader>
           <CardDescription>Label printing</CardDescription>
           <CardTitle>Label LIVE design</CardTitle>
+          <CardAction>
+            <LabelLiveVariablesInfo />
+          </CardAction>
         </CardHeader>
         <CardContent className="grid gap-4">
           <p className="text-sm text-muted-foreground">

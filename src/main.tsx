@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ConvexProvider, ConvexReactClient } from 'convex/react'
 import './index.css'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import App from './App.tsx'
 import { registerServiceWorker } from './registerServiceWorker.ts'
 
@@ -16,7 +17,9 @@ const convex = new ConvexReactClient(convexUrl)
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ConvexProvider client={convex}>
-      <App />
+      <TooltipProvider delayDuration={300}>
+        <App />
+      </TooltipProvider>
     </ConvexProvider>
   </StrictMode>,
 )

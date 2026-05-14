@@ -107,7 +107,7 @@ export function createProductColumns({ onFieldCommit }: ProductColumnOptions): C
       header: "Price",
       size: 140,
       cell: ({ row }) => (
-        <div className="min-w-0">
+        <div className="flex min-w-0 items-center gap-0.5">
           <ProductEditableCell
             product={row.original}
             field="price"

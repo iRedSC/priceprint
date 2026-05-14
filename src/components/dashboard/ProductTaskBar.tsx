@@ -2,7 +2,6 @@ import { Search } from "lucide-react"
 
 import { Input } from "@/components/ui/input"
 import AddProductDialog from "./AddProductDialog"
-import LabelLiveVariablesInfo from "./LabelLiveVariablesInfo"
 import ProductSortButton from "./ProductSortButton"
 import UploadProductsDialog from "./UploadProductsDialog"
 import type { ProductSort } from "./productSort"
@@ -41,7 +40,6 @@ function ProductTaskBar({
             className="h-10 pl-9"
           />
         </div>
-        <LabelLiveVariablesInfo />
         <div className="md:hidden">
           <ProductSortButton
             sort={sort}

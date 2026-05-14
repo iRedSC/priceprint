@@ -1,23 +1,23 @@
 import { useState } from "react"
-import { Link2, Package, Rows3 } from "lucide-react"
+import { Package, Rows3, Settings } from "lucide-react"
 
 import {
   Tabs,
   TabsContent,
   TabsList,
 } from "@/components/ui/tabs"
-import ConnectionsPanel from "./ConnectionsPanel"
+import SettingsPanel from "./SettingsPanel"
 import DashboardTabTrigger from "./DashboardTabTrigger"
 import DashboardTabsDock from "./DashboardTabsDock"
 import GroupsPanel from "./GroupsPanel"
 import ProductsPanel from "./ProductsPanel"
 
-type DashboardSection = "groups" | "products" | "connections"
+type DashboardSection = "groups" | "products" | "settings"
 
 const sectionLabels: Record<DashboardSection, string> = {
   groups: "Groups",
   products: "Products",
-  connections: "Connections",
+  settings: "Settings",
 }
 
 function isDashboardSection(value: string): value is DashboardSection {
@@ -51,9 +51,9 @@ function DashboardPage() {
               <DashboardTabTrigger value="groups" label="Groups" icon={Rows3} />
               <DashboardTabTrigger value="products" label="Products" icon={Package} />
               <DashboardTabTrigger
-                value="connections"
-                label="Connections"
-                icon={Link2}
+                value="settings"
+                label="Settings"
+                icon={Settings}
               />
             </TabsList>
           </DashboardTabsDock>
@@ -63,8 +63,8 @@ function DashboardPage() {
           <TabsContent value="products">
             <ProductsPanel />
           </TabsContent>
-          <TabsContent value="connections">
-            <ConnectionsPanel />
+          <TabsContent value="settings">
+            <SettingsPanel />
           </TabsContent>
         </Tabs>
       </div>

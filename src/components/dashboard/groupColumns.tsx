@@ -1,7 +1,12 @@
 import type { ColumnDef } from "@tanstack/react-table"
 
 import { formatGroupDate } from "./groupFormat"
-import { countOutOfDateProducts, countUnprintedProducts } from "./groupPrintCounts"
+import GroupStatusChips from "./GroupStatusChips"
+import {
+  countOutOfDateProducts,
+  countUnprintedProducts,
+  countUpToDateProducts,
+} from "./groupPrintCounts"
 import type { GroupRow } from "./groupTableData"
 
 export function createGroupColumns(): ColumnDef<GroupRow>[] {
@@ -19,16 +24,19 @@ export function createGroupColumns(): ColumnDef<GroupRow>[] {
       size: 120,
     },
     {
-      id: "unprintedCount",
-      accessorFn: countUnprintedProducts,
-      header: "Unprinted",
-      size: 120,
-    },
-    {
-      id: "outOfDateCount",
-      accessorFn: countOutOfDateProducts,
-      header: "Out of date",
-      size: 130,
+      id: "printStatusCounts",
+      header: "Status",
+      size: 200,
+      cell: ({ row }) => {
+        const group = row.original
+        return (
+          <GroupStatusChips
+            unprinted={countUnprintedProducts(group)}
+            upToDate={countUpToDateProducts(group)}
+            outOfDate={countOutOfDateProducts(group)}
+          />
+        )
+      },
     },
     {
       accessorKey: "updatedAt",

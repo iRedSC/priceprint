@@ -44,8 +44,10 @@ function ProductMobileCard({ product, onEdit, onDelete, onPrint }: ProductMobile
           </CardDescription>
         </div>
         <div className="min-w-20 text-right">
-          <div className="text-lg font-semibold">{formatProductPrice(product.price)}</div>
-          <ProductPrintedPriceNote product={product} />
+          <div className="flex items-center justify-end gap-0.5">
+            <span className="text-lg font-semibold">{formatProductPrice(product.price)}</span>
+            <ProductPrintedPriceNote product={product} />
+          </div>
         </div>
         <ProductActionMenu product={product} onEdit={onEdit} onDelete={onDelete} onPrint={onPrint} />
       </CardHeader>

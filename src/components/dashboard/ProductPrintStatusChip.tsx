@@ -4,8 +4,8 @@ import type { ProductPrintStatus, ProductRow } from "./productTableData"
 
 const printStatusLabels: Record<ProductPrintStatus, string> = {
   "up-to-date": "Up to date",
-  "not-printed": "Not Printed",
-  "needs-reprinted": "Needs reprinted",
+  "not-printed": "Unprinted",
+  "needs-reprinted": "Out of date",
 }
 
 const printStatusStyles: Record<ProductPrintStatus, string> = {

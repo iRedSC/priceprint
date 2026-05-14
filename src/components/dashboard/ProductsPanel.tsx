@@ -140,12 +140,12 @@ function ProductsPanel() {
     const trimmedPrinterId = labelLiveSettings?.printerId?.trim()
 
     if (!trimmedDesign) {
-      toast.error("Add your Label LIVE design name under Connections first.")
+      toast.error("Add your Label LIVE design name in Settings first.")
       return
     }
 
     if (!trimmedPrinterId) {
-      toast.error("Add your Label LIVE printer ID under Connections first.")
+      toast.error("Add your Label LIVE printer ID in Settings first.")
       return
     }
 
