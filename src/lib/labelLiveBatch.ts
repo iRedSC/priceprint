@@ -5,21 +5,23 @@ export type LabelLiveBatchJob = {
   variables: Record<string, string>;
 };
 
-function utf8ToBase64(payload: string) {
-  return btoa(
-    encodeURIComponent(payload).replace(
-      /%([0-9A-F]{2})/gi,
-      (_: unknown, hex: string) => String.fromCharCode(Number.parseInt(hex, 16)),
-    ),
-  );
+function variablesRowsToRjson(rows: Record<string, string>[]) {
+  if (rows.length === 1) {
+    return variablesToRjson(rows[0]!);
+  }
+
+  return `[${rows.map((row) => `{${variablesToRjson(row)}}`).join(",")}]`;
 }
 
-function labelliveBatchUri(payload: string) {
-  return `labellive://batch?payload=${utf8ToBase64(payload)}`;
+function escapeLabelLiveParam(value: string) {
+  return value.replace(/&/g, "\\&");
 }
 
-function openLabelLiveUri(payload: string) {
-  const href = labelliveBatchUri(payload);
+function printUri(design: string, variables: string) {
+  return `labellive://print?design=${escapeLabelLiveParam(design)}&variables=${escapeLabelLiveParam(variables)}`;
+}
+
+function openLabelLiveUri(href: string) {
   const a = document.createElement("a");
 
   console.info("[Label LIVE] Opening URL:", href);
@@ -33,23 +35,15 @@ function openLabelLiveUri(payload: string) {
   a.remove();
 }
 
-/**
- * Batch items mirror `labellive://print` params. The outer payload is JSON,
- * but `variables` itself is Label LIVE's RJSON string format.
- */
-function jobToLabelLiveParams(job: LabelLiveBatchJob): {
-  design: string;
-  variables: string;
-} {
-  return { design: job.design, variables: variablesToRjson(job.variables) };
-}
-
-function buildBatchPayloadJson(jobs: LabelLiveBatchJob[]) {
-  return JSON.stringify(jobs.map(jobToLabelLiveParams));
+function assertSameDesign(jobs: LabelLiveBatchJob[]) {
+  const design = jobs[0]?.design;
+  if (!design || !jobs.every((job) => job.design === design)) {
+    throw new Error("Label LIVE multi-label printing requires one shared design.");
+  }
 }
 
 export type SendLabelLiveJobsResult = {
-  /** Kept for callers that still distinguish HTTP fallback flows. */
+  /** Kept for callers that still distinguish older protocol fallback flows. */
   openedLabelliveFallback: boolean;
 };
 
@@ -60,9 +54,10 @@ export async function sendLabelLiveJobs(
     return { openedLabelliveFallback: false };
   }
 
-  const payloadJson = buildBatchPayloadJson(jobs);
-  // HTTP can print only when Label LIVE is already open. Opening the protocol
-  // directly keeps the launch tied to the user's click, so browsers allow it.
-  openLabelLiveUri(payloadJson);
+  assertSameDesign(jobs);
+
+  const design = jobs[0]!.design;
+  const variables = variablesRowsToRjson(jobs.map((job) => job.variables));
+  openLabelLiveUri(printUri(design, variables));
   return { openedLabelliveFallback: false };
 }

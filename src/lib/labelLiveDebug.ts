@@ -6,21 +6,6 @@ export type LabelLiveDebugJob = {
   variables: Record<string, string>;
 };
 
-const BATCH_URL = "http://127.0.0.1:11180/api/v1/batch";
-
-function utf8ToBase64(payload: string) {
-  return btoa(
-    encodeURIComponent(payload).replace(
-      /%([0-9A-F]{2})/gi,
-      (_: unknown, hex: string) => String.fromCharCode(Number.parseInt(hex, 16)),
-    ),
-  );
-}
-
-function labelliveBatchHref(payloadJson: string) {
-  return `labellive://batch?payload=${utf8ToBase64(payloadJson)}`;
-}
-
 function preview(text: string, max: number) {
   if (text.length <= max) {
     return text;
@@ -28,13 +13,20 @@ function preview(text: string, max: number) {
   return `${text.slice(0, max)}\n… (${text.length} characters total)`;
 }
 
-function batchPayloadJson(jobs: LabelLiveDebugJob[]) {
-  return JSON.stringify(
-    jobs.map((job) => ({
-      design: job.design,
-      variables: variablesToRjson(job.variables),
-    })),
-  );
+function variablesRowsToRjson(rows: Record<string, string>[]) {
+  if (rows.length === 1) {
+    return variablesToRjson(rows[0]!);
+  }
+
+  return `[${rows.map((row) => `{${variablesToRjson(row)}}`).join(",")}]`;
+}
+
+function escapeLabelLiveParam(value: string) {
+  return value.replace(/&/g, "\\&");
+}
+
+function printUri(design: string, variables: string) {
+  return `labellive://print?design=${escapeLabelLiveParam(design)}&variables=${escapeLabelLiveParam(variables)}`;
 }
 
 /** Human-readable integration details for troubleshooting (URLs, bodies, payload sizes). */
@@ -43,24 +35,19 @@ export function buildLabelLiveDebugText(jobs: LabelLiveDebugJob[]): string {
     return "(no jobs)";
   }
 
-  let out = "";
+  const designs = new Set(jobs.map((job) => job.design));
+  let out =
+    designs.size > 1 ? "WARNING: multi-label printing requires one shared design.\n\n" : "";
 
-  const payloadJson = batchPayloadJson(jobs);
-  const payloadB64 = utf8ToBase64(payloadJson);
-  const batchQueryUrl = `${BATCH_URL}?payload=${encodeURIComponent(payloadB64)}`;
+  const design = jobs[0]!.design;
+  const variables = variablesRowsToRjson(jobs.map((job) => job.variables));
+  const href = printUri(design, variables);
 
-  out += "\n=== Batch: decoded JSON (what Label LIVE should parse after base64 decode) ===\n";
-  out += `${preview(payloadJson, 8000)}\n`;
+  out += "=== Multi-label print URI ===\n";
+  out += `${preview(href, 8000)}\n`;
 
-  out += "\n=== Batch: payload parameter ===\n";
-  out += `payload (base64, ${payloadB64.length} chars): ${preview(payloadB64, 200)}\n`;
-
-  out += "\n=== Batch: HTTP GET with query payload (full URI length " + batchQueryUrl.length + " chars) ===\n";
-  out += `${preview(batchQueryUrl, 8000)}\n`;
-
-  out += "\n=== labellive:// fallback (if HTTP to localhost failed) ===\n";
-  const ll = labelliveBatchHref(payloadJson);
-  out += `Length ${ll.length} chars\n${preview(ll, 8000)}\n`;
+  out += "\n=== Decoded variables value ===\n";
+  out += `${preview(variables, 8000)}\n`;
 
   return out;
 }
