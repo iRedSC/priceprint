@@ -12,6 +12,7 @@ import {
 } from "@/lib/labelLiveDebug"
 import { productToLabelLiveVariables } from "@/lib/productLabelVariables"
 import { api } from "../../../convex/_generated/api"
+import DashboardResponsiveList from "./DashboardResponsiveList"
 import EditProductDialog from "./EditProductDialog"
 import LabelLiveDebugDialog from "./LabelLiveDebugDialog"
 import ProductMobileActions from "./ProductMobileActions"
@@ -227,33 +228,35 @@ function ProductsPanel() {
         sort={mobileSort}
         onSortChange={setMobileSort}
       />
-      <div className="md:hidden">
-        <ProductMobileList
-          products={mobileProducts}
-          emptyMessage={getProductsMessage(session, products)}
-          onEdit={setEditingProduct}
-          onDelete={deleteProduct}
-          onPrint={printProductToLabelLive}
-        />
-      </div>
+      <DashboardResponsiveList
+        mobile={
+          <ProductMobileList
+            products={mobileProducts}
+            emptyMessage={getProductsMessage(session, products)}
+            onEdit={setEditingProduct}
+            onDelete={deleteProduct}
+            onPrint={printProductToLabelLive}
+          />
+        }
+        desktop={
+          <VirtualDataTable
+            columns={columns}
+            data={filteredProducts}
+            emptyMessage={getProductsMessage(session, products)}
+            height={460}
+            rowHeight={56}
+            renderRowMenu={(product) => (
+              <ProductRowContextMenu
+                product={product}
+                onEdit={setEditingProduct}
+                onDelete={deleteProduct}
+                onPrint={printProductToLabelLive}
+              />
+            )}
+          />
+        }
+      />
       <ProductMobileActions onAddProduct={addProduct} />
-      <div className="hidden min-w-0 md:block">
-        <VirtualDataTable
-          columns={columns}
-          data={filteredProducts}
-          emptyMessage={getProductsMessage(session, products)}
-          height={460}
-          rowHeight={56}
-          renderRowMenu={(product) => (
-            <ProductRowContextMenu
-              product={product}
-              onEdit={setEditingProduct}
-              onDelete={deleteProduct}
-              onPrint={printProductToLabelLive}
-            />
-          )}
-        />
-      </div>
       <EditProductDialog
         product={editingProduct}
         onOpenChange={(open) => {

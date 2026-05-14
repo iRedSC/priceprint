@@ -20,7 +20,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import DashboardResponsiveList from "./DashboardResponsiveList"
+import GroupProductPickerMobileCard from "./GroupProductPickerMobileCard"
 import type { GroupRow } from "./groupTableData"
+import { formatProductPrice } from "./productFormat"
 import { filterProducts } from "./productSearch"
 import type { ProductRow } from "./productTableData"
 
@@ -101,57 +104,79 @@ function GroupProductPicker({ group, products, onAddProducts }: GroupProductPick
               className="h-11"
             />
           </div>
-          <div className="max-h-[min(55svh,24rem)] overflow-auto overscroll-contain rounded-xl border touch-manipulation">
-            <Table>
-              <TableHeader className="sticky top-0 z-10 bg-background">
-                <TableRow>
-                  <TableHead className="w-14">
-                    <span className="sr-only">Select</span>
-                  </TableHead>
-                  <TableHead>Product</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead>UPC</TableHead>
-                  <TableHead>Price</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredProducts.length ? (
-                  filteredProducts.map((product) => (
-                    <TableRow
+          <DashboardResponsiveList
+            mobile={
+              filteredProducts.length ? (
+                <div className="grid gap-2">
+                  {filteredProducts.map((product) => (
+                    <GroupProductPickerMobileCard
                       key={product._id}
-                      className="cursor-pointer touch-manipulation"
-                      onClick={() => toggleProduct(product._id)}
-                    >
-                      <TableCell className="w-14 p-0">
-                        <label
-                          className="flex min-h-12 cursor-pointer items-center justify-center"
-                          onClick={(event) => event.stopPropagation()}
-                        >
-                          <input
-                            type="checkbox"
-                            className="size-5 touch-manipulation"
-                            checked={selectedIds.has(product._id)}
-                            onChange={() => toggleProduct(product._id)}
-                            aria-label={`Select ${product.name}`}
-                          />
-                        </label>
-                      </TableCell>
-                      <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell>{product.sku ?? "-"}</TableCell>
-                      <TableCell>{product.upc ?? "-"}</TableCell>
-                      <TableCell>${product.price.toFixed(2)}</TableCell>
-                    </TableRow>
-                  ))
-                ) : (
+                      product={product}
+                      selected={selectedIds.has(product._id)}
+                      onToggle={toggleProduct}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="rounded-xl border p-4 text-center text-sm text-muted-foreground">
+                  No available products found.
+                </p>
+              )
+            }
+            mobileClassName="max-h-[min(55svh,24rem)] overflow-auto overscroll-contain touch-manipulation"
+            desktop={
+              <Table>
+                <TableHeader className="sticky top-0 z-10 bg-background">
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                      No available products found.
-                    </TableCell>
+                    <TableHead className="w-14">
+                      <span className="sr-only">Select</span>
+                    </TableHead>
+                    <TableHead>Product</TableHead>
+                    <TableHead>SKU</TableHead>
+                    <TableHead>UPC</TableHead>
+                    <TableHead>Price</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {filteredProducts.length ? (
+                    filteredProducts.map((product) => (
+                      <TableRow
+                        key={product._id}
+                        className="cursor-pointer touch-manipulation"
+                        onClick={() => toggleProduct(product._id)}
+                      >
+                        <TableCell className="w-14 p-0">
+                          <label
+                            className="flex min-h-12 cursor-pointer items-center justify-center"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            <input
+                              type="checkbox"
+                              className="size-5 touch-manipulation"
+                              checked={selectedIds.has(product._id)}
+                              onChange={() => toggleProduct(product._id)}
+                              aria-label={`Select ${product.name}`}
+                            />
+                          </label>
+                        </TableCell>
+                        <TableCell className="font-medium">{product.name}</TableCell>
+                        <TableCell>{product.sku ?? "-"}</TableCell>
+                        <TableCell>{product.upc ?? "-"}</TableCell>
+                        <TableCell>{formatProductPrice(product.price)}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                        No available products found.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            }
+            desktopClassName="max-h-[min(55svh,24rem)] overflow-auto overscroll-contain rounded-xl border touch-manipulation"
+          />
         </div>
         <DialogFooter>
           <Button type="button" disabled={!selectedIds.size} onClick={handleAddProducts}>

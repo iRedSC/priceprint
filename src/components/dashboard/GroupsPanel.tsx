@@ -12,6 +12,7 @@ import {
 } from "@/lib/labelLiveDebug"
 import { productToLabelLiveVariables } from "@/lib/productLabelVariables"
 import { api } from "../../../convex/_generated/api"
+import DashboardResponsiveList from "./DashboardResponsiveList"
 import { createGroupColumns } from "./groupColumns"
 import { filterGroups } from "./groupSearch"
 import type { GroupPrintScope } from "./groupPrintSelection"
@@ -230,37 +231,39 @@ function GroupsPanel() {
         onSearchChange={setSearch}
         onAddGroup={addGroup}
       />
-      <div className="md:hidden">
-        <GroupMobileList
-          groups={filteredGroups}
-          emptyMessage={getGroupsMessage(session, groups)}
-          onOpen={openGroup}
-          onEdit={setEditingGroup}
-          onDelete={deleteGroup}
-          onScan={(group) => setScanningGroupId(group._id)}
-          onPrintGroup={printGroupToLabelLive}
-        />
-      </div>
+      <DashboardResponsiveList
+        mobile={
+          <GroupMobileList
+            groups={filteredGroups}
+            emptyMessage={getGroupsMessage(session, groups)}
+            onOpen={openGroup}
+            onEdit={setEditingGroup}
+            onDelete={deleteGroup}
+            onScan={(group) => setScanningGroupId(group._id)}
+            onPrintGroup={printGroupToLabelLive}
+          />
+        }
+        desktop={
+          <VirtualDataTable
+            columns={columns}
+            data={filteredGroups}
+            emptyMessage={getGroupsMessage(session, groups)}
+            height={460}
+            rowHeight={56}
+            onRowClick={openGroup}
+            renderRowMenu={(group) => (
+              <GroupRowContextMenu
+                group={group}
+                onOpen={openGroup}
+                onEdit={setEditingGroup}
+                onDelete={deleteGroup}
+                onPrintGroup={printGroupToLabelLive}
+              />
+            )}
+          />
+        }
+      />
       <GroupMobileActions sessionToken={session?.sessionToken ?? null} onAddGroup={addGroup} />
-      <div className="hidden min-w-0 md:block">
-        <VirtualDataTable
-          columns={columns}
-          data={filteredGroups}
-          emptyMessage={getGroupsMessage(session, groups)}
-          height={460}
-          rowHeight={56}
-          onRowClick={openGroup}
-          renderRowMenu={(group) => (
-            <GroupRowContextMenu
-              group={group}
-              onOpen={openGroup}
-              onEdit={setEditingGroup}
-              onDelete={deleteGroup}
-              onPrintGroup={printGroupToLabelLive}
-            />
-          )}
-        />
-      </div>
       <EditGroupDialog
         group={editingGroup}
         onOpenChange={(open) => {
