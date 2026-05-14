@@ -21,10 +21,10 @@ function ShopifyScopesTooltip({ scopes }: ShopifyScopesTooltipProps) {
           type="button"
           variant="ghost"
           size="icon"
-          className="size-10 shrink-0 touch-manipulation text-muted-foreground hover:text-foreground"
+          className="size-8 shrink-0 touch-manipulation text-muted-foreground hover:text-foreground sm:size-9"
           aria-label="OAuth scopes"
         >
-          <Info className="size-4" strokeWidth={2} />
+          <Info className="size-3.5 sm:size-4" strokeWidth={2} />
         </Button>
       </TooltipTrigger>
       <TooltipContent side="top" sideOffset={6} className="max-w-[min(calc(100vw-2rem),18rem)]">

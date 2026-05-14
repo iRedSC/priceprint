@@ -42,7 +42,7 @@ function ShopifyConnectionSection() {
             <p className="text-sm text-muted-foreground">Loading stores…</p>
           ) : (
             <TooltipProvider delayDuration={200}>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
                 {connections.map((connection) => (
                   <ShopifyStoreConnectionCard
                     key={connection.shopDomain}
