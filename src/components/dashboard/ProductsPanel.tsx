@@ -120,13 +120,10 @@ function ProductsPanel() {
         productId: product._id,
         product: nextProduct,
       })
+      setOptimisticPatches((patches) => removeOptimisticFieldPatch(patches, product._id, field, updatedAt))
       return true
     } catch (error) {
-      setOptimisticPatches((patches) => {
-        const rest = { ...patches }
-        delete rest[product._id]
-        return rest
-      })
+      setOptimisticPatches((patches) => removeOptimisticFieldPatch(patches, product._id, field, updatedAt))
       window.alert(error instanceof Error ? error.message : "Could not update product.")
       return false
     }
@@ -391,6 +388,32 @@ function applyOptimisticPatches(product: ProductRow, patches: OptimisticProductP
   }
 
   return nextProduct
+}
+
+function removeOptimisticFieldPatch(
+  patches: OptimisticProductPatches,
+  productId: ProductRow["_id"],
+  field: ProductEditableField,
+  updatedAt: number
+): OptimisticProductPatches {
+  const productPatch = patches[productId]
+
+  if (!productPatch || productPatch[field]?.updatedAt !== updatedAt) {
+    return patches
+  }
+
+  const nextProductPatch = { ...productPatch }
+  delete nextProductPatch[field]
+
+  const nextPatches = { ...patches }
+
+  if (Object.keys(nextProductPatch).length > 0) {
+    nextPatches[productId] = nextProductPatch
+  } else {
+    delete nextPatches[productId]
+  }
+
+  return nextPatches
 }
 
 export default ProductsPanel

@@ -25,22 +25,23 @@ function ProductEditableCell({
   type = "text",
   onCommit,
 }: ProductEditableCellProps) {
-  const [draft, setDraft] = useState(formatValue(value))
-  const reset = () => setDraft(formatValue(value))
-  const commit = async (valueToCommit = draft) => {
+  const [draft, setDraft] = useState<string | null>(null)
+  const formattedValue = formatValue(value)
+  const displayValue = draft ?? formattedValue
+  const reset = () => setDraft(null)
+  const commit = async (valueToCommit = displayValue) => {
     const nextValue = valueToCommit.trim()
 
-    if (nextValue === formatValue(value)) {
+    if (nextValue === formattedValue) {
+      setDraft(null)
       return
     }
 
-    const saved = await onCommit(product, field, nextValue)
-    if (!saved) {
-      reset()
-    }
+    await onCommit(product, field, nextValue)
+    setDraft(null)
   }
   const bumpValue = (direction: 1 | -1) => {
-    const currentValue = Number(draft || value || 0)
+    const currentValue = Number(displayValue || 0)
     const nextValue = String((Number.isFinite(currentValue) ? currentValue : 0) + direction * step)
 
     setDraft(nextValue)
@@ -53,7 +54,7 @@ function ProductEditableCell({
       <Input
         type={type === "number" ? "text" : type}
         inputMode={type === "number" ? "decimal" : undefined}
-        value={draft}
+        value={displayValue}
         placeholder={placeholder}
         className={cn(
           "h-7 border-transparent bg-transparent px-1.5 shadow-none hover:border-input",
