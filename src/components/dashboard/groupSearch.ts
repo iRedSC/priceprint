@@ -9,7 +9,7 @@ export function filterGroups(groups: GroupRow[], search: string) {
 
   return groups.filter((group) =>
     [group.name, ...group.products.flatMap((product) => [product.name, product.variant])]
-      .filter(Boolean)
+      .filter((value): value is string => Boolean(value))
       .some((value) => value.toLowerCase().includes(term))
   )
 }
