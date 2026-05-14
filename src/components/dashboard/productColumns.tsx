@@ -31,6 +31,20 @@ export function createProductColumns({ onFieldCommit }: ProductColumnOptions): C
       ),
     },
     {
+      accessorKey: "sku",
+      header: "SKU",
+      size: 130,
+      cell: ({ row }) => (
+        <ProductEditableCell
+          key={getEditableCellKey(row.original, "sku")}
+          product={row.original}
+          field="sku"
+          value={row.getValue<string | undefined>("sku")}
+          onCommit={onFieldCommit}
+        />
+      ),
+    },
+    {
       accessorKey: "name",
       header: "Product",
       size: 240,
@@ -45,17 +59,44 @@ export function createProductColumns({ onFieldCommit }: ProductColumnOptions): C
       ),
     },
     {
-      accessorKey: "sku",
-      header: "SKU",
+      accessorKey: "variant",
+      header: "Variant",
       size: 130,
       cell: ({ row }) => (
         <ProductEditableCell
-          key={getEditableCellKey(row.original, "sku")}
+          key={getEditableCellKey(row.original, "variant")}
           product={row.original}
-          field="sku"
-          value={row.getValue<string | undefined>("sku")}
+          field="variant"
+          value={row.getValue<string | undefined>("variant")}
           onCommit={onFieldCommit}
         />
+      ),
+    },
+    {
+      id: "printStatus",
+      accessorFn: getProductPrintStatus,
+      header: "Status",
+      size: 150,
+      cell: ({ row }) => <ProductPrintStatusChip product={row.original} />,
+    },
+    {
+      accessorKey: "price",
+      header: "Price",
+      size: 140,
+      cell: ({ row }) => (
+        <div className="flex min-w-0 items-center gap-0.5">
+          <ProductEditableCell
+            key={getEditableCellKey(row.original, "price")}
+            product={row.original}
+            field="price"
+            value={row.getValue<number>("price")}
+            prefix="$"
+            step={1}
+            type="number"
+            onCommit={onFieldCommit}
+          />
+          <ProductPrintedPriceNote product={row.original} />
+        </div>
       ),
     },
     {
@@ -87,20 +128,6 @@ export function createProductColumns({ onFieldCommit }: ProductColumnOptions): C
       ),
     },
     {
-      accessorKey: "variant",
-      header: "Variant",
-      size: 130,
-      cell: ({ row }) => (
-        <ProductEditableCell
-          key={getEditableCellKey(row.original, "variant")}
-          product={row.original}
-          field="variant"
-          value={row.getValue<string | undefined>("variant")}
-          onCommit={onFieldCommit}
-        />
-      ),
-    },
-    {
       accessorKey: "vendor",
       header: "Vendor",
       size: 160,
@@ -112,33 +139,6 @@ export function createProductColumns({ onFieldCommit }: ProductColumnOptions): C
           value={row.getValue<string | undefined>("vendor")}
           onCommit={onFieldCommit}
         />
-      ),
-    },
-    {
-      id: "printStatus",
-      accessorFn: getProductPrintStatus,
-      header: "Status",
-      size: 150,
-      cell: ({ row }) => <ProductPrintStatusChip product={row.original} />,
-    },
-    {
-      accessorKey: "price",
-      header: "Price",
-      size: 140,
-      cell: ({ row }) => (
-        <div className="flex min-w-0 items-center gap-0.5">
-          <ProductEditableCell
-            key={getEditableCellKey(row.original, "price")}
-            product={row.original}
-            field="price"
-            value={row.getValue<number>("price")}
-            prefix="$"
-            step={1}
-            type="number"
-            onCommit={onFieldCommit}
-          />
-          <ProductPrintedPriceNote product={row.original} />
-        </div>
       ),
     },
     {
