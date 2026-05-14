@@ -214,6 +214,28 @@ export const currentConnection = query({
   },
 });
 
+export const myConnections = query({
+  args: { sessionToken: v.string() },
+  handler: async (ctx, args) => {
+    const userId = await getSessionUserId(ctx, args.sessionToken);
+    const connections = await ctx.db
+      .query("shopifyConnections")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    return connections
+      .sort((a, b) => (b.updatedAt ?? b.createdAt) - (a.updatedAt ?? a.createdAt))
+      .map((connection) => ({
+        shopDomain: connection.shopDomain,
+        isActive: connection.isActive,
+        scopes: connection.scopes,
+        lastSyncAt: connection.lastSyncAt,
+        updatedAt: connection.updatedAt,
+        createdAt: connection.createdAt,
+      }));
+  },
+});
+
 export const lookupProductByScannedCode = action({
   args: {
     sessionToken: v.string(),

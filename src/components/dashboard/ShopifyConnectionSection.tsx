@@ -1,99 +1,66 @@
-import { useAction, useQuery } from "convex/react"
-import { useState, type FormEvent } from "react"
+import { useQuery } from "convex/react"
+import { useState } from "react"
+
 import { readStoredSession } from "@/authSession"
 import { api } from "../../../convex/_generated/api"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import ShopifyConnectionStatus from "./ShopifyConnectionStatus"
+import { TooltipProvider } from "@/components/ui/tooltip"
+
+import ShopifyAddStoreCard from "./ShopifyAddStoreCard"
+import ShopifyConnectStoreDialog from "./ShopifyConnectStoreDialog"
+import ShopifyStoreConnectionCard from "./ShopifyStoreConnectionCard"
 
 function ShopifyConnectionSection() {
-  const startInstall = useAction(api.shopify.startShopifyInstall)
   const [session] = useState(readStoredSession)
-  const [shopDomain, setShopDomain] = useState("")
-  const [message, setMessage] = useState("")
-  const [isBusy, setIsBusy] = useState(false)
-  const connection = useQuery(
-    api.shopify.currentConnection,
+  const [connectOpen, setConnectOpen] = useState(false)
+  const connections = useQuery(
+    api.shopify.myConnections,
     session ? { sessionToken: session.sessionToken } : "skip"
   )
 
-  const handleConnect = async (event: FormEvent) => {
-    event.preventDefault()
-    setIsBusy(true)
-    setMessage("")
-
-    try {
-      const convexSiteUrl = import.meta.env.VITE_CONVEX_SITE_URL
-
-      if (!session) {
-        throw new Error("Sign in again to connect Shopify.")
-      }
-
-      if (!convexSiteUrl) {
-        throw new Error("Missing VITE_CONVEX_SITE_URL in environment.")
-      }
-
-      const redirectUri = `${convexSiteUrl.replace(/\/$/, "")}/shopify/callback`
-      const { authUrl } = await startInstall({
-        shopDomain,
-        redirectUri,
-        sessionToken: session.sessionToken,
-      })
-
-      window.location.href = authUrl
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Could not start Shopify setup.")
-      setIsBusy(false)
-    }
-  }
-
   return (
-    <form onSubmit={handleConnect}>
+    <>
       <Card>
         <CardHeader>
-          <CardDescription>Store connection</CardDescription>
+          <CardDescription>Store connections</CardDescription>
           <CardTitle>Shopify</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
           <p className="text-sm text-muted-foreground">
-            Connect a Shopify store to sync products for scanning, grouping, and label
-            printing.
+            Connect Shopify stores to sync products for scanning, grouping, and label printing.
           </p>
-          <ShopifyConnectionStatus connection={connection} hasSession={Boolean(session)} />
-          <div className="grid gap-2">
-            <Label htmlFor="shopify-domain">Shopify store</Label>
-            <Input
-              id="shopify-domain"
-              autoCapitalize="none"
-              autoCorrect="off"
-              inputMode="url"
-              onChange={(event) => setShopDomain(event.target.value)}
-              placeholder="your-store.myshopify.com"
-              required
-              value={shopDomain}
-            />
-          </div>
-          {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
+
+          {!session ? (
+            <p className="text-sm text-muted-foreground">Sign in to manage store connections.</p>
+          ) : connections === undefined ? (
+            <p className="text-sm text-muted-foreground">Loading stores…</p>
+          ) : (
+            <TooltipProvider delayDuration={200}>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {connections.map((connection) => (
+                  <ShopifyStoreConnectionCard
+                    key={connection.shopDomain}
+                    shopDomain={connection.shopDomain}
+                    createdAt={connection.createdAt}
+                    isActive={connection.isActive}
+                    scopes={connection.scopes}
+                  />
+                ))}
+                <ShopifyAddStoreCard onClick={() => setConnectOpen(true)} />
+              </div>
+            </TooltipProvider>
+          )}
         </CardContent>
-        <CardFooter className="grid gap-3 sm:flex sm:justify-between">
-          <p className="text-xs text-muted-foreground">
-            Uses Convex env vars SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET.
-          </p>
-          <Button type="submit" className="h-11 touch-manipulation" disabled={isBusy}>
-            {isBusy ? "Connecting..." : "Connect Shopify"}
-          </Button>
-        </CardFooter>
       </Card>
-    </form>
+
+      <ShopifyConnectStoreDialog open={connectOpen} onOpenChange={setConnectOpen} />
+    </>
   )
 }
 
