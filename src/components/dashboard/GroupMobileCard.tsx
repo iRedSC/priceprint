@@ -17,6 +17,7 @@ import type { GroupPrintScope } from "./groupPrintSelection"
 import type { GroupRow } from "./groupTableData"
 import GroupActionMenu from "./GroupActionMenu"
 import GroupStatusChips from "./GroupStatusChips"
+import ProductImage from "./ProductImage"
 
 type GroupMobileCardProps = {
   group: GroupRow
@@ -36,7 +37,14 @@ function GroupMobileCard({ group, onOpen, onEdit, onDelete, onScan, onPrintGroup
     <Card size="sm" className="gap-2 py-3 touch-manipulation">
       <CardHeader className="grid-cols-[minmax(0,1fr)_auto] gap-2 px-3.5">
         <div className="min-w-0">
-          <CardTitle className="line-clamp-2 text-base">{group.name}</CardTitle>
+          <div className="flex min-w-0 items-start gap-2">
+            <ProductImage
+              src={group.products[0]?.img}
+              alt={group.products[0]?.name ?? group.name}
+              className="size-10 rounded-lg"
+            />
+            <CardTitle className="line-clamp-2 min-w-0 text-base">{group.name}</CardTitle>
+          </div>
           <CardDescription className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1.5">
             <span>{group.products.length} products</span>
             <GroupStatusChips unprinted={unprinted} upToDate={upToDate} outOfDate={outOfDate} />
