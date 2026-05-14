@@ -11,6 +11,7 @@
 import type * as auth from "../auth.js";
 import type * as authModel from "../authModel.js";
 import type * as crons from "../crons.js";
+import type * as groupProductOrder from "../groupProductOrder.js";
 import type * as groups from "../groups.js";
 import type * as http from "../http.js";
 import type * as printJobs from "../printJobs.js";
@@ -29,6 +30,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   authModel: typeof authModel;
   crons: typeof crons;
+  groupProductOrder: typeof groupProductOrder;
   groups: typeof groups;
   http: typeof http;
   printJobs: typeof printJobs;

@@ -47,6 +47,7 @@ export default defineSchema({
     productId: v.id("products"),
     groupId: v.id("groups"),
     createdAt: v.number(),
+    sortOrder: v.optional(v.number()),
   })
     .index("by_user", ["userId"])
     .index("by_product", ["productId"])

@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
+import { sortProductGroupJoins } from "./groupProductOrder";
 import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 
 const hashValue = async (value: string) => {
@@ -43,18 +44,18 @@ async function fetchGroupMembers(
     throw new ConvexError("Group not found.");
   }
 
-  const joins = await ctx.db
-    .query("productGroups")
-    .withIndex("by_group", (q) => q.eq("groupId", groupId))
-    .collect();
+  const joins = sortProductGroupJoins(
+    (
+      await ctx.db
+        .query("productGroups")
+        .withIndex("by_group", (q) => q.eq("groupId", groupId))
+        .collect()
+    ).filter((join) => join.userId === userId),
+  );
 
   const out: GroupMember[] = [];
 
   for (const join of joins) {
-    if (join.userId !== userId) {
-      continue;
-    }
-
     const product = await ctx.db.get(join.productId);
 
     if (!product || product.userId !== userId) {

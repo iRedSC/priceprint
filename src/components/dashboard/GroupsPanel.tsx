@@ -56,6 +56,7 @@ function GroupsPanel() {
   const deleteGroupMutation = useMutation(api.groups.remove)
   const addGroupProducts = useMutation(api.groups.addProducts)
   const removeGroupProduct = useMutation(api.groups.removeProduct)
+  const reorderGroupProductsMutation = useMutation(api.groups.reorderProducts)
   const recordGroupPrintMutation = useMutation(api.printJobs.recordGroupPrint)
   const lookupScannedProduct = useAction(api.shopify.lookupProductByScannedCode)
   const groupRows = groups ?? EMPTY_GROUPS
@@ -135,6 +136,18 @@ function GroupsPanel() {
       sessionToken: session.sessionToken,
       groupId: group._id,
       productId: product._id,
+    })
+  }
+
+  const reorderGroupProducts = async (group: GroupRow, orderedProductIds: GroupProduct["_id"][]) => {
+    if (!session) {
+      return
+    }
+
+    await reorderGroupProductsMutation({
+      sessionToken: session.sessionToken,
+      groupId: group._id,
+      orderedProductIds,
     })
   }
 
@@ -292,6 +305,7 @@ function GroupsPanel() {
         }}
         onAddProducts={addProducts}
         onRemoveProduct={removeProduct}
+        onReorderProducts={reorderGroupProducts}
       />
       <LabelLiveDebugDialog
         message={labelLiveDebug}

@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
+import { ensureDenseSortOrders, sortProductGroupJoins } from "./groupProductOrder";
 import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 
 const hashValue = async (value: string) => {
@@ -39,14 +40,14 @@ export const list = query({
 
     return await Promise.all(
       groups.map(async (group) => {
-        const joins = await ctx.db
-          .query("productGroups")
-          .withIndex("by_group", (q) => q.eq("groupId", group._id))
-          .collect();
+        const joins = sortProductGroupJoins(
+          (await ctx.db
+            .query("productGroups")
+            .withIndex("by_group", (q) => q.eq("groupId", group._id))
+            .collect()).filter((join) => join.userId === userId),
+        );
         const products = await Promise.all(
-          joins
-            .filter((join) => join.userId === userId)
-            .map(async (join) => {
+          joins.map(async (join) => {
               const product = await ctx.db.get(join.productId);
               if (!product || product.userId !== userId) {
                 return null;
@@ -179,13 +180,23 @@ export const addProduct = mutation({
       return existing._id;
     }
 
-    await ctx.db.patch(args.groupId, { updatedAt: Date.now() });
+    await ensureDenseSortOrders(ctx, { groupId: args.groupId, userId });
+    const now = Date.now();
+    const siblingCount = sortProductGroupJoins(
+      (await ctx.db
+        .query("productGroups")
+        .withIndex("by_group", (q) => q.eq("groupId", args.groupId))
+        .collect()).filter((join) => join.userId === userId),
+    ).length;
+
+    await ctx.db.patch(args.groupId, { updatedAt: now });
 
     return await ctx.db.insert("productGroups", {
       userId,
       groupId: args.groupId,
       productId: args.productId,
-      createdAt: Date.now(),
+      createdAt: now,
+      sortOrder: siblingCount,
     });
   },
 });
@@ -204,8 +215,16 @@ export const addProducts = mutation({
       throw new ConvexError("Group not found.");
     }
 
+    await ensureDenseSortOrders(ctx, { groupId: args.groupId, userId });
     const now = Date.now();
     const joinIds = [];
+
+    let nextSortOrder = sortProductGroupJoins(
+      (await ctx.db
+        .query("productGroups")
+        .withIndex("by_group", (q) => q.eq("groupId", args.groupId))
+        .collect()).filter((join) => join.userId === userId),
+    ).length;
 
     for (const productId of args.productIds) {
       const product = await ctx.db.get(productId);
@@ -232,8 +251,10 @@ export const addProducts = mutation({
           groupId: args.groupId,
           productId,
           createdAt: now,
+          sortOrder: nextSortOrder,
         }),
       );
+      nextSortOrder += 1;
     }
 
     if (args.productIds.length) {
@@ -241,6 +262,58 @@ export const addProducts = mutation({
     }
 
     return joinIds;
+  },
+});
+
+export const reorderProducts = mutation({
+  args: {
+    sessionToken: v.string(),
+    groupId: v.id("groups"),
+    orderedProductIds: v.array(v.id("products")),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getSessionUserId(ctx, args.sessionToken);
+    const group = await ctx.db.get(args.groupId);
+
+    if (!group || group.userId !== userId) {
+      throw new ConvexError("Group not found.");
+    }
+
+    const joins = sortProductGroupJoins(
+      (
+        await ctx.db
+          .query("productGroups")
+          .withIndex("by_group", (q) => q.eq("groupId", args.groupId))
+          .collect()
+      ).filter((join) => join.userId === userId),
+    );
+
+    if (joins.length !== args.orderedProductIds.length) {
+      throw new ConvexError("Product order does not match this group.");
+    }
+
+    const expectedIds = joins.map((join) => join.productId).sort();
+    const gotIds = [...args.orderedProductIds].sort();
+
+    if (!expectedIds.every((productId, index) => productId === gotIds[index])) {
+      throw new ConvexError("Product order does not match this group.");
+    }
+
+    const now = Date.now();
+
+    await Promise.all(
+      args.orderedProductIds.map(async (productId, index) => {
+        const join = joins.find((row) => row.productId === productId);
+
+        if (!join) {
+          throw new ConvexError("Product order does not match this group.");
+        }
+
+        await ctx.db.patch(join._id, { sortOrder: index });
+      }),
+    );
+
+    await ctx.db.patch(args.groupId, { updatedAt: now });
   },
 });
 

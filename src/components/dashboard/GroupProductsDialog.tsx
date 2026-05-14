@@ -16,6 +16,7 @@ type GroupProductsDialogProps = {
   onOpenChange: (open: boolean) => void
   onAddProducts: (group: GroupRow, productIds: ProductRow["_id"][]) => Promise<void> | void
   onRemoveProduct: (group: GroupRow, product: GroupProduct) => Promise<void> | void
+  onReorderProducts: (group: GroupRow, orderedProductIds: GroupProduct["_id"][]) => Promise<void> | void
 }
 
 function GroupProductsDialog({
@@ -24,6 +25,7 @@ function GroupProductsDialog({
   onOpenChange,
   onAddProducts,
   onRemoveProduct,
+  onReorderProducts,
 }: GroupProductsDialogProps) {
   return (
     <Dialog open={Boolean(group)} onOpenChange={onOpenChange}>
@@ -33,7 +35,8 @@ function GroupProductsDialog({
             <DialogHeader>
               <DialogTitle>{group.name}</DialogTitle>
               <DialogDescription>
-                Manage the products included in this working group.
+                Drag the grip handle to set print order (top prints first). On mobile, hold the grip briefly,
+                then drag.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-3">
@@ -44,6 +47,7 @@ function GroupProductsDialog({
               />
               <GroupProductsTable
                 products={group.products}
+                onReorderProducts={(orderedProductIds) => onReorderProducts(group, orderedProductIds)}
                 onRemoveProduct={(product) => onRemoveProduct(group, product)}
               />
             </div>
