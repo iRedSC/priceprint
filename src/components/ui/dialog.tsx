@@ -41,6 +41,7 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  swipeScrollRef,
   style,
   onFocusCapture,
   onPointerDown,
@@ -50,12 +51,13 @@ function DialogContent({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
+  swipeScrollRef?: React.RefObject<HTMLElement | null>
 }) {
   const contentRef = React.useRef<HTMLDivElement | null>(null)
   const closeRef = React.useRef<HTMLButtonElement | null>(null)
   const swipeDown = useSwipeDownDismiss<HTMLDivElement>({
     onDismiss: () => closeRef.current?.click(),
-    scrollRef: contentRef,
+    scrollRef: swipeScrollRef ?? contentRef,
   })
 
   React.useLayoutEffect(() => {
