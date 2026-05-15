@@ -1,7 +1,7 @@
-import { useRef, useState } from "react"
+import { useState } from "react"
 import type { FormEvent } from "react"
 
-import ProductDialogField from "@/components/dashboard/ProductDialogField"
+import ProductDialogForm, { type ProductDialogValues } from "@/components/dashboard/ProductDialogForm"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -11,8 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { formatMeta, parseMeta } from "./productDialogMeta"
 import type { ProductInput, ProductRow } from "./productTableData"
-import { productDialogFields } from "./productDialogFields"
 
 type EditProductDialogProps = {
   product: ProductRow | null
@@ -61,9 +61,8 @@ function EditProductForm({
   const [price, setPrice] = useState(String(product.price))
   const [img, setImg] = useState(product.img ?? "")
   const [meta, setMeta] = useState(formatMeta(product.meta))
-  const inputRefs = useRef<Array<HTMLInputElement | null>>([])
 
-  const values = {
+  const values: ProductDialogValues = {
     name,
     sku,
     upc,
@@ -116,45 +115,13 @@ function EditProductForm({
         <DialogDescription>Update the product details for this row.</DialogDescription>
       </DialogHeader>
       <form className="grid gap-4" onSubmit={handleSubmit}>
-        {productDialogFields.map((field, index) => (
-          <ProductDialogField
-            key={field.key}
-            id={`edit-product-${field.key}`}
-            config={field}
-            value={values[field.key]}
-            onChange={changeHandlers[field.key]}
-            inputRef={(node) => {
-              inputRefs.current[index] = node
-            }}
-            onAdvance={() => inputRefs.current[index + 1]?.focus()}
-          />
-        ))}
+        <ProductDialogForm idPrefix="edit-product" values={values} changeHandlers={changeHandlers} />
         <DialogFooter>
           <Button type="submit">Save changes</Button>
         </DialogFooter>
       </form>
     </>
   )
-}
-
-function formatMeta(meta: unknown) {
-  if (!meta) {
-    return ""
-  }
-
-  return typeof meta === "string" ? meta : JSON.stringify(meta)
-}
-
-function parseMeta(value: string) {
-  if (!value.trim()) {
-    return undefined
-  }
-
-  try {
-    return JSON.parse(value)
-  } catch {
-    return value
-  }
 }
 
 export default EditProductDialog

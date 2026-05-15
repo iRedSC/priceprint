@@ -1,4 +1,4 @@
-import { DashboardEmptyPanel } from "./MobileDashboardPrimitives"
+import DashboardMobileList from "./DashboardMobileList"
 import ProductMobileCard from "./ProductMobileCard"
 import type { ProductRow } from "./productTableData"
 
@@ -17,13 +17,9 @@ function ProductMobileList({
   onDelete,
   onMarkUpToDate,
 }: ProductMobileListProps) {
-  if (!products.length) {
-    return <DashboardEmptyPanel>{emptyMessage}</DashboardEmptyPanel>
-  }
-
   return (
-    <div className="grid gap-3">
-      {products.map((product) => (
+    <DashboardMobileList items={products} emptyMessage={emptyMessage}>
+      {(product) => (
         <ProductMobileCard
           key={`${product.sku ?? product.upc ?? product.name}-${product.createdAt}`}
           product={product}
@@ -31,8 +27,8 @@ function ProductMobileList({
           onDelete={onDelete}
           onMarkUpToDate={onMarkUpToDate}
         />
-      ))}
-    </div>
+      )}
+    </DashboardMobileList>
   )
 }
 

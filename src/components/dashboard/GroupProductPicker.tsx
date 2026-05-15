@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import DashboardMobileList from "./DashboardMobileList"
 import DashboardSearchInput from "./DashboardSearchInput"
 import DashboardResponsiveList from "./DashboardResponsiveList"
 import GroupProductPickerMobileCard from "./GroupProductPickerMobileCard"
@@ -100,22 +101,21 @@ function GroupProductPicker({ group, products, onAddProducts }: GroupProductPick
           </div>
           <DashboardResponsiveList
             mobile={
-              filteredProducts.length ? (
-                <div className="grid gap-2">
-                  {filteredProducts.map((product) => (
-                    <GroupProductPickerMobileCard
-                      key={product._id}
-                      product={product}
-                      selected={selectedIds.has(product._id)}
-                      onToggle={toggleProduct}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <p className="rounded-xl border p-4 text-center text-sm text-muted-foreground">
-                  No available products found.
-                </p>
-              )
+              <DashboardMobileList
+                items={filteredProducts}
+                emptyMessage="No available products found."
+                className="gap-2"
+                compactEmpty
+              >
+                {(product) => (
+                  <GroupProductPickerMobileCard
+                    key={product._id}
+                    product={product}
+                    selected={selectedIds.has(product._id)}
+                    onToggle={toggleProduct}
+                  />
+                )}
+              </DashboardMobileList>
             }
             mobileClassName="max-h-[min(55svh,24rem)] overflow-auto overscroll-contain touch-manipulation"
             desktop={

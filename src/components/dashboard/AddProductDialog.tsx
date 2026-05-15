@@ -1,9 +1,9 @@
-import { useRef, useState } from "react"
+import { useState } from "react"
 import type { FormEvent } from "react"
 import { Plus } from "lucide-react"
 
 import { readStoredSession } from "@/authSession"
-import ProductDialogField from "@/components/dashboard/ProductDialogField"
+import ProductDialogForm, { type ProductDialogValues } from "@/components/dashboard/ProductDialogForm"
 import { Button } from "@/components/ui/button"
 import type { ButtonVariants } from "@/components/ui/buttonVariants"
 import { cn } from "@/lib/utils"
@@ -17,8 +17,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import ShopifySkuFetchButton, { type ShopifySkuImportPayload } from "./ShopifySkuFetchButton"
+import { formatMeta, parseMeta } from "./productDialogMeta"
 import type { ProductInput } from "./productTableData"
-import { productDialogFields } from "./productDialogFields"
 
 type AddProductDialogProps = {
   onAddProduct: (product: ProductInput) => Promise<void> | void
@@ -38,9 +38,8 @@ function AddProductDialog({ onAddProduct, triggerClassName, triggerVariant }: Ad
   const [price, setPrice] = useState("")
   const [img, setImg] = useState("")
   const [meta, setMeta] = useState("")
-  const inputRefs = useRef<Array<HTMLInputElement | null>>([])
 
-  const values = {
+  const values: ProductDialogValues = {
     name,
     sku,
     upc,
@@ -127,28 +126,20 @@ function AddProductDialog({ onAddProduct, triggerClassName, triggerVariant }: Ad
           <DialogDescription>Enter product details for a manual label row.</DialogDescription>
         </DialogHeader>
         <form className="grid gap-4" onSubmit={handleSubmit}>
-          {productDialogFields.map((field, index) => (
-            <ProductDialogField
-              key={field.key}
-              id={`product-${field.key}`}
-              config={field}
-              value={values[field.key]}
-              onChange={changeHandlers[field.key]}
-              inputRef={(node) => {
-                inputRefs.current[index] = node
-              }}
-              onAdvance={() => inputRefs.current[index + 1]?.focus()}
-              trailingSlot={
-                field.key === "sku" ? (
-                  <ShopifySkuFetchButton
-                    sku={sku}
-                    sessionToken={session?.sessionToken ?? null}
-                    onImported={applyShopifyImport}
-                  />
-                ) : undefined
-              }
-            />
-          ))}
+          <ProductDialogForm
+            idPrefix="product"
+            values={values}
+            changeHandlers={changeHandlers}
+            trailingSlots={{
+              sku: (
+                <ShopifySkuFetchButton
+                  sku={sku}
+                  sessionToken={session?.sessionToken ?? null}
+                  onImported={applyShopifyImport}
+                />
+              ),
+            }}
+          />
           <DialogFooter>
             <Button type="submit">Add product</Button>
           </DialogFooter>
@@ -156,26 +147,6 @@ function AddProductDialog({ onAddProduct, triggerClassName, triggerVariant }: Ad
       </DialogContent>
     </Dialog>
   )
-}
-
-function formatMeta(meta: unknown) {
-  if (!meta) {
-    return ""
-  }
-
-  return typeof meta === "string" ? meta : JSON.stringify(meta)
-}
-
-function parseMeta(value: string) {
-  if (!value.trim()) {
-    return undefined
-  }
-
-  try {
-    return JSON.parse(value)
-  } catch {
-    return value
-  }
 }
 
 export default AddProductDialog

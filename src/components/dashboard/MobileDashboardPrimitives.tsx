@@ -1,6 +1,8 @@
 import type { ReactNode } from "react"
 import type { LucideIcon } from "lucide-react"
 
+import { cn } from "@/lib/utils"
+
 type MobileCatalogChipProps = {
   icon?: LucideIcon
   value: string
@@ -23,9 +25,19 @@ function MobileMonoField({ value }: { value?: string }) {
   ) : null
 }
 
-function DashboardEmptyPanel({ children }: { children: ReactNode }) {
+type DashboardEmptyPanelProps = {
+  children: ReactNode
+  compact?: boolean
+}
+
+function DashboardEmptyPanel({ children, compact = false }: DashboardEmptyPanelProps) {
   return (
-    <div className="rounded-xl border bg-card p-6 text-center text-sm text-muted-foreground">
+    <div
+      className={cn(
+        "rounded-xl border bg-card text-center text-sm text-muted-foreground",
+        compact ? "p-4" : "p-6",
+      )}
+    >
       {children}
     </div>
   )

@@ -1,6 +1,6 @@
 import type { GroupRow } from "./groupTableData"
+import DashboardMobileList from "./DashboardMobileList"
 import GroupMobileCard from "./GroupMobileCard"
-import { DashboardEmptyPanel } from "./MobileDashboardPrimitives"
 
 type GroupMobileListProps = {
   groups: GroupRow[]
@@ -19,13 +19,9 @@ function GroupMobileList({
   onDelete,
   onScan,
 }: GroupMobileListProps) {
-  if (!groups.length) {
-    return <DashboardEmptyPanel>{emptyMessage}</DashboardEmptyPanel>
-  }
-
   return (
-    <div className="grid gap-3">
-      {groups.map((group) => (
+    <DashboardMobileList items={groups} emptyMessage={emptyMessage}>
+      {(group) => (
         <GroupMobileCard
           key={group._id}
           group={group}
@@ -34,8 +30,8 @@ function GroupMobileList({
           onDelete={onDelete}
           onScan={onScan}
         />
-      ))}
-    </div>
+      )}
+    </DashboardMobileList>
   )
 }
 

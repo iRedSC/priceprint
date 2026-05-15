@@ -11,10 +11,12 @@ import {
 } from "@/components/ui/table"
 import { useMinWidthMd } from "@/hooks/useMinWidthMd"
 
+import DashboardMobileList from "./DashboardMobileList"
 import GroupProductSortableMobileCard from "./GroupProductSortableMobileCard"
 import GroupProductSortableTableRow from "./GroupProductSortableTableRow"
 import type { GroupProduct } from "./groupTableData"
 import { useGroupProductsSortSensors } from "./GroupProductsSortSensors"
+import { DashboardEmptyPanel } from "./MobileDashboardPrimitives"
 
 type GroupProductsTableProps = {
   products: GroupProduct[]
@@ -49,11 +51,7 @@ function GroupProductsTable({
   )
 
   if (!products.length) {
-    return (
-      <p className="rounded-xl border p-4 text-sm text-muted-foreground">
-        No products in this group yet.
-      </p>
-    )
+    return <DashboardEmptyPanel compact>No products in this group yet.</DashboardEmptyPanel>
   }
 
   return (
@@ -92,15 +90,19 @@ function GroupProductsTable({
             </Table>
           </div>
         ) : (
-          <div className="grid gap-2">
-            {products.map((product) => (
+          <DashboardMobileList
+            items={products}
+            emptyMessage="No products in this group yet."
+            className="gap-2"
+          >
+            {(product) => (
               <GroupProductSortableMobileCard
                 key={product._id}
                 product={product}
                 onRemoveProduct={onRemoveProduct}
               />
-            ))}
-          </div>
+            )}
+          </DashboardMobileList>
         )}
       </SortableContext>
     </DndContext>
