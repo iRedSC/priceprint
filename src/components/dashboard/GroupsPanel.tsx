@@ -343,16 +343,18 @@ function GroupsPanel() {
             renderRowMenu={(group) => ({
               title: `Actions for ${group.name}`,
               desktopContent: ({ shiftKey }) => (
-                <ActionContextMenuItems
-                  items={getGroupActionMenuItems({
-                    group,
-                    onEdit: setEditingGroup,
-                    onDelete: deleteGroup,
-                    onPrintGroup: printGroupToLabelLive,
-                    canUndoPrint: shiftKey && undoableGroupIds.has(group._id),
-                    onUndoPrint: requestUndoGroupPrint,
-                  })}
-                />
+                <div className="min-w-[260px]">
+                  <ActionContextMenuItems
+                    items={getGroupActionMenuItems({
+                      group,
+                      onEdit: setEditingGroup,
+                      onDelete: deleteGroup,
+                      onPrintGroup: printGroupToLabelLive,
+                      canUndoPrint: shiftKey && undoableGroupIds.has(group._id),
+                      onUndoPrint: requestUndoGroupPrint,
+                    })}
+                  />
+                </div>
               ),
               mobileContent: (close) => (
                 <ActionTrayMenuItems

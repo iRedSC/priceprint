@@ -1,6 +1,13 @@
 import { BadgeCheck, Pencil, Printer, Trash2, Undo2 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
+import { createElement, type ReactNode } from "react"
 
+import GroupStatusChips, { StatusCountChip } from "./GroupStatusChips"
+import {
+  countOutOfDateProducts,
+  countUnprintedProducts,
+  countUpToDateProducts,
+} from "./groupPrintCounts"
 import type { GroupPrintScope } from "./groupPrintSelection"
 import type { GroupRow } from "./groupTableData"
 import { getProductPrintStatus } from "./productPrintData"
@@ -16,6 +23,7 @@ type ActionMenuEntry =
       icon: LucideIcon
       variant?: "default" | "destructive" | "warning"
       onSelect: (event?: unknown) => void
+      trailing?: ReactNode
     }
 
 function hasShiftModifier(event?: unknown) {
@@ -97,6 +105,9 @@ function getProductActionMenuItems({
   ])
 }
 
+const groupPrintMenuChipCompact = "h-6 min-w-6 px-1.5 text-[10px]"
+const groupPrintMenuChipsWrap = "ml-auto flex shrink-0 flex-nowrap items-center gap-0.5"
+
 function getGroupActionMenuItems({
   group,
   onEdit,
@@ -105,30 +116,61 @@ function getGroupActionMenuItems({
   canUndoPrint,
   onUndoPrint,
 }: GroupActionHandlers) {
+  const printCounts = onPrintGroup
+    ? {
+        unprinted: countUnprintedProducts(group),
+        upToDate: countUpToDateProducts(group),
+        outOfDate: countOutOfDateProducts(group),
+      }
+    : null
+
   return compactActions([
     { type: "label", id: "name", label: group.name },
     { type: "separator", id: "primary-separator" },
     { type: "item", id: "edit", label: "Edit", icon: Pencil, onSelect: () => onEdit(group) },
     onPrintGroup ? { type: "separator", id: "print-separator" } : null,
-    onPrintGroup
-      ? { type: "item", id: "print-all", label: "Print all", icon: Printer, onSelect: () => onPrintGroup(group, "all") }
+    onPrintGroup && printCounts
+      ? {
+          type: "item",
+          id: "print-all",
+          label: "Print all",
+          icon: Printer,
+          onSelect: () => onPrintGroup(group, "all"),
+          trailing: createElement(GroupStatusChips, {
+            className: groupPrintMenuChipsWrap,
+            chipClassName: groupPrintMenuChipCompact,
+            ...printCounts,
+          }),
+        }
       : null,
-    onPrintGroup
+    onPrintGroup && printCounts
       ? {
           type: "item",
           id: "print-out-of-date",
           label: "Print out of date",
           icon: Printer,
           onSelect: () => onPrintGroup(group, "out-of-date"),
+          trailing: createElement(StatusCountChip, {
+            count: printCounts.outOfDate,
+            label: "Out of date",
+            tone: "outOfDate",
+            className: `${groupPrintMenuChipCompact} ml-auto shrink-0`,
+          }),
         }
       : null,
-    onPrintGroup
+    onPrintGroup && printCounts
       ? {
           type: "item",
           id: "print-unprinted",
           label: "Print unprinted",
           icon: Printer,
           onSelect: () => onPrintGroup(group, "unprinted"),
+          trailing: createElement(StatusCountChip, {
+            count: printCounts.unprinted,
+            label: "Unprinted",
+            tone: "unprinted",
+            className: `${groupPrintMenuChipCompact} ml-auto shrink-0`,
+          }),
         }
       : null,
     { type: "separator", id: "danger-separator" },

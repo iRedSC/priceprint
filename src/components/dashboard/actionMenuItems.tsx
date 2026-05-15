@@ -20,9 +20,15 @@ function ActionContextMenuItems({ items }: { items: ActionMenuEntry[] }) {
       return <ContextMenuSeparator key={item.id} />
     }
     return (
-      <ContextMenuItem key={item.id} variant={item.variant} onSelect={(e) => item.onSelect(e)}>
+      <ContextMenuItem
+        key={item.id}
+        variant={item.variant}
+        className={cn(item.trailing && "gap-2")}
+        onSelect={(e) => item.onSelect(e)}
+      >
         <item.icon />
-        {item.label}
+        <span className={cn("min-w-0", item.trailing ? "flex-1 truncate" : undefined)}>{item.label}</span>
+        {item.trailing}
       </ContextMenuItem>
     )
   })
@@ -37,9 +43,15 @@ function ActionDropdownMenuItems({ items }: { items: ActionMenuEntry[] }) {
       return <DropdownMenuSeparator key={item.id} />
     }
     return (
-      <DropdownMenuItem key={item.id} variant={item.variant} onSelect={(e) => item.onSelect(e)}>
+      <DropdownMenuItem
+        key={item.id}
+        variant={item.variant}
+        className={cn(item.trailing && "gap-2")}
+        onSelect={(e) => item.onSelect(e)}
+      >
         <item.icon />
-        {item.label}
+        <span className={cn("min-w-0", item.trailing ? "flex-1 truncate" : undefined)}>{item.label}</span>
+        {item.trailing}
       </DropdownMenuItem>
     )
   })
@@ -64,14 +76,16 @@ function ActionTrayMenuItems({ items, onAction }: { items: ActionMenuEntry[]; on
               item.variant === "destructive" && "text-destructive hover:bg-destructive/10 focus-visible:bg-destructive/10",
               item.variant === "warning" &&
                 "text-orange-600 hover:bg-orange-500/10 focus-visible:bg-orange-500/10 dark:text-orange-400",
+              item.trailing && "gap-2",
             )}
             onClick={(e) => {
               item.onSelect(e)
               onAction?.()
             }}
           >
-            <item.icon className="size-5" />
-            {item.label}
+            <item.icon className="size-5 shrink-0" />
+            <span className={cn("min-w-0", item.trailing ? "flex-1 truncate" : undefined)}>{item.label}</span>
+            {item.trailing}
           </button>
         )
       })}
