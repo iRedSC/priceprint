@@ -220,14 +220,12 @@
 
   .safe-area-product-actions {
     bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
-    left: 50%;
-    transform: translateX(-50%);
+    right: calc(1rem + env(safe-area-inset-right, 0px));
   }
 
   .safe-area-group-actions {
     bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
-    left: 50%;
-    transform: translateX(-50%);
+    right: calc(1rem + env(safe-area-inset-right, 0px));
   }
 
   @media (min-width: 40rem) {
