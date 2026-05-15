@@ -32,7 +32,13 @@ function GroupProductSortableMobileCard({ product, onRemoveProduct }: GroupProdu
       )}
     >
       <GroupProductMobileCard
-        leading={<GroupProductReorderHandle attributes={attributes} listeners={listeners} />}
+        reorderHandle={
+          <GroupProductReorderHandle
+            attributes={attributes}
+            listeners={listeners}
+            data-swipe-ignore
+          />
+        }
         product={product}
         onRemoveProduct={onRemoveProduct}
       />
