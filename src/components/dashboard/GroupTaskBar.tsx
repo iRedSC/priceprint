@@ -16,7 +16,7 @@ function GroupTaskBar({
   sessionToken,
 }: GroupTaskBarProps) {
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <div className="hidden items-center gap-2 md:flex">
         <UndoLastPrintButton sessionToken={sessionToken} />
         <AddGroupDialog onAddGroup={onAddGroup} />

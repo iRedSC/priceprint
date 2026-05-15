@@ -28,7 +28,7 @@ function ProductTaskBar({
   onSortChange,
 }: ProductTaskBarProps) {
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <div className="hidden gap-2 md:flex">
         <AddProductDialog onAddProduct={onAddProduct} />
         <UploadProductsDialog onUploadProducts={onUploadProducts} />

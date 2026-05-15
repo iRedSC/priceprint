@@ -7,6 +7,7 @@ function DashboardTabsDock({ children }: PropsWithChildren) {
   return (
     <div
       className={cn(
+        "shrink-0",
         "md:contents",
         "max-md:pointer-events-none max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-50",
         "max-md:flex max-md:w-full max-md:flex-col max-md:justify-end",

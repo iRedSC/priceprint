@@ -38,15 +38,19 @@ function DashboardPage({ onSignOut }: DashboardPageProps) {
   }
 
   return (
-    <main className="safe-area-dashboard-page min-h-dvh bg-muted/30 text-foreground">
-      <div className="mx-auto grid w-full min-w-0 max-w-6xl gap-5">
-        <header>
+    <main className="safe-area-dashboard-page flex h-[100dvh] max-h-[100dvh] min-h-dvh flex-col overflow-hidden bg-muted/30 text-foreground">
+      <div className="mx-auto flex min-h-0 w-full min-w-0 max-w-6xl flex-1 flex-col gap-5">
+        <header className="shrink-0">
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
             {sectionLabels[section]}
           </h1>
         </header>
 
-        <Tabs value={section} onValueChange={handleSectionChange} className="min-w-0">
+        <Tabs
+          value={section}
+          onValueChange={handleSectionChange}
+          className="flex min-h-0 min-w-0 flex-1 flex-col gap-4"
+        >
           <DashboardTabsDock>
             <TabsList
               aria-label="Dashboard sections"
@@ -61,13 +65,22 @@ function DashboardPage({ onSignOut }: DashboardPageProps) {
               />
             </TabsList>
           </DashboardTabsDock>
-          <TabsContent value="groups">
+          <TabsContent
+            value="groups"
+            className="flex min-h-0 flex-1 flex-col overflow-hidden outline-none"
+          >
             <GroupsPanel />
           </TabsContent>
-          <TabsContent value="products">
+          <TabsContent
+            value="products"
+            className="flex min-h-0 flex-1 flex-col overflow-hidden outline-none"
+          >
             <ProductsPanel />
           </TabsContent>
-          <TabsContent value="settings">
+          <TabsContent
+            value="settings"
+            className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain outline-none touch-manipulation"
+          >
             <SettingsPanel onSignOut={onSignOut} />
           </TabsContent>
         </Tabs>

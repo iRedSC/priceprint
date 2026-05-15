@@ -28,7 +28,7 @@ type VirtualDataTableProps<TData, TValue> = {
   data: TData[]
   className?: string
   emptyMessage?: string
-  height?: number
+  height?: number | "fill"
   rowHeight?: number
   onRowClick?: (row: TData) => void
   renderRowMenu?: (row: TData) => VirtualRowMenu
@@ -50,6 +50,8 @@ function VirtualDataTable<TData, TValue>({
   onRowClick,
   renderRowMenu,
 }: VirtualDataTableProps<TData, TValue>) {
+  const isFillHeight = height === "fill"
+
   const [sorting, setSorting] = React.useState<SortingState>([])
   const scrollRef = React.useRef<HTMLDivElement>(null)
   // TanStack Table intentionally returns stable instance functions that React Compiler flags.
@@ -72,11 +74,22 @@ function VirtualDataTable<TData, TValue>({
   })
 
   return (
-    <div className={cn("min-w-0 overflow-hidden rounded-xl border bg-card", className)}>
+    <div
+      className={cn(
+        "min-w-0 overflow-hidden rounded-xl border bg-card",
+        isFillHeight && "flex min-h-0 flex-1 flex-col",
+        className,
+      )}
+    >
       <div
         ref={scrollRef}
-        className="overflow-auto touch-manipulation"
-        style={{ height }}
+        className={cn(
+          "overflow-auto touch-manipulation",
+          isFillHeight && "min-h-0 flex-1",
+        )}
+        style={
+          typeof height === "number" ? { height } : undefined
+        }
       >
         <Table className="grid" style={{ width: tableWidth }}>
           <TableHeader className="sticky top-0 z-10 grid bg-card">

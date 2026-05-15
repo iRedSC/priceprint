@@ -310,7 +310,7 @@ function ProductsPanel() {
   )
 
   return (
-    <section className="grid min-w-0 gap-3">
+    <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
       <ProductTaskBar
         search={search}
         onSearchChange={setSearch}
@@ -322,6 +322,7 @@ function ProductsPanel() {
         onSortChange={setMobileSort}
       />
       <DashboardResponsiveList
+        fillHeight
         mobile={
           <ProductMobileList
             products={mobileProducts}
@@ -336,7 +337,7 @@ function ProductsPanel() {
             columns={columns}
             data={filteredProducts}
             emptyMessage={getProductsMessage(session, products)}
-            height={460}
+            height="fill"
             rowHeight={56}
             renderRowMenu={(product) => {
               const items = getProductActionMenuItems({

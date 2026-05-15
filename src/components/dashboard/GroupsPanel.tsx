@@ -280,7 +280,7 @@ function GroupsPanel() {
   }
 
   return (
-    <section className="grid min-w-0 gap-3">
+    <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
       <GroupTaskBar
         sessionToken={session?.sessionToken ?? null}
         search={search}
@@ -288,6 +288,7 @@ function GroupsPanel() {
         onAddGroup={addGroup}
       />
       <DashboardResponsiveList
+        fillHeight
         mobile={
           <GroupMobileList
             groups={filteredGroups}
@@ -302,7 +303,7 @@ function GroupsPanel() {
             columns={columns}
             data={filteredGroups}
             emptyMessage={getGroupsMessage(session, groups)}
-            height={460}
+            height="fill"
             rowHeight={56}
             onRowClick={openGroup}
             renderRowMenu={(group) => {

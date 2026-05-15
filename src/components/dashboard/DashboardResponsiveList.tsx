@@ -7,6 +7,8 @@ type DashboardResponsiveListProps = {
   desktop: ReactNode
   mobileClassName?: string
   desktopClassName?: string
+  /** Grow with parent flex layout and scroll the mobile list vertically. */
+  fillHeight?: boolean
 }
 
 function DashboardResponsiveList({
@@ -14,7 +16,23 @@ function DashboardResponsiveList({
   desktop,
   mobileClassName,
   desktopClassName,
+  fillHeight,
 }: DashboardResponsiveListProps) {
+  if (fillHeight) {
+    return (
+      <>
+        <div className={cn("flex min-h-0 flex-1 flex-col md:hidden", mobileClassName)}>
+          <div className="min-h-0 flex-1 touch-manipulation overscroll-contain overflow-y-auto">
+            {mobile}
+          </div>
+        </div>
+        <div className={cn("hidden min-h-0 flex-1 flex-col md:flex", desktopClassName)}>
+          {desktop}
+        </div>
+      </>
+    )
+  }
+
   return (
     <>
       <div className={cn("md:hidden", mobileClassName)}>{mobile}</div>
