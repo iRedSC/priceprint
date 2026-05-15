@@ -79,7 +79,7 @@ function DashboardPage({ onSignOut }: DashboardPageProps) {
           </TabsContent>
           <TabsContent
             value="settings"
-            className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain outline-none touch-manipulation"
+            className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain outline-none touch-manipulation max-md:pb-[calc(9rem+env(safe-area-inset-bottom,0px))] md:pb-0"
           >
             <SettingsPanel onSignOut={onSignOut} />
           </TabsContent>
