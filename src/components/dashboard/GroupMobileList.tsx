@@ -1,5 +1,6 @@
 import type { GroupRow } from "./groupTableData"
 import GroupMobileCard from "./GroupMobileCard"
+import { DashboardEmptyPanel } from "./MobileDashboardPrimitives"
 
 type GroupMobileListProps = {
   groups: GroupRow[]
@@ -19,7 +20,7 @@ function GroupMobileList({
   onScan,
 }: GroupMobileListProps) {
   if (!groups.length) {
-    return <p className="rounded-xl border bg-card p-4 text-sm text-muted-foreground">{emptyMessage}</p>
+    return <DashboardEmptyPanel>{emptyMessage}</DashboardEmptyPanel>
   }
 
   return (

@@ -1,3 +1,4 @@
+import { DashboardEmptyPanel } from "./MobileDashboardPrimitives"
 import ProductMobileCard from "./ProductMobileCard"
 import type { ProductRow } from "./productTableData"
 
@@ -17,11 +18,7 @@ function ProductMobileList({
   onMarkUpToDate,
 }: ProductMobileListProps) {
   if (!products.length) {
-    return (
-      <div className="rounded-xl border bg-card p-6 text-center text-sm text-muted-foreground">
-        {emptyMessage}
-      </div>
-    )
+    return <DashboardEmptyPanel>{emptyMessage}</DashboardEmptyPanel>
   }
 
   return (
