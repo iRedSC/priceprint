@@ -2,7 +2,7 @@ import { BadgeCheck, Pencil, Printer, Trash2, Undo2 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { createElement, type ReactNode } from "react"
 
-import GroupStatusChips, { StatusCountChip } from "./GroupStatusChips"
+import { StatusCountChip } from "./GroupStatusChips"
 import {
   countOutOfDateProducts,
   countUnprintedProducts,
@@ -106,7 +106,6 @@ function getProductActionMenuItems({
 }
 
 const groupPrintMenuChipCompact = "h-6 min-w-6 px-1.5 text-[10px]"
-const groupPrintMenuChipsWrap = "ml-auto flex shrink-0 flex-nowrap items-center gap-0.5"
 
 function getGroupActionMenuItems({
   group,
@@ -136,10 +135,11 @@ function getGroupActionMenuItems({
           label: "Print all",
           icon: Printer,
           onSelect: () => onPrintGroup(group, "all"),
-          trailing: createElement(GroupStatusChips, {
-            className: groupPrintMenuChipsWrap,
-            chipClassName: groupPrintMenuChipCompact,
-            ...printCounts,
+          trailing: createElement(StatusCountChip, {
+            count: group.products.length,
+            label: "Products",
+            tone: "unprinted",
+            className: `${groupPrintMenuChipCompact} ml-auto shrink-0`,
           }),
         }
       : null,

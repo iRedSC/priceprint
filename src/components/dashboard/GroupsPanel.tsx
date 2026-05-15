@@ -343,7 +343,7 @@ function GroupsPanel() {
             renderRowMenu={(group) => ({
               title: `Actions for ${group.name}`,
               desktopContent: ({ shiftKey }) => (
-                <div className="min-w-[260px]">
+                <div className="min-w-[220px]">
                   <ActionContextMenuItems
                     items={getGroupActionMenuItems({
                       group,
