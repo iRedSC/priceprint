@@ -5,6 +5,7 @@ import { Plus } from "lucide-react"
 import { readStoredSession } from "@/authSession"
 import ProductDialogField from "@/components/dashboard/ProductDialogField"
 import { Button } from "@/components/ui/button"
+import type { ButtonVariants } from "@/components/ui/buttonVariants"
 import { cn } from "@/lib/utils"
 import {
   Dialog,
@@ -22,9 +23,10 @@ import { productDialogFields } from "./productDialogFields"
 type AddProductDialogProps = {
   onAddProduct: (product: ProductInput) => Promise<void> | void
   triggerClassName?: string
+  triggerVariant?: ButtonVariants["variant"]
 }
 
-function AddProductDialog({ onAddProduct, triggerClassName }: AddProductDialogProps) {
+function AddProductDialog({ onAddProduct, triggerClassName, triggerVariant }: AddProductDialogProps) {
   const [session] = useState(readStoredSession)
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
@@ -111,6 +113,7 @@ function AddProductDialog({ onAddProduct, triggerClassName }: AddProductDialogPr
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
+          variant={triggerVariant ?? "default"}
           size="icon"
           aria-label="Add product"
           className={cn("size-10 touch-manipulation", triggerClassName)}

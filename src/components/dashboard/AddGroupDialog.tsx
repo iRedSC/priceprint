@@ -3,6 +3,7 @@ import type { FormEvent } from "react"
 import { Plus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import type { ButtonVariants } from "@/components/ui/buttonVariants"
 import { cn } from "@/lib/utils"
 import {
   Dialog,
@@ -19,11 +20,18 @@ import { Label } from "@/components/ui/label"
 type AddGroupDialogProps = {
   onAddGroup: (name: string) => Promise<void> | void
   triggerClassName?: string
+  triggerVariant?: ButtonVariants["variant"]
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }
 
-function AddGroupDialog({ onAddGroup, triggerClassName, open: controlledOpen, onOpenChange }: AddGroupDialogProps) {
+function AddGroupDialog({
+  onAddGroup,
+  triggerClassName,
+  triggerVariant,
+  open: controlledOpen,
+  onOpenChange,
+}: AddGroupDialogProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
   const controlled = controlledOpen !== undefined && onOpenChange !== undefined
   const open = controlled ? controlledOpen : uncontrolledOpen
@@ -46,6 +54,7 @@ function AddGroupDialog({ onAddGroup, triggerClassName, open: controlledOpen, on
       {!controlled ? (
         <DialogTrigger asChild>
           <Button
+            variant={triggerVariant ?? "default"}
             size="icon"
             aria-label="Add group"
             className={cn("size-10 touch-manipulation", triggerClassName)}

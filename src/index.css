@@ -218,12 +218,7 @@
       calc(1rem + env(safe-area-inset-left, 0px));
   }
 
-  .safe-area-product-actions {
-    bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
-    right: calc(1rem + env(safe-area-inset-right, 0px));
-  }
-
-  .safe-area-group-actions {
+  .safe-area-dashboard-fab {
     bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
     right: calc(1rem + env(safe-area-inset-right, 0px));
   }
