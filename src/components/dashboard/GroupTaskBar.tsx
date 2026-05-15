@@ -1,24 +1,20 @@
 import AddGroupDialog from "./AddGroupDialog"
 import DashboardSearchInput from "./DashboardSearchInput"
-import UndoLastPrintButton from "./UndoLastPrintButton"
 
 type GroupTaskBarProps = {
   search: string
   onSearchChange: (search: string) => void
   onAddGroup: (name: string) => Promise<void> | void
-  sessionToken: string | null
 }
 
 function GroupTaskBar({
   search,
   onSearchChange,
   onAddGroup,
-  sessionToken,
 }: GroupTaskBarProps) {
   return (
     <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <div className="hidden items-center gap-2 md:flex">
-        <UndoLastPrintButton sessionToken={sessionToken} />
         <AddGroupDialog onAddGroup={onAddGroup} />
       </div>
       <DashboardSearchInput

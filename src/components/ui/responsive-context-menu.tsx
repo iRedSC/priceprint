@@ -8,7 +8,7 @@ import { MobileTray } from "./mobile-tray"
 type ResponsiveContextMenuProps = {
   children: React.ReactElement
   title?: string
-  desktopContent: React.ReactNode
+  desktopContent: (opts: { shiftKey: boolean }) => React.ReactNode
   mobileContent: (close: () => void) => React.ReactNode
 }
 
@@ -20,19 +20,37 @@ function ResponsiveContextMenu({
 }: ResponsiveContextMenuProps) {
   const isMd = useMinWidthMd()
   const [open, setOpen] = React.useState(false)
+  const shiftForOpenRef = React.useRef(false)
 
   if (isMd) {
     return (
       <ContextMenu>
-        <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
-        <ContextMenuContent>{desktopContent}</ContextMenuContent>
+        <ContextMenuTrigger asChild>
+          <span
+            className="contents"
+            onContextMenuCapture={(event) => {
+              shiftForOpenRef.current = event.shiftKey
+            }}
+          >
+            {children}
+          </span>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          {desktopContent({ shiftKey: shiftForOpenRef.current })}
+        </ContextMenuContent>
       </ContextMenu>
     )
   }
 
   return (
     <>
-      <MobileContextMenuTrigger onOpen={() => setOpen(true)}>{children}</MobileContextMenuTrigger>
+      <MobileContextMenuTrigger
+        onOpen={() => {
+          setOpen(true)
+        }}
+      >
+        {children}
+      </MobileContextMenuTrigger>
       <MobileTray open={open} onOpenChange={setOpen} title={title}>
         {mobileContent(() => setOpen(false))}
       </MobileTray>

@@ -36,7 +36,7 @@ type VirtualDataTableProps<TData, TValue> = {
 
 type VirtualRowMenu = {
   title?: string
-  desktopContent: React.ReactNode
+  desktopContent: (opts: { shiftKey: boolean }) => React.ReactNode
   mobileContent: (close: () => void) => React.ReactNode
 }
 

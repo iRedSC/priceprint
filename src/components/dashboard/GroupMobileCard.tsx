@@ -6,6 +6,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { formatGroupDate } from "./groupFormat"
+import type { GroupPrintScope } from "./groupPrintSelection"
 import {
   countOutOfDateProducts,
   countUnprintedProducts,
@@ -21,9 +22,10 @@ type GroupMobileCardProps = {
   onOpen: (group: GroupRow) => void
   onEdit: (group: GroupRow) => void
   onDelete: (group: GroupRow) => void
+  onPrintGroup?: (group: GroupRow, scope: GroupPrintScope) => void | Promise<void>
 }
 
-function GroupMobileCard({ group, onOpen, onEdit, onDelete }: GroupMobileCardProps) {
+function GroupMobileCard({ group, onOpen, onEdit, onDelete, onPrintGroup }: GroupMobileCardProps) {
   const unprinted = countUnprintedProducts(group)
   const upToDate = countUpToDateProducts(group)
   const outOfDate = countOutOfDateProducts(group)
@@ -54,6 +56,7 @@ function GroupMobileCard({ group, onOpen, onEdit, onDelete }: GroupMobileCardPro
             group={group}
             onEdit={onEdit}
             onDelete={onDelete}
+            onPrintGroup={onPrintGroup}
           />
         </div>
       </CardHeader>

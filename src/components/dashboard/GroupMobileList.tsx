@@ -1,3 +1,4 @@
+import type { GroupPrintScope } from "./groupPrintSelection"
 import type { GroupRow } from "./groupTableData"
 import DashboardMobileList from "./DashboardMobileList"
 import GroupMobileCard from "./GroupMobileCard"
@@ -8,6 +9,7 @@ type GroupMobileListProps = {
   onOpen: (group: GroupRow) => void
   onEdit: (group: GroupRow) => void
   onDelete: (group: GroupRow) => void
+  onPrintGroup?: (group: GroupRow, scope: GroupPrintScope) => void | Promise<void>
 }
 
 function GroupMobileList({
@@ -16,6 +18,7 @@ function GroupMobileList({
   onOpen,
   onEdit,
   onDelete,
+  onPrintGroup,
 }: GroupMobileListProps) {
   return (
     <DashboardMobileList items={groups} emptyMessage={emptyMessage}>
@@ -26,6 +29,7 @@ function GroupMobileList({
           onOpen={onOpen}
           onEdit={onEdit}
           onDelete={onDelete}
+          onPrintGroup={onPrintGroup}
         />
       )}
     </DashboardMobileList>

@@ -1,4 +1,4 @@
-import { BadgeCheck, Pencil, Printer, Trash2 } from "lucide-react"
+import { BadgeCheck, Pencil, Printer, Trash2, Undo2 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 import type { GroupPrintScope } from "./groupPrintSelection"
@@ -28,6 +28,8 @@ type ProductActionHandlers = {
   onDelete: (product: ProductRow) => void
   onPrint?: (product: ProductRow, opts?: { skipLabelCountModal?: boolean }) => void
   onMarkUpToDate?: (product: ProductRow) => void
+  canUndoPrint?: boolean
+  onUndoPrint?: (product: ProductRow) => void
 }
 
 type GroupActionHandlers = {
@@ -35,6 +37,8 @@ type GroupActionHandlers = {
   onEdit: (group: GroupRow) => void
   onDelete: (group: GroupRow) => void
   onPrintGroup?: (group: GroupRow, scope: GroupPrintScope) => void
+  canUndoPrint?: boolean
+  onUndoPrint?: (group: GroupRow) => void
 }
 
 function getProductActionMenuItems({
@@ -43,6 +47,8 @@ function getProductActionMenuItems({
   onDelete,
   onPrint,
   onMarkUpToDate,
+  canUndoPrint,
+  onUndoPrint,
 }: ProductActionHandlers) {
   const showMarkUpToDate =
     onMarkUpToDate !== undefined && getProductPrintStatus(product) !== "up-to-date"
@@ -58,6 +64,15 @@ function getProductActionMenuItems({
           label: "Print",
           icon: Printer,
           onSelect: (event) => onPrint(product, { skipLabelCountModal: hasShiftModifier(event) }),
+        }
+      : null,
+    canUndoPrint && onUndoPrint
+      ? {
+          type: "item",
+          id: "undo-print",
+          label: "Undo last print",
+          icon: Undo2,
+          onSelect: () => onUndoPrint(product),
         }
       : null,
     showMarkUpToDate
@@ -81,7 +96,14 @@ function getProductActionMenuItems({
   ])
 }
 
-function getGroupActionMenuItems({ group, onEdit, onDelete, onPrintGroup }: GroupActionHandlers) {
+function getGroupActionMenuItems({
+  group,
+  onEdit,
+  onDelete,
+  onPrintGroup,
+  canUndoPrint,
+  onUndoPrint,
+}: GroupActionHandlers) {
   return compactActions([
     { type: "label", id: "name", label: group.name },
     { type: "separator", id: "primary-separator" },
@@ -106,6 +128,15 @@ function getGroupActionMenuItems({ group, onEdit, onDelete, onPrintGroup }: Grou
           label: "Print unprinted",
           icon: Printer,
           onSelect: () => onPrintGroup(group, "unprinted"),
+        }
+      : null,
+    canUndoPrint && onUndoPrint
+      ? {
+          type: "item",
+          id: "undo-print",
+          label: "Undo last group print",
+          icon: Undo2,
+          onSelect: () => onUndoPrint(group),
         }
       : null,
     { type: "separator", id: "danger-separator" },

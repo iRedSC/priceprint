@@ -21,6 +21,7 @@ import ProductLabelCountDialog from "./ProductLabelCountDialog"
 import ProductMobileActions from "./ProductMobileActions"
 import ProductMobileList from "./ProductMobileList"
 import ProductTaskBar from "./ProductTaskBar"
+import UndoPrintConfirmDialog from "./UndoPrintConfirmDialog"
 import { createProductColumns } from "./productColumns"
 import { filterProducts } from "./productSearch"
 import { sortProducts, type ProductSort } from "./productSort"
@@ -51,6 +52,8 @@ function ProductsPanel() {
   const [editingProduct, setEditingProduct] = useState<ProductRow | null>(null)
   const [labelLiveDebug, setLabelLiveDebug] = useState<LabelLiveDebugMessage | null>(null)
   const [labelCountProduct, setLabelCountProduct] = useState<ProductRow | null>(null)
+  const [productUndoTarget, setProductUndoTarget] = useState<ProductRow | null>(null)
+  const [productUndoBusy, setProductUndoBusy] = useState(false)
   const [optimisticPatches, setOptimisticPatches] = useState<OptimisticProductPatches>({})
   const [isRefreshingProducts, setIsRefreshingProducts] = useState(false)
   const [session] = useState(readStoredSession)
@@ -62,16 +65,25 @@ function ProductsPanel() {
     api.userPrefs.getLabelLiveSettings,
     session ? { sessionToken: session.sessionToken } : "skip"
   )
+  const undoablePrintTargets = useQuery(
+    api.printJobs.undoablePrintTargets,
+    session ? { sessionToken: session.sessionToken } : "skip"
+  )
   const createProduct = useMutation(api.products.create)
   const createProducts = useMutation(api.products.createMany)
   const updateProductMutation = useMutation(api.products.update)
   const deleteProductMutation = useMutation(api.products.remove)
   const recordProductPrintMutation = useMutation(api.printJobs.recordProductPrint)
+  const undoProductPrintMutation = useMutation(api.printJobs.undoPrintForProduct)
   const markProductUpToDateMutation = useMutation(api.printJobs.markProductUpToDate)
   const refreshProductPrices = useAction(api.shopify.refreshProductPrices)
   const productRows = useMemo(
     () => (products ?? EMPTY_PRODUCTS).map((product) => applyOptimisticPatches(product, optimisticPatches[product._id])),
     [optimisticPatches, products]
+  )
+  const undoableProductIds = useMemo(
+    () => new Set(undoablePrintTargets?.productIds ?? []),
+    [undoablePrintTargets?.productIds]
   )
   const addProduct = async (product: ProductInput) => {
     if (!session) {
@@ -296,6 +308,32 @@ function ProductsPanel() {
     [printProductToLabelLive],
   )
 
+  const requestUndoProductPrint = useCallback((product: ProductRow) => {
+    setProductUndoTarget(product)
+  }, [])
+
+  const confirmUndoProductPrint = useCallback(async () => {
+    if (!session || !productUndoTarget) {
+      return
+    }
+
+    const name = productUndoTarget.name
+    setProductUndoBusy(true)
+
+    try {
+      await undoProductPrintMutation({
+        sessionToken: session.sessionToken,
+        productId: productUndoTarget._id,
+      })
+      setProductUndoTarget(null)
+      toast.success(`Undid last print for "${name}".`)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not undo.")
+    } finally {
+      setProductUndoBusy(false)
+    }
+  }, [productUndoTarget, session, undoProductPrintMutation])
+
   const filteredProducts = useMemo(
     () => filterProducts(productRows, search),
     [productRows, search]
@@ -339,27 +377,33 @@ function ProductsPanel() {
             emptyMessage={getProductsMessage(session, products)}
             height="fill"
             rowHeight={56}
-            renderRowMenu={(product) => {
-              const items = getProductActionMenuItems({
-                product,
-                onEdit: setEditingProduct,
-                onDelete: deleteProduct,
-                onPrint: startProductPrint,
-                onMarkUpToDate: markProductUpToDate,
-              })
-              const mobileItems = getProductActionMenuItems({
-                product,
-                onEdit: setEditingProduct,
-                onDelete: deleteProduct,
-                onMarkUpToDate: markProductUpToDate,
-              })
-
-              return {
-                title: `Actions for ${product.name}`,
-                desktopContent: <ActionContextMenuItems items={items} />,
-                mobileContent: (close) => <ActionTrayMenuItems items={mobileItems} onAction={close} />,
-              }
-            }}
+            renderRowMenu={(product) => ({
+              title: `Actions for ${product.name}`,
+              desktopContent: ({ shiftKey }) => (
+                <ActionContextMenuItems
+                  items={getProductActionMenuItems({
+                    product,
+                    onEdit: setEditingProduct,
+                    onDelete: deleteProduct,
+                    onPrint: startProductPrint,
+                    onMarkUpToDate: markProductUpToDate,
+                    canUndoPrint: shiftKey && undoableProductIds.has(product._id),
+                    onUndoPrint: requestUndoProductPrint,
+                  })}
+                />
+              ),
+              mobileContent: (close) => (
+                <ActionTrayMenuItems
+                  items={getProductActionMenuItems({
+                    product,
+                    onEdit: setEditingProduct,
+                    onDelete: deleteProduct,
+                    onMarkUpToDate: markProductUpToDate,
+                  })}
+                  onAction={close}
+                />
+              ),
+            })}
           />
         }
       />
@@ -393,6 +437,18 @@ function ProductsPanel() {
             void printProductToLabelLive(labelCountProduct, count)
           }
         }}
+      />
+      <UndoPrintConfirmDialog
+        open={productUndoTarget !== null}
+        onOpenChange={(open) => {
+          if (!open && !productUndoBusy) {
+            setProductUndoTarget(null)
+          }
+        }}
+        title={productUndoTarget ? `Undo last print for ${productUndoTarget.name}?` : "Undo last print?"}
+        description="Print status for this product will revert to what it was before the last recorded print."
+        busy={productUndoBusy}
+        onConfirm={confirmUndoProductPrint}
       />
     </section>
   )

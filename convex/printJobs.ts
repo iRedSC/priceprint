@@ -92,20 +92,132 @@ function memberMatchesScope(
   }
 }
 
-export const hasUndoablePrintBatch = query({
+type PrintJobLine = Doc<"printJobs">["lineItems"][number];
+
+async function fetchActiveJobsDesc(ctx: QueryCtx | MutationCtx, userId: Id<"users">) {
+  return ctx.db
+    .query("printJobs")
+    .withIndex("by_user_status_created", (q) =>
+      q.eq("userId", userId).eq("status", "active"),
+    )
+    .order("desc")
+    .collect();
+}
+
+async function lineStillUndoable(
+  ctx: QueryCtx | MutationCtx,
+  userId: Id<"users">,
+  line: PrintJobLine,
+): Promise<boolean> {
+  const doc = await ctx.db
+    .query("printData")
+    .withIndex("by_user_product", (q) => q.eq("userId", userId).eq("productId", line.productId))
+    .unique();
+
+  if (!doc) {
+    return false;
+  }
+
+  return doc.lastPrintedPrice === line.printedPrice && doc.lastPrintedAt === line.printedAt;
+}
+
+async function jobLinesAllUndoable(
+  ctx: QueryCtx | MutationCtx,
+  userId: Id<"users">,
+  lines: PrintJobLine[],
+): Promise<boolean> {
+  for (const line of lines) {
+    if (!(await lineStillUndoable(ctx, userId, line))) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+async function revertPrintLine(
+  ctx: MutationCtx,
+  userId: Id<"users">,
+  line: PrintJobLine,
+  undoAt: number,
+) {
+  const doc = await ctx.db
+    .query("printData")
+    .withIndex("by_user_product", (q) => q.eq("userId", userId).eq("productId", line.productId))
+    .unique();
+
+  if (!line.hadPrintDataRowBefore) {
+    if (!doc) {
+      throw new ConvexError(
+        "Cannot undo — print rows changed unexpectedly. Try refreshing the app.",
+      );
+    }
+
+    if (doc.lastPrintedPrice !== line.printedPrice || doc.lastPrintedAt !== line.printedAt) {
+      throw new ConvexError("Cannot undo — a newer print was recorded after this batch.");
+    }
+
+    await ctx.db.delete(doc._id);
+    return;
+  }
+
+  if (!doc) {
+    throw new ConvexError("Cannot undo — print rows changed unexpectedly.");
+  }
+
+  if (doc.lastPrintedPrice !== line.printedPrice || doc.lastPrintedAt !== line.printedAt) {
+    throw new ConvexError("Cannot undo — a newer print was recorded after this batch.");
+  }
+
+  await ctx.db.patch(doc._id, {
+    lastPrintedPrice: line.previousLastPrintedPrice,
+    lastPrintedAt: line.previousLastPrintedAt,
+    updatedAt: undoAt,
+  });
+}
+
+async function undoEntireJob(ctx: MutationCtx, userId: Id<"users">, job: Doc<"printJobs">, undoAt: number) {
+  for (const line of job.lineItems) {
+    await revertPrintLine(ctx, userId, line, undoAt);
+  }
+
+  await ctx.db.patch(job._id, {
+    status: "undone",
+    undoneAt: undoAt,
+  });
+}
+
+export const undoablePrintTargets = query({
   args: { sessionToken: v.string() },
   handler: async (ctx, args) => {
     const userId = await getSessionUserId(ctx, args.sessionToken);
+    const jobs = await fetchActiveJobsDesc(ctx, userId);
+    const productIds: Id<"products">[] = [];
+    const groupIds: Id<"groups">[] = [];
+    const seenProducts = new Set<string>();
+    const seenGroups = new Set<string>();
 
-    const job = await ctx.db
-      .query("printJobs")
-      .withIndex("by_user_status_created", (q) =>
-        q.eq("userId", userId).eq("status", "active"),
-      )
-      .order("desc")
-      .first();
+    for (const job of jobs) {
+      if (job.groupId && !seenGroups.has(job.groupId)) {
+        if (await jobLinesAllUndoable(ctx, userId, job.lineItems)) {
+          seenGroups.add(job.groupId);
+          groupIds.push(job.groupId);
+        }
+      }
 
-    return job !== null;
+      for (const line of job.lineItems) {
+        if (seenProducts.has(line.productId)) {
+          continue;
+        }
+
+        if (await lineStillUndoable(ctx, userId, line)) {
+          seenProducts.add(line.productId);
+          productIds.push(line.productId);
+        }
+      }
+    }
+
+    return { productIds, groupIds };
   },
 });
 
@@ -285,6 +397,74 @@ export const markProductUpToDate = mutation({
   },
 });
 
+export const undoPrintForProduct = mutation({
+  args: { sessionToken: v.string(), productId: v.id("products") },
+  handler: async (ctx, args) => {
+    const userId = await getSessionUserId(ctx, args.sessionToken);
+    const product = await ctx.db.get(args.productId);
+
+    if (!product || product.userId !== userId) {
+      throw new ConvexError("Product not found.");
+    }
+
+    const jobs = await fetchActiveJobsDesc(ctx, userId);
+    const undoAt = Date.now();
+
+    for (const job of jobs) {
+      const line = job.lineItems.find((item) => item.productId === args.productId);
+
+      if (!line || !(await lineStillUndoable(ctx, userId, line))) {
+        continue;
+      }
+
+      await revertPrintLine(ctx, userId, line, undoAt);
+
+      const nextItems = job.lineItems.filter((item) => item.productId !== args.productId);
+
+      if (!nextItems.length) {
+        await ctx.db.patch(job._id, { status: "undone", undoneAt: undoAt });
+      } else {
+        await ctx.db.patch(job._id, { lineItems: nextItems });
+      }
+
+      return { undoneJobId: job._id };
+    }
+
+    throw new ConvexError("Nothing to undo for this product.");
+  },
+});
+
+export const undoPrintForGroup = mutation({
+  args: { sessionToken: v.string(), groupId: v.id("groups") },
+  handler: async (ctx, args) => {
+    const userId = await getSessionUserId(ctx, args.sessionToken);
+    const group = await ctx.db.get(args.groupId);
+
+    if (!group || group.userId !== userId) {
+      throw new ConvexError("Group not found.");
+    }
+
+    const jobs = await fetchActiveJobsDesc(ctx, userId);
+    const undoAt = Date.now();
+
+    for (const job of jobs) {
+      if (job.groupId !== args.groupId) {
+        continue;
+      }
+
+      if (!(await jobLinesAllUndoable(ctx, userId, job.lineItems))) {
+        continue;
+      }
+
+      await undoEntireJob(ctx, userId, job, undoAt);
+
+      return { undoneJobId: job._id };
+    }
+
+    throw new ConvexError("Nothing to undo for this group.");
+  },
+});
+
 export const undoLatestPrintJob = mutation({
   args: { sessionToken: v.string() },
   handler: async (ctx, args) => {
@@ -302,48 +482,7 @@ export const undoLatestPrintJob = mutation({
       throw new ConvexError("No active print batch to undo.");
     }
 
-    const undoAt = Date.now();
-
-    for (const line of job.lineItems) {
-      const doc = await ctx.db
-        .query("printData")
-        .withIndex("by_user_product", (q) => q.eq("userId", userId).eq("productId", line.productId))
-        .unique();
-
-      if (!line.hadPrintDataRowBefore) {
-        if (!doc) {
-          throw new ConvexError(
-            "Cannot undo — print rows changed unexpectedly. Try refreshing the app.",
-          );
-        }
-
-        if (doc.lastPrintedPrice !== line.printedPrice || doc.lastPrintedAt !== line.printedAt) {
-          throw new ConvexError("Cannot undo — a newer print was recorded after this batch.");
-        }
-
-        await ctx.db.delete(doc._id);
-        continue;
-      }
-
-      if (!doc) {
-        throw new ConvexError("Cannot undo — print rows changed unexpectedly.");
-      }
-
-      if (doc.lastPrintedPrice !== line.printedPrice || doc.lastPrintedAt !== line.printedAt) {
-        throw new ConvexError("Cannot undo — a newer print was recorded after this batch.");
-      }
-
-      await ctx.db.patch(doc._id, {
-        lastPrintedPrice: line.previousLastPrintedPrice,
-        lastPrintedAt: line.previousLastPrintedAt,
-        updatedAt: undoAt,
-      });
-    }
-
-    await ctx.db.patch(job._id, {
-      status: "undone",
-      undoneAt: undoAt,
-    });
+    await undoEntireJob(ctx, userId, job, Date.now());
 
     return { undoneJobId: job._id };
   },

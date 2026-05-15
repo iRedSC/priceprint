@@ -7,11 +7,27 @@ type GroupActionMenuProps = {
   group: GroupRow
   onEdit: (group: GroupRow) => void
   onDelete: (group: GroupRow) => void
-  onPrintGroup?: (group: GroupRow, scope: GroupPrintScope) => void
+  onPrintGroup?: (group: GroupRow, scope: GroupPrintScope) => void | Promise<void>
+  canUndoPrint?: boolean
+  onUndoPrint?: (group: GroupRow) => void
 }
 
-function GroupActionMenu({ group, onEdit, onDelete, onPrintGroup }: GroupActionMenuProps) {
-  const items = getGroupActionMenuItems({ group, onEdit, onDelete, onPrintGroup })
+function GroupActionMenu({
+  group,
+  onEdit,
+  onDelete,
+  onPrintGroup,
+  canUndoPrint,
+  onUndoPrint,
+}: GroupActionMenuProps) {
+  const items = getGroupActionMenuItems({
+    group,
+    onEdit,
+    onDelete,
+    onPrintGroup,
+    canUndoPrint,
+    onUndoPrint,
+  })
   const title = `Actions for ${group.name}`
 
   return <ResponsiveActionMenu items={items} title={title} ariaLabel={`Open actions for ${group.name}`} />

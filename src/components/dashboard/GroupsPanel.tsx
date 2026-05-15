@@ -27,6 +27,7 @@ import GroupProductsDialog from "./GroupProductsDialog"
 import GroupScanDialog from "./GroupScanDialog"
 import GroupTaskBar from "./GroupTaskBar"
 import LabelLiveDebugDialog from "./LabelLiveDebugDialog"
+import UndoPrintConfirmDialog from "./UndoPrintConfirmDialog"
 import {
   applyOptimisticGroupProductOrder,
   pruneStaleGroupOrderPatches,
@@ -44,6 +45,8 @@ function GroupsPanel() {
   const [scanningGroupId, setScanningGroupId] = useState<GroupRow["_id"] | null>(null)
   const [editingGroup, setEditingGroup] = useState<GroupRow | null>(null)
   const [labelLiveDebug, setLabelLiveDebug] = useState<LabelLiveDebugMessage | null>(null)
+  const [groupUndoTarget, setGroupUndoTarget] = useState<GroupRow | null>(null)
+  const [groupUndoBusy, setGroupUndoBusy] = useState(false)
   const [optimisticGroupOrders, setOptimisticGroupOrders] = useState<OptimisticGroupOrders>({})
   const [session] = useState(readStoredSession)
   const groups = useQuery(
@@ -58,6 +61,10 @@ function GroupsPanel() {
     api.userPrefs.getLabelLiveSettings,
     session ? { sessionToken: session.sessionToken } : "skip"
   )
+  const undoablePrintTargets = useQuery(
+    api.printJobs.undoablePrintTargets,
+    session ? { sessionToken: session.sessionToken } : "skip"
+  )
   const createGroup = useMutation(api.groups.create)
   const upsertProductFromScan = useMutation(api.products.upsertFromScan)
   const updateGroupMutation = useMutation(api.groups.update)
@@ -66,6 +73,7 @@ function GroupsPanel() {
   const removeGroupProduct = useMutation(api.groups.removeProduct)
   const reorderGroupProductsMutation = useMutation(api.groups.reorderProducts)
   const recordGroupPrintMutation = useMutation(api.printJobs.recordGroupPrint)
+  const undoGroupPrintMutation = useMutation(api.printJobs.undoPrintForGroup)
   const lookupScannedProduct = useAction(api.shopify.lookupProductByScannedCode)
   const groupRows = groups ?? EMPTY_GROUPS
   const productRows = products ?? EMPTY_PRODUCTS
@@ -87,6 +95,10 @@ function GroupsPanel() {
   )
 
   const filteredGroups = useMemo(() => filterGroups(displayGroupRows, search), [displayGroupRows, search])
+  const undoableGroupIds = useMemo(
+    () => new Set(undoablePrintTargets?.groupIds ?? []),
+    [undoablePrintTargets?.groupIds]
+  )
   const selectedGroup = useMemo(
     () => displayGroupRows.find((group) => group._id === selectedGroupId) ?? null,
     [displayGroupRows, selectedGroupId],
@@ -279,14 +291,35 @@ function GroupsPanel() {
     }
   }
 
+  const requestUndoGroupPrint = useCallback((group: GroupRow) => {
+    setGroupUndoTarget(group)
+  }, [])
+
+  const confirmUndoGroupPrint = useCallback(async () => {
+    if (!session || !groupUndoTarget) {
+      return
+    }
+
+    const name = groupUndoTarget.name
+    setGroupUndoBusy(true)
+
+    try {
+      await undoGroupPrintMutation({
+        sessionToken: session.sessionToken,
+        groupId: groupUndoTarget._id,
+      })
+      setGroupUndoTarget(null)
+      toast.success(`Undid last group print for "${name}".`)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not undo.")
+    } finally {
+      setGroupUndoBusy(false)
+    }
+  }, [groupUndoTarget, session, undoGroupPrintMutation])
+
   return (
     <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
-      <GroupTaskBar
-        sessionToken={session?.sessionToken ?? null}
-        search={search}
-        onSearchChange={setSearch}
-        onAddGroup={addGroup}
-      />
+      <GroupTaskBar search={search} onSearchChange={setSearch} onAddGroup={addGroup} />
       <DashboardResponsiveList
         fillHeight
         mobile={
@@ -296,6 +329,7 @@ function GroupsPanel() {
             onOpen={openGroup}
             onEdit={setEditingGroup}
             onDelete={deleteGroup}
+            onPrintGroup={printGroupToLabelLive}
           />
         }
         desktop={
@@ -306,25 +340,32 @@ function GroupsPanel() {
             height="fill"
             rowHeight={56}
             onRowClick={openGroup}
-            renderRowMenu={(group) => {
-              const items = getGroupActionMenuItems({
-                group,
-                onEdit: setEditingGroup,
-                onDelete: deleteGroup,
-                onPrintGroup: printGroupToLabelLive,
-              })
-              const mobileItems = getGroupActionMenuItems({
-                group,
-                onEdit: setEditingGroup,
-                onDelete: deleteGroup,
-              })
-
-              return {
-                title: `Actions for ${group.name}`,
-                desktopContent: <ActionContextMenuItems items={items} />,
-                mobileContent: (close) => <ActionTrayMenuItems items={mobileItems} onAction={close} />,
-              }
-            }}
+            renderRowMenu={(group) => ({
+              title: `Actions for ${group.name}`,
+              desktopContent: ({ shiftKey }) => (
+                <ActionContextMenuItems
+                  items={getGroupActionMenuItems({
+                    group,
+                    onEdit: setEditingGroup,
+                    onDelete: deleteGroup,
+                    onPrintGroup: printGroupToLabelLive,
+                    canUndoPrint: shiftKey && undoableGroupIds.has(group._id),
+                    onUndoPrint: requestUndoGroupPrint,
+                  })}
+                />
+              ),
+              mobileContent: (close) => (
+                <ActionTrayMenuItems
+                  items={getGroupActionMenuItems({
+                    group,
+                    onEdit: setEditingGroup,
+                    onDelete: deleteGroup,
+                    onPrintGroup: printGroupToLabelLive,
+                  })}
+                  onAction={close}
+                />
+              ),
+            })}
           />
         }
       />
@@ -368,6 +409,20 @@ function GroupsPanel() {
             setLabelLiveDebug(null)
           }
         }}
+      />
+      <UndoPrintConfirmDialog
+        open={groupUndoTarget !== null}
+        onOpenChange={(open) => {
+          if (!open && !groupUndoBusy) {
+            setGroupUndoTarget(null)
+          }
+        }}
+        title={
+          groupUndoTarget ? `Undo last group print for ${groupUndoTarget.name}?` : "Undo last group print?"
+        }
+        description="Print status for products in that batch will revert to what it was before the group print."
+        busy={groupUndoBusy}
+        onConfirm={confirmUndoGroupPrint}
       />
     </section>
   )
