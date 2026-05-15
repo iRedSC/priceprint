@@ -11,7 +11,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
 import {
   Table,
   TableBody,
@@ -20,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import DashboardSearchInput from "./DashboardSearchInput"
 import DashboardResponsiveList from "./DashboardResponsiveList"
 import GroupProductPickerMobileCard from "./GroupProductPickerMobileCard"
 import type { GroupRow } from "./groupTableData"
@@ -79,8 +79,8 @@ function GroupProductPicker({ group, products, onAddProducts }: GroupProductPick
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button type="button" className="w-full touch-manipulation sm:w-fit">
-          <Plus className="size-4" />
+        <Button type="button" size="responsive" className="w-full md:w-fit">
+          <Plus />
           Add Products
         </Button>
       </DialogTrigger>
@@ -91,17 +91,12 @@ function GroupProductPicker({ group, products, onAddProducts }: GroupProductPick
         </DialogHeader>
         <div className="grid gap-3">
           <div className="sticky top-0 z-10 -mx-5 bg-background px-5 pb-3 sm:static sm:mx-0 sm:px-0 sm:pb-0">
-            <Input
+            <DashboardSearchInput
               autoFocus
-              type="search"
-              inputMode="search"
-              enterKeyHint="search"
-              autoComplete="off"
-              spellCheck={false}
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search name, SKU, UPC, type, or vendor"
-              className="h-11"
+              className="h-12 text-base md:h-11 md:text-sm"
             />
           </div>
           <DashboardResponsiveList
@@ -181,7 +176,13 @@ function GroupProductPicker({ group, products, onAddProducts }: GroupProductPick
           />
         </div>
         <DialogFooter>
-          <Button type="button" disabled={!selectedIds.size} onClick={handleAddProducts}>
+          <Button
+            type="button"
+            size="responsive"
+            disabled={!selectedIds.size}
+            onClick={handleAddProducts}
+            className="w-full md:w-auto"
+          >
             Add {selectedIds.size || ""} products
           </Button>
         </DialogFooter>

@@ -120,8 +120,8 @@ function DialogContent({
         />
         {children}
         {showCloseButton && (
-          <DialogPrimitive.Close className="absolute top-[max(0.75rem,env(safe-area-inset-top))] right-3 inline-flex size-10 touch-manipulation items-center justify-center rounded-full opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none md:top-3 md:size-8">
-            <XIcon className="size-4" />
+          <DialogPrimitive.Close className="absolute top-[max(0.75rem,env(safe-area-inset-top))] right-3 inline-flex size-12 touch-manipulation items-center justify-center rounded-full opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none md:top-3 md:size-8">
+            <XIcon className="size-5 md:size-4" />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>
         )}
