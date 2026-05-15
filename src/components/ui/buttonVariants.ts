@@ -23,7 +23,7 @@ const buttonVariants = cva(
         sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
         lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
         responsive:
-          "h-12 min-h-12 gap-2 px-4 text-base touch-manipulation md:h-8 md:min-h-0 md:gap-1.5 md:px-2.5 md:text-sm [&_svg:not([class*='size-'])]:size-5 md:[&_svg:not([class*='size-'])]:size-4",
+          "h-12 min-h-12 gap-2 px-4 text-base touch-manipulation md:h-10 md:min-h-10 md:gap-1.5 md:px-2.5 md:text-sm [&_svg:not([class*='size-'])]:size-5 md:[&_svg:not([class*='size-'])]:size-4",
         icon: "size-10 min-h-12 min-w-12 touch-manipulation md:min-h-10 md:min-w-10",
         "icon-xs":
           "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",

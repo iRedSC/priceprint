@@ -54,7 +54,8 @@ function ProductSortButton({
               key={option}
               type="button"
               variant={sort === option ? "default" : "outline"}
-              className="h-11 justify-start touch-manipulation"
+              size="responsive"
+              className="justify-start"
               onClick={() => {
                 onSortChange(option)
                 setOpen(false)

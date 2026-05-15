@@ -22,7 +22,7 @@ function DashboardSearchInput({
         enterKeyHint="search"
         autoComplete="off"
         spellCheck={false}
-        className={cn("h-11 pl-10 text-base md:h-10 md:pl-9 md:text-sm", className)}
+        className={cn("h-12 pl-10 text-base md:h-10 md:pl-9 md:text-sm", className)}
         {...props}
       />
     </div>

@@ -96,7 +96,6 @@ function GroupProductPicker({ group, products, onAddProducts }: GroupProductPick
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search name, SKU, UPC, type, or vendor"
-              className="h-12 text-base md:h-11 md:text-sm"
             />
           </div>
           <DashboardResponsiveList
