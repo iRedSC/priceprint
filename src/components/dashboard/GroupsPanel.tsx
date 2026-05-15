@@ -329,7 +329,6 @@ function GroupsPanel() {
             onOpen={openGroup}
             onEdit={setEditingGroup}
             onDelete={deleteGroup}
-            onPrintGroup={printGroupToLabelLive}
           />
         }
         desktop={
@@ -362,7 +361,6 @@ function GroupsPanel() {
                     group,
                     onEdit: setEditingGroup,
                     onDelete: deleteGroup,
-                    onPrintGroup: printGroupToLabelLive,
                   })}
                   onAction={close}
                 />
