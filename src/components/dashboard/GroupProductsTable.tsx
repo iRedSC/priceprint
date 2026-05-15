@@ -64,7 +64,7 @@ function GroupProductsTable({
     >
       <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
         {isMd ? (
-          <div className="min-w-0 max-w-full rounded-xl border bg-card touch-manipulation">
+          <div className="box-border min-w-0 w-full max-w-full rounded-xl border bg-card touch-manipulation">
             <Table className="table-fixed min-w-0 max-w-full">
               <colgroup>
                 <col style={{ width: "2.5rem" }} />

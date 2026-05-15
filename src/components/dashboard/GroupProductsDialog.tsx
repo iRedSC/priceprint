@@ -61,7 +61,7 @@ function GroupProductsDialog({
               </div>
               <div
                 ref={listScrollRef}
-                className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain touch-manipulation"
+                className="min-h-0 min-w-0 w-full flex-1 overflow-x-hidden overflow-y-auto overscroll-contain touch-manipulation"
               >
                 <GroupProductsTable
                   products={group.products}
