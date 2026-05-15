@@ -14,7 +14,7 @@ type ActionMenuEntry =
       id: string
       label: string
       icon: LucideIcon
-      variant?: "default" | "destructive"
+      variant?: "default" | "destructive" | "warning"
       onSelect: (event?: unknown) => void
     }
 
@@ -66,15 +66,6 @@ function getProductActionMenuItems({
           onSelect: (event) => onPrint(product, { skipLabelCountModal: hasShiftModifier(event) }),
         }
       : null,
-    canUndoPrint && onUndoPrint
-      ? {
-          type: "item",
-          id: "undo-print",
-          label: "Undo last print",
-          icon: Undo2,
-          onSelect: () => onUndoPrint(product),
-        }
-      : null,
     showMarkUpToDate
       ? {
           type: "item",
@@ -85,6 +76,16 @@ function getProductActionMenuItems({
         }
       : null,
     { type: "separator", id: "danger-separator" },
+    canUndoPrint && onUndoPrint
+      ? {
+          type: "item",
+          id: "undo-print",
+          label: "Undo last print",
+          icon: Undo2,
+          variant: "warning",
+          onSelect: () => onUndoPrint(product),
+        }
+      : null,
     {
       type: "item",
       id: "delete",
@@ -130,16 +131,17 @@ function getGroupActionMenuItems({
           onSelect: () => onPrintGroup(group, "unprinted"),
         }
       : null,
+    { type: "separator", id: "danger-separator" },
     canUndoPrint && onUndoPrint
       ? {
           type: "item",
           id: "undo-print",
           label: "Undo last group print",
           icon: Undo2,
+          variant: "warning",
           onSelect: () => onUndoPrint(group),
         }
       : null,
-    { type: "separator", id: "danger-separator" },
     {
       type: "item",
       id: "delete",

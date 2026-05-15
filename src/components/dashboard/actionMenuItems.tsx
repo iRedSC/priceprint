@@ -62,6 +62,8 @@ function ActionTrayMenuItems({ items, onAction }: { items: ActionMenuEntry[]; on
             className={cn(
               "flex min-h-11 w-full touch-manipulation items-center gap-3 rounded-lg px-3 text-left text-base outline-none transition-colors hover:bg-accent focus-visible:bg-accent focus-visible:text-accent-foreground",
               item.variant === "destructive" && "text-destructive hover:bg-destructive/10 focus-visible:bg-destructive/10",
+              item.variant === "warning" &&
+                "text-orange-600 hover:bg-orange-500/10 focus-visible:bg-orange-500/10 dark:text-orange-400",
             )}
             onClick={(e) => {
               item.onSelect(e)
