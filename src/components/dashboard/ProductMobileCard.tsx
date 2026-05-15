@@ -19,7 +19,7 @@ type ProductMobileCardProps = {
   product: ProductRow
   onEdit: (product: ProductRow) => void
   onDelete: (product: ProductRow) => void
-  onPrint: (product: ProductRow) => void
+  onPrint?: (product: ProductRow) => void
 }
 
 function ProductMobileCard({ product, onEdit, onDelete, onPrint }: ProductMobileCardProps) {

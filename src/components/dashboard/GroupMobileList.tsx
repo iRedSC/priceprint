@@ -9,7 +9,7 @@ type GroupMobileListProps = {
   onEdit: (group: GroupRow) => void
   onDelete: (group: GroupRow) => void
   onScan: (group: GroupRow) => void
-  onPrintGroup: (group: GroupRow, scope: GroupPrintScope) => void
+  onPrintGroup?: (group: GroupRow, scope: GroupPrintScope) => void
 }
 
 function GroupMobileList({

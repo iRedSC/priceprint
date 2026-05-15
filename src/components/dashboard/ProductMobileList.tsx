@@ -6,7 +6,7 @@ type ProductMobileListProps = {
   emptyMessage?: string
   onEdit: (product: ProductRow) => void
   onDelete: (product: ProductRow) => void
-  onPrint: (product: ProductRow) => void
+  onPrint?: (product: ProductRow) => void
 }
 
 function ProductMobileList({

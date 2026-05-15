@@ -15,7 +15,7 @@ type ProductActionMenuProps = {
   product: ProductRow
   onEdit: (product: ProductRow) => void
   onDelete: (product: ProductRow) => void
-  onPrint: (product: ProductRow) => void
+  onPrint?: (product: ProductRow) => void
 }
 
 function ProductActionMenu({ product, onEdit, onDelete, onPrint }: ProductActionMenuProps) {
@@ -39,10 +39,12 @@ function ProductActionMenu({ product, onEdit, onDelete, onPrint }: ProductAction
           <Pencil />
           Edit
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => onPrint(product)}>
-          <Printer />
-          Print
-        </DropdownMenuItem>
+        {onPrint ? (
+          <DropdownMenuItem onSelect={() => onPrint(product)}>
+            <Printer />
+            Print
+          </DropdownMenuItem>
+        ) : null}
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onSelect={() => onDelete(product)}>
           <Trash2 />

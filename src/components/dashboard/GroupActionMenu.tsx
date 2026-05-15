@@ -17,7 +17,7 @@ type GroupActionMenuProps = {
   onOpen: (group: GroupRow) => void
   onEdit: (group: GroupRow) => void
   onDelete: (group: GroupRow) => void
-  onPrintGroup: (group: GroupRow, scope: GroupPrintScope) => void
+  onPrintGroup?: (group: GroupRow, scope: GroupPrintScope) => void
 }
 
 function GroupActionMenu({ group, onOpen, onEdit, onDelete, onPrintGroup }: GroupActionMenuProps) {
@@ -45,19 +45,23 @@ function GroupActionMenu({ group, onOpen, onEdit, onDelete, onPrintGroup }: Grou
           <Pencil />
           Edit
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => onPrintGroup(group, "all")}>
-          <Printer />
-          Print all
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => onPrintGroup(group, "out-of-date")}>
-          <Printer />
-          Print out of date
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => onPrintGroup(group, "unprinted")}>
-          <Printer />
-          Print unprinted
-        </DropdownMenuItem>
+        {onPrintGroup ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => onPrintGroup(group, "all")}>
+              <Printer />
+              Print all
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => onPrintGroup(group, "out-of-date")}>
+              <Printer />
+              Print out of date
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => onPrintGroup(group, "unprinted")}>
+              <Printer />
+              Print unprinted
+            </DropdownMenuItem>
+          </>
+        ) : null}
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onSelect={() => onDelete(group)}>
           <Trash2 />

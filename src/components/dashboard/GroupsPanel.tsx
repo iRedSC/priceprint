@@ -295,7 +295,6 @@ function GroupsPanel() {
             onEdit={setEditingGroup}
             onDelete={deleteGroup}
             onScan={(group) => setScanningGroupId(group._id)}
-            onPrintGroup={printGroupToLabelLive}
           />
         }
         desktop={
@@ -318,7 +317,7 @@ function GroupsPanel() {
           />
         }
       />
-      <GroupMobileActions sessionToken={session?.sessionToken ?? null} onAddGroup={addGroup} />
+      <GroupMobileActions onAddGroup={addGroup} />
       <EditGroupDialog
         group={editingGroup}
         onOpenChange={(open) => {

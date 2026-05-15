@@ -25,7 +25,7 @@ type GroupMobileCardProps = {
   onEdit: (group: GroupRow) => void
   onDelete: (group: GroupRow) => void
   onScan: (group: GroupRow) => void
-  onPrintGroup: (group: GroupRow, scope: GroupPrintScope) => void
+  onPrintGroup?: (group: GroupRow, scope: GroupPrintScope) => void
 }
 
 function GroupMobileCard({ group, onOpen, onEdit, onDelete, onScan, onPrintGroup }: GroupMobileCardProps) {

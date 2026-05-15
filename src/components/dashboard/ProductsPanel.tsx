@@ -289,7 +289,6 @@ function ProductsPanel() {
             emptyMessage={getProductsMessage(session, products)}
             onEdit={setEditingProduct}
             onDelete={deleteProduct}
-            onPrint={printProductToLabelLive}
           />
         }
         desktop={
