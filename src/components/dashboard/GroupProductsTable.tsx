@@ -64,18 +64,28 @@ function GroupProductsTable({
     >
       <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
         {isMd ? (
-          <div className="rounded-xl border bg-card touch-manipulation">
-            <Table>
+          <div className="min-w-0 max-w-full rounded-xl border bg-card touch-manipulation">
+            <Table className="table-fixed min-w-0 max-w-full">
+              <colgroup>
+                <col style={{ width: "2.5rem" }} />
+                <col style={{ width: "4rem" }} />
+                <col />
+                <col style={{ width: "7.75rem" }} />
+                <col style={{ width: "7.75rem" }} />
+                <col style={{ width: "3rem" }} />
+              </colgroup>
               <TableHeader className="sticky top-0 z-10 bg-card">
                 <TableRow>
                   <TableHead className="w-10 px-2 text-center">
                     <span className="sr-only">Reorder</span>
                   </TableHead>
                   <TableHead className="w-16">Image</TableHead>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Variant</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead className="w-12">Delete</TableHead>
+                  <TableHead className="min-w-0 truncate">Product</TableHead>
+                  <TableHead className="min-w-0 truncate">Variant</TableHead>
+                  <TableHead className="min-w-0 truncate">SKU</TableHead>
+                  <TableHead className="w-12 text-center">
+                    <span className="sr-only">Delete</span>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

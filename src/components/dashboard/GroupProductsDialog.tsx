@@ -50,7 +50,7 @@ function GroupProductsDialog({
                 then drag.
               </DialogDescription>
             </DialogHeader>
-            <div className="flex min-h-0 flex-1 flex-col gap-3">
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
               <div className="shrink-0">
                 <GroupProductPicker
                   group={group}
@@ -61,7 +61,7 @@ function GroupProductsDialog({
               </div>
               <div
                 ref={listScrollRef}
-                className="min-h-0 flex-1 overflow-y-auto overscroll-contain touch-manipulation"
+                className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain touch-manipulation"
               >
                 <GroupProductsTable
                   products={group.products}

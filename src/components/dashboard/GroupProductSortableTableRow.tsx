@@ -34,16 +34,16 @@ function GroupProductSortableTableRow({ product, onRemoveProduct }: GroupProduct
           "relative z-50 shadow-md outline outline-1 outline-ring bg-card/[0.98]",
       )}
     >
-      <TableCell className="w-10 text-center align-middle">
+      <TableCell className="w-10 shrink-0 text-center align-middle">
         <GroupProductReorderHandle attributes={attributes} listeners={listeners} />
       </TableCell>
-      <TableCell>
+      <TableCell className="w-16 shrink-0">
         <ProductImage src={product.img} alt={product.name} className="size-9" />
       </TableCell>
-      <TableCell className="font-medium">{product.name}</TableCell>
-      <TableCell>{product.variant ?? "-"}</TableCell>
-      <TableCell>{product.sku ?? "-"}</TableCell>
-      <TableCell>
+      <TableCell className="min-w-0 truncate font-medium">{product.name}</TableCell>
+      <TableCell className="min-w-0 truncate">{product.variant ?? "-"}</TableCell>
+      <TableCell className="min-w-0 truncate">{product.sku ?? "-"}</TableCell>
+      <TableCell className="w-12 shrink-0 align-middle">
         <Button
           type="button"
           variant="ghost"
