@@ -1,14 +1,13 @@
-import { FolderOpen, MoreHorizontal, Pencil, Printer, Trash2 } from "lucide-react"
+import { MoreHorizontal } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { getGroupActionMenuItems } from "./actionMenuData"
+import { ActionDropdownMenuItems } from "./actionMenuItems"
 import type { GroupPrintScope } from "./groupPrintSelection"
 import type { GroupRow } from "./groupTableData"
 
@@ -21,6 +20,8 @@ type GroupActionMenuProps = {
 }
 
 function GroupActionMenu({ group, onOpen, onEdit, onDelete, onPrintGroup }: GroupActionMenuProps) {
+  const items = getGroupActionMenuItems({ group, onOpen, onEdit, onDelete, onPrintGroup })
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -35,38 +36,7 @@ function GroupActionMenu({ group, onOpen, onEdit, onDelete, onPrintGroup }: Grou
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuLabel className="max-w-52 truncate">{group.name}</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => onOpen(group)}>
-          <FolderOpen />
-          Open
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => onEdit(group)}>
-          <Pencil />
-          Edit
-        </DropdownMenuItem>
-        {onPrintGroup ? (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => onPrintGroup(group, "all")}>
-              <Printer />
-              Print all
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onPrintGroup(group, "out-of-date")}>
-              <Printer />
-              Print out of date
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onPrintGroup(group, "unprinted")}>
-              <Printer />
-              Print unprinted
-            </DropdownMenuItem>
-          </>
-        ) : null}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" onSelect={() => onDelete(group)}>
-          <Trash2 />
-          Delete
-        </DropdownMenuItem>
+        <ActionDropdownMenuItems items={items} />
       </DropdownMenuContent>
     </DropdownMenu>
   )

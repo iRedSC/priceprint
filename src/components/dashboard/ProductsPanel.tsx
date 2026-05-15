@@ -12,12 +12,13 @@ import {
 } from "@/lib/labelLiveDebug"
 import { productToLabelLiveVariables } from "@/lib/productLabelVariables"
 import { api } from "../../../convex/_generated/api"
+import { getProductActionMenuItems } from "./actionMenuData"
+import { ActionContextMenuItems, ActionTrayMenuItems } from "./actionMenuItems"
 import DashboardResponsiveList from "./DashboardResponsiveList"
 import EditProductDialog from "./EditProductDialog"
 import LabelLiveDebugDialog from "./LabelLiveDebugDialog"
 import ProductMobileActions from "./ProductMobileActions"
 import ProductMobileList from "./ProductMobileList"
-import ProductRowContextMenu from "./ProductRowContextMenu"
 import ProductTaskBar from "./ProductTaskBar"
 import { createProductColumns } from "./productColumns"
 import { filterProducts } from "./productSearch"
@@ -289,6 +290,7 @@ function ProductsPanel() {
             emptyMessage={getProductsMessage(session, products)}
             onEdit={setEditingProduct}
             onDelete={deleteProduct}
+            onPrint={printProductToLabelLive}
           />
         }
         desktop={
@@ -298,14 +300,20 @@ function ProductsPanel() {
             emptyMessage={getProductsMessage(session, products)}
             height={460}
             rowHeight={56}
-            renderRowMenu={(product) => (
-              <ProductRowContextMenu
-                product={product}
-                onEdit={setEditingProduct}
-                onDelete={deleteProduct}
-                onPrint={printProductToLabelLive}
-              />
-            )}
+            renderRowMenu={(product) => {
+              const items = getProductActionMenuItems({
+                product,
+                onEdit: setEditingProduct,
+                onDelete: deleteProduct,
+                onPrint: printProductToLabelLive,
+              })
+
+              return {
+                title: `Actions for ${product.name}`,
+                desktopContent: <ActionContextMenuItems items={items} />,
+                mobileContent: (close) => <ActionTrayMenuItems items={items} onAction={close} />,
+              }
+            }}
           />
         }
       />

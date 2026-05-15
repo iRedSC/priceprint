@@ -1,14 +1,13 @@
-import { MoreHorizontal, Pencil, Printer, Trash2 } from "lucide-react"
+import { MoreHorizontal } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { getProductActionMenuItems } from "./actionMenuData"
+import { ActionDropdownMenuItems } from "./actionMenuItems"
 import type { ProductRow } from "./productTableData"
 
 type ProductActionMenuProps = {
@@ -19,6 +18,8 @@ type ProductActionMenuProps = {
 }
 
 function ProductActionMenu({ product, onEdit, onDelete, onPrint }: ProductActionMenuProps) {
+  const items = getProductActionMenuItems({ product, onEdit, onDelete, onPrint })
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -33,23 +34,7 @@ function ProductActionMenu({ product, onEdit, onDelete, onPrint }: ProductAction
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuLabel className="max-w-52 truncate">{product.name}</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => onEdit(product)}>
-          <Pencil />
-          Edit
-        </DropdownMenuItem>
-        {onPrint ? (
-          <DropdownMenuItem onSelect={() => onPrint(product)}>
-            <Printer />
-            Print
-          </DropdownMenuItem>
-        ) : null}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" onSelect={() => onDelete(product)}>
-          <Trash2 />
-          Delete
-        </DropdownMenuItem>
+        <ActionDropdownMenuItems items={items} />
       </DropdownMenuContent>
     </DropdownMenu>
   )

@@ -1,10 +1,5 @@
-import { Pencil, Printer, Trash2 } from "lucide-react"
-
-import {
-  ContextMenuItem,
-  ContextMenuLabel,
-  ContextMenuSeparator,
-} from "@/components/ui/context-menu"
+import { getProductActionMenuItems } from "./actionMenuData"
+import { ActionContextMenuItems } from "./actionMenuItems"
 import type { ProductRow } from "./productTableData"
 
 type ProductRowContextMenuProps = {
@@ -20,25 +15,9 @@ function ProductRowContextMenu({
   onDelete,
   onPrint,
 }: ProductRowContextMenuProps) {
-  return (
-    <>
-      <ContextMenuLabel className="max-w-52 truncate">{product.name}</ContextMenuLabel>
-      <ContextMenuSeparator />
-      <ContextMenuItem onSelect={() => onEdit(product)}>
-        <Pencil />
-        Edit
-      </ContextMenuItem>
-      <ContextMenuItem onSelect={() => onPrint(product)}>
-        <Printer />
-        Print
-      </ContextMenuItem>
-      <ContextMenuSeparator />
-      <ContextMenuItem variant="destructive" onSelect={() => onDelete(product)}>
-        <Trash2 />
-        Delete
-      </ContextMenuItem>
-    </>
-  )
+  const items = getProductActionMenuItems({ product, onEdit, onDelete, onPrint })
+
+  return <ActionContextMenuItems items={items} />
 }
 
 export default ProductRowContextMenu

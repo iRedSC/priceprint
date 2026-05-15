@@ -12,11 +12,7 @@ import {
 import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu"
+import { ResponsiveContextMenu } from "@/components/ui/responsive-context-menu"
 import {
   Table,
   TableBody,
@@ -35,7 +31,13 @@ type VirtualDataTableProps<TData, TValue> = {
   height?: number
   rowHeight?: number
   onRowClick?: (row: TData) => void
-  renderRowMenu?: (row: TData) => React.ReactNode
+  renderRowMenu?: (row: TData) => VirtualRowMenu
+}
+
+type VirtualRowMenu = {
+  title?: string
+  desktopContent: React.ReactNode
+  mobileContent: (close: () => void) => React.ReactNode
 }
 
 function VirtualDataTable<TData, TValue>({
@@ -124,10 +126,14 @@ function VirtualDataTable<TData, TValue>({
                 )
 
                 return rowMenu ? (
-                  <ContextMenu key={row.id}>
-                    <ContextMenuTrigger asChild>{tableRow}</ContextMenuTrigger>
-                    <ContextMenuContent>{rowMenu}</ContextMenuContent>
-                  </ContextMenu>
+                  <ResponsiveContextMenu
+                    key={row.id}
+                    title={rowMenu.title}
+                    desktopContent={rowMenu.desktopContent}
+                    mobileContent={rowMenu.mobileContent}
+                  >
+                    {tableRow}
+                  </ResponsiveContextMenu>
                 ) : (
                   tableRow
                 )

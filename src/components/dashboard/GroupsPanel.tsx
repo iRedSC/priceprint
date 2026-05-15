@@ -12,6 +12,8 @@ import {
 } from "@/lib/labelLiveDebug"
 import { productToLabelLiveVariables } from "@/lib/productLabelVariables"
 import { api } from "../../../convex/_generated/api"
+import { getGroupActionMenuItems } from "./actionMenuData"
+import { ActionContextMenuItems, ActionTrayMenuItems } from "./actionMenuItems"
 import DashboardResponsiveList from "./DashboardResponsiveList"
 import { createGroupColumns } from "./groupColumns"
 import { filterGroups } from "./groupSearch"
@@ -22,7 +24,6 @@ import type { GroupProduct, GroupRow } from "./groupTableData"
 import GroupMobileActions from "./GroupMobileActions"
 import GroupMobileList from "./GroupMobileList"
 import GroupProductsDialog from "./GroupProductsDialog"
-import GroupRowContextMenu from "./GroupRowContextMenu"
 import GroupScanDialog from "./GroupScanDialog"
 import GroupTaskBar from "./GroupTaskBar"
 import LabelLiveDebugDialog from "./LabelLiveDebugDialog"
@@ -295,6 +296,7 @@ function GroupsPanel() {
             onEdit={setEditingGroup}
             onDelete={deleteGroup}
             onScan={(group) => setScanningGroupId(group._id)}
+            onPrintGroup={printGroupToLabelLive}
           />
         }
         desktop={
@@ -305,15 +307,21 @@ function GroupsPanel() {
             height={460}
             rowHeight={56}
             onRowClick={openGroup}
-            renderRowMenu={(group) => (
-              <GroupRowContextMenu
-                group={group}
-                onOpen={openGroup}
-                onEdit={setEditingGroup}
-                onDelete={deleteGroup}
-                onPrintGroup={printGroupToLabelLive}
-              />
-            )}
+            renderRowMenu={(group) => {
+              const items = getGroupActionMenuItems({
+                group,
+                onOpen: openGroup,
+                onEdit: setEditingGroup,
+                onDelete: deleteGroup,
+                onPrintGroup: printGroupToLabelLive,
+              })
+
+              return {
+                title: `Actions for ${group.name}`,
+                desktopContent: <ActionContextMenuItems items={items} />,
+                mobileContent: (close) => <ActionTrayMenuItems items={items} onAction={close} />,
+              }
+            }}
           />
         }
       />
