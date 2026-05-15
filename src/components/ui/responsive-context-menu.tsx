@@ -1,4 +1,5 @@
 import * as React from "react"
+import { flushSync } from "react-dom"
 import { Slot } from "radix-ui"
 
 import { useMinWidthMd } from "@/hooks/useMinWidthMd"
@@ -20,24 +21,30 @@ function ResponsiveContextMenu({
 }: ResponsiveContextMenuProps) {
   const isMd = useMinWidthMd()
   const [open, setOpen] = React.useState(false)
-  const shiftForOpenRef = React.useRef(false)
+  const [shiftForMenu, setShiftForMenu] = React.useState(false)
 
   if (isMd) {
     return (
-      <ContextMenu>
+      <ContextMenu
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) {
+            setShiftForMenu(false)
+          }
+        }}
+      >
         <ContextMenuTrigger asChild>
           <span
             className="contents"
             onContextMenuCapture={(event) => {
-              shiftForOpenRef.current = event.shiftKey
+              flushSync(() => {
+                setShiftForMenu(event.shiftKey)
+              })
             }}
           >
             {children}
           </span>
         </ContextMenuTrigger>
-        <ContextMenuContent>
-          {desktopContent({ shiftKey: shiftForOpenRef.current })}
-        </ContextMenuContent>
+        <ContextMenuContent>{desktopContent({ shiftKey: shiftForMenu })}</ContextMenuContent>
       </ContextMenu>
     )
   }
