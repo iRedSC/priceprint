@@ -11,6 +11,7 @@ import {
   type LabelLiveDebugMessage,
 } from "@/lib/labelLiveDebug"
 import { productToLabelLiveVariables } from "@/lib/productLabelVariables"
+import { isValidUpc } from "@/lib/upc"
 import { api } from "../../../convex/_generated/api"
 import { getGroupActionMenuItems } from "./actionMenuData"
 import { ActionContextMenuItems, ActionTrayMenuItems } from "./actionMenuItems"
@@ -217,13 +218,9 @@ function GroupsPanel() {
       return
     }
 
-    const trimmedDesign = labelLiveSettings?.designName?.trim()
+    const trimmedUpcDesign = labelLiveSettings?.upcDesignName?.trim()
+    const trimmedSkuDesign = labelLiveSettings?.skuDesignName?.trim()
     const trimmedPrinterId = labelLiveSettings?.printerId?.trim()
-
-    if (!trimmedDesign) {
-      toast.error("Add your Label LIVE design name in Settings first.")
-      return
-    }
 
     if (!trimmedPrinterId) {
       toast.error("Add your Label LIVE printer ID in Settings first.")
@@ -237,11 +234,30 @@ function GroupsPanel() {
       return
     }
 
-    const jobs = picks.map((product) => ({
-      design: trimmedDesign,
+    const upcProducts = picks.filter((product) => isValidUpc(product.upc))
+    const skuProducts = picks.filter((product) => !isValidUpc(product.upc))
+
+    if (upcProducts.length > 0 && !trimmedUpcDesign) {
+      toast.error("Add your Label LIVE UPC design in Settings first.")
+      return
+    }
+
+    if (skuProducts.length > 0 && !trimmedSkuDesign) {
+      toast.error("Add your Label LIVE SKU design in Settings first.")
+      return
+    }
+
+    const upcJobs = upcProducts.map((product) => ({
+      design: trimmedUpcDesign!,
       printerId: trimmedPrinterId,
       variables: productToLabelLiveVariables(product),
     }))
+    const skuJobs = skuProducts.map((product) => ({
+      design: trimmedSkuDesign!,
+      printerId: trimmedPrinterId,
+      variables: productToLabelLiveVariables(product),
+    }))
+    const jobs = [...upcJobs, ...skuJobs]
 
     try {
       const { openedLabelliveFallback } = await sendLabelLiveJobs(jobs)

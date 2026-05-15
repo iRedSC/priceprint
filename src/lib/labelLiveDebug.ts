@@ -38,29 +38,46 @@ function printUri(design: string, printerId: string, variablesJson: string) {
   return `labellive://print?${params.join("&")}`;
 }
 
+function batchJobsBySettings(jobs: LabelLiveDebugJob[]) {
+  const batches = new Map<string, LabelLiveDebugJob[]>();
+
+  for (const job of jobs) {
+    const key = `${job.design}\0${job.printerId}`;
+    batches.set(key, [...(batches.get(key) ?? []), job]);
+  }
+
+  return [...batches.values()];
+}
+
 /** Human-readable integration details for troubleshooting (URLs, bodies, payload sizes). */
 export function buildLabelLiveDebugText(jobs: LabelLiveDebugJob[]): string {
   if (!jobs.length) {
     return "(no jobs)";
   }
 
-  const designs = new Set(jobs.map((job) => job.design));
-  const printerIds = new Set(jobs.map((job) => job.printerId));
-  let out =
-    designs.size > 1 || printerIds.size > 1
-      ? "WARNING: multi-label printing requires one shared design and printer.\n\n"
-      : "";
+  let out = "";
+  const batches = batchJobsBySettings(jobs);
 
-  const design = jobs[0]!.design;
-  const printerId = jobs[0]!.printerId;
-  const variablesJson = variablesRowsToJson(jobs.map((job) => job.variables));
-  const href = printUri(design, printerId, variablesJson);
+  batches.forEach((batch, index) => {
+    const design = batch[0]!.design;
+    const printerId = batch[0]!.printerId;
+    const variablesJson = variablesRowsToJson(batch.map((job) => job.variables));
+    const href = printUri(design, printerId, variablesJson);
 
-  out += jobs.length === 1 ? "=== Print URI ===\n" : "=== Multi-label print URI ===\n";
-  out += `${preview(href, 8000)}\n`;
+    if (batches.length > 1) {
+      out += `=== Batch ${index + 1}: ${design} (${batch.length} job(s)) ===\n`;
+    } else {
+      out += jobs.length === 1 ? "=== Print URI ===\n" : "=== Multi-label print URI ===\n";
+    }
+    out += `${preview(href, 8000)}\n`;
 
-  out += "\n=== Decoded variables JSON ===\n";
-  out += `${preview(variablesJson, 8000)}\n`;
+    out += "\n=== Decoded variables JSON ===\n";
+    out += `${preview(variablesJson, 8000)}\n`;
+
+    if (index < batches.length - 1) {
+      out += "\n";
+    }
+  });
 
   return out;
 }

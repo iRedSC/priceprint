@@ -20,6 +20,8 @@ import LabelLiveVariablesInfo from "./LabelLiveVariablesInfo";
 
 type LabelLiveServerSettings = {
   designName?: string | null;
+  upcDesignName?: string | null;
+  skuDesignName?: string | null;
   printerId?: string | null;
 } | undefined;
 
@@ -28,7 +30,8 @@ type LabelLiveDesignFormProps = {
   serverSettings: LabelLiveServerSettings;
   setSettings: (_args: {
     sessionToken: string;
-    designName: string;
+    upcDesignName: string;
+    skuDesignName: string;
     printerId: string;
   }) => Promise<void | null>;
 };
@@ -38,8 +41,11 @@ function LabelLiveDesignForm({
   serverSettings,
   setSettings,
 }: LabelLiveDesignFormProps) {
-  const [designName, setDesignName] = useState(
-    () => serverSettings?.designName ?? "",
+  const [upcDesignName, setUpcDesignName] = useState(
+    () => serverSettings?.upcDesignName ?? serverSettings?.designName ?? "",
+  );
+  const [skuDesignName, setSkuDesignName] = useState(
+    () => serverSettings?.skuDesignName ?? serverSettings?.designName ?? "",
   );
   const [printerId, setPrinterId] = useState(() => serverSettings?.printerId ?? "");
   const [message, setMessage] = useState("");
@@ -58,7 +64,8 @@ function LabelLiveDesignForm({
     try {
       await setSettings({
         sessionToken: session.sessionToken,
-        designName,
+        upcDesignName,
+        skuDesignName,
         printerId,
       });
       setMessage("Saved Label LIVE settings.");
@@ -83,18 +90,30 @@ function LabelLiveDesignForm({
         </CardHeader>
         <CardContent className="grid gap-4">
           <p className="text-sm text-muted-foreground">
-            Enter the pinned design filename (without{" "}
+            Enter the pinned design filenames (without{" "}
             <code className="text-xs">.lsc</code>) and printer ID from Label LIVE. Print commands use{" "}
             <code className="text-xs">labellive://print</code>.
           </p>
           <div className="grid gap-2">
-            <Label htmlFor="label-live-design">Design name</Label>
+            <Label htmlFor="label-live-upc-design">UPC design</Label>
             <Input
-              id="label-live-design"
+              id="label-live-upc-design"
               disabled={disabled}
-              value={designName}
-              onChange={(event) => setDesignName(event.target.value)}
-              placeholder="retail-label"
+              value={upcDesignName}
+              onChange={(event) => setUpcDesignName(event.target.value)}
+              placeholder="retail-upc-label"
+              autoCapitalize="none"
+              autoCorrect="off"
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="label-live-sku-design">SKU design</Label>
+            <Input
+              id="label-live-sku-design"
+              disabled={disabled}
+              value={skuDesignName}
+              onChange={(event) => setSkuDesignName(event.target.value)}
+              placeholder="retail-sku-label"
               autoCapitalize="none"
               autoCorrect="off"
             />
@@ -138,7 +157,9 @@ function LabelLiveDesignSection() {
   const formKey =
     serverSettings === undefined
       ? "pending"
-      : `${serverSettings.designName ?? ""}\0${serverSettings.printerId ?? ""}`;
+      : `${serverSettings.upcDesignName ?? serverSettings.designName ?? ""}\0${
+          serverSettings.skuDesignName ?? serverSettings.designName ?? ""
+        }\0${serverSettings.printerId ?? ""}`;
 
   return (
     <LabelLiveDesignForm

@@ -11,6 +11,7 @@ import {
   type LabelLiveDebugMessage,
 } from "@/lib/labelLiveDebug"
 import { productToLabelLiveVariables } from "@/lib/productLabelVariables"
+import { isValidUpc } from "@/lib/upc"
 import { api } from "../../../convex/_generated/api"
 import { getProductActionMenuItems } from "./actionMenuData"
 import { ActionContextMenuItems, ActionTrayMenuItems } from "./actionMenuItems"
@@ -228,11 +229,17 @@ function ProductsPanel() {
         return
       }
 
-      const trimmedDesign = labelLiveSettings?.designName?.trim()
+      const trimmedUpcDesign = labelLiveSettings?.upcDesignName?.trim()
+      const trimmedSkuDesign = labelLiveSettings?.skuDesignName?.trim()
       const trimmedPrinterId = labelLiveSettings?.printerId?.trim()
+      const design = isValidUpc(product.upc) ? trimmedUpcDesign : trimmedSkuDesign
 
-      if (!trimmedDesign) {
-        toast.error("Add your Label LIVE design name in Settings first.")
+      if (!design) {
+        toast.error(
+          isValidUpc(product.upc)
+            ? "Add your Label LIVE UPC design in Settings first."
+            : "Add your Label LIVE SKU design in Settings first."
+        )
         return
       }
 
@@ -243,7 +250,7 @@ function ProductsPanel() {
 
       const variables = productToLabelLiveVariables(product)
       const jobs = Array.from({ length: labelCount }, () => ({
-        design: trimmedDesign,
+        design,
         printerId: trimmedPrinterId,
         variables,
       }))

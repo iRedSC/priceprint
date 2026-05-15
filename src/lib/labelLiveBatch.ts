@@ -38,16 +38,19 @@ function openLabelLiveUri(href: string) {
   a.remove();
 }
 
-function assertSameSettings(jobs: LabelLiveBatchJob[]) {
-  const design = jobs[0]?.design;
-  const printerId = jobs[0]?.printerId;
-  if (
-    !design ||
-    !printerId ||
-    !jobs.every((job) => job.design === design && job.printerId === printerId)
-  ) {
-    throw new Error("Label LIVE multi-label printing requires one shared design and printer.");
+function batchJobsBySettings(jobs: LabelLiveBatchJob[]) {
+  const batches = new Map<string, LabelLiveBatchJob[]>();
+
+  for (const job of jobs) {
+    if (!job.design || !job.printerId) {
+      throw new Error("Label LIVE printing requires a design and printer.");
+    }
+
+    const key = `${job.design}\0${job.printerId}`;
+    batches.set(key, [...(batches.get(key) ?? []), job]);
   }
+
+  return [...batches.values()];
 }
 
 export type SendLabelLiveJobsResult = {
@@ -62,11 +65,12 @@ export async function sendLabelLiveJobs(
     return { openedLabelliveFallback: false };
   }
 
-  assertSameSettings(jobs);
+  for (const batch of batchJobsBySettings(jobs)) {
+    const design = batch[0]!.design;
+    const printerId = batch[0]!.printerId;
+    const variablesJson = variablesRowsToJson(batch.map((job) => job.variables));
+    openLabelLiveUri(printUri(design, printerId, variablesJson));
+  }
 
-  const design = jobs[0]!.design;
-  const printerId = jobs[0]!.printerId;
-  const variablesJson = variablesRowsToJson(jobs.map((job) => job.variables));
-  openLabelLiveUri(printUri(design, printerId, variablesJson));
   return { openedLabelliveFallback: false };
 }

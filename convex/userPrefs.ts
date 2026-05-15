@@ -42,9 +42,12 @@ export const getLabelLiveSettings = query({
   handler: async (ctx, args) => {
     const userId = await getSessionUserId(ctx, args.sessionToken);
     const user = await ctx.db.get(userId);
+    const legacyDesignName = user?.labelLiveDesignName?.trim() ?? null;
 
     return {
-      designName: user?.labelLiveDesignName?.trim() ?? null,
+      designName: legacyDesignName,
+      upcDesignName: user?.labelLiveUpcDesignName?.trim() ?? legacyDesignName,
+      skuDesignName: user?.labelLiveSkuDesignName?.trim() ?? legacyDesignName,
       printerId: user?.labelLivePrinterId?.trim() ?? null,
     };
   },
@@ -66,16 +69,20 @@ export const setLabelLiveDesignName = mutation({
 export const setLabelLiveSettings = mutation({
   args: {
     sessionToken: v.string(),
-    designName: v.string(),
+    upcDesignName: v.string(),
+    skuDesignName: v.string(),
     printerId: v.string(),
   },
   handler: async (ctx, args) => {
     const userId = await getSessionUserId(ctx, args.sessionToken);
-    const designName = args.designName.trim();
+    const upcDesignName = args.upcDesignName.trim();
+    const skuDesignName = args.skuDesignName.trim();
     const printerId = args.printerId.trim();
 
     await ctx.db.patch(userId, {
-      labelLiveDesignName: designName || undefined,
+      labelLiveDesignName: upcDesignName || skuDesignName || undefined,
+      labelLiveUpcDesignName: upcDesignName || undefined,
+      labelLiveSkuDesignName: skuDesignName || undefined,
       labelLivePrinterId: printerId || undefined,
       updatedAt: Date.now(),
     });
