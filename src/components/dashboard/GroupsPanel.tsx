@@ -310,7 +310,6 @@ function GroupsPanel() {
             renderRowMenu={(group) => {
               const items = getGroupActionMenuItems({
                 group,
-                onOpen: openGroup,
                 onEdit: setEditingGroup,
                 onDelete: deleteGroup,
                 onPrintGroup: printGroupToLabelLive,

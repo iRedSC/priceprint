@@ -16,16 +16,15 @@ import type { GroupRow } from "./groupTableData"
 
 type GroupActionMenuProps = {
   group: GroupRow
-  onOpen: (group: GroupRow) => void
   onEdit: (group: GroupRow) => void
   onDelete: (group: GroupRow) => void
   onPrintGroup?: (group: GroupRow, scope: GroupPrintScope) => void
 }
 
-function GroupActionMenu({ group, onOpen, onEdit, onDelete, onPrintGroup }: GroupActionMenuProps) {
+function GroupActionMenu({ group, onEdit, onDelete, onPrintGroup }: GroupActionMenuProps) {
   const isMd = useMinWidthMd()
   const [trayOpen, setTrayOpen] = useState(false)
-  const items = getGroupActionMenuItems({ group, onOpen, onEdit, onDelete, onPrintGroup })
+  const items = getGroupActionMenuItems({ group, onEdit, onDelete, onPrintGroup })
 
   if (!isMd) {
     return (

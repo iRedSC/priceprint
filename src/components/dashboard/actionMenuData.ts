@@ -1,4 +1,4 @@
-import { FolderOpen, Pencil, Printer, Trash2 } from "lucide-react"
+import { Pencil, Printer, Trash2 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 import type { GroupPrintScope } from "./groupPrintSelection"
@@ -26,7 +26,6 @@ type ProductActionHandlers = {
 
 type GroupActionHandlers = {
   group: GroupRow
-  onOpen: (group: GroupRow) => void
   onEdit: (group: GroupRow) => void
   onDelete: (group: GroupRow) => void
   onPrintGroup?: (group: GroupRow, scope: GroupPrintScope) => void
@@ -50,11 +49,10 @@ function getProductActionMenuItems({ product, onEdit, onDelete, onPrint }: Produ
   ])
 }
 
-function getGroupActionMenuItems({ group, onOpen, onEdit, onDelete, onPrintGroup }: GroupActionHandlers) {
+function getGroupActionMenuItems({ group, onEdit, onDelete, onPrintGroup }: GroupActionHandlers) {
   return compactActions([
     { type: "label", id: "name", label: group.name },
     { type: "separator", id: "primary-separator" },
-    { type: "item", id: "open", label: "Open", icon: FolderOpen, onSelect: () => onOpen(group) },
     { type: "item", id: "edit", label: "Edit", icon: Pencil, onSelect: () => onEdit(group) },
     onPrintGroup ? { type: "separator", id: "print-separator" } : null,
     onPrintGroup

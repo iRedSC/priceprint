@@ -34,7 +34,11 @@ function GroupMobileCard({ group, onOpen, onEdit, onDelete, onScan, onPrintGroup
   const outOfDate = countOutOfDateProducts(group)
 
   return (
-    <Card size="sm" className="gap-2 py-3 touch-manipulation">
+    <Card
+      size="sm"
+      className="cursor-pointer gap-2 py-3 touch-manipulation"
+      onClick={() => onOpen(group)}
+    >
       <CardHeader className="grid-cols-[minmax(0,1fr)_auto] gap-2 px-3.5">
         <div className="min-w-0">
           <div className="flex min-w-0 items-start gap-2">
@@ -50,13 +54,14 @@ function GroupMobileCard({ group, onOpen, onEdit, onDelete, onScan, onPrintGroup
             <GroupStatusChips unprinted={unprinted} upToDate={upToDate} outOfDate={outOfDate} />
           </CardDescription>
         </div>
-        <GroupActionMenu
-          group={group}
-          onOpen={onOpen}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          onPrintGroup={onPrintGroup}
-        />
+        <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+          <GroupActionMenu
+            group={group}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onPrintGroup={onPrintGroup}
+          />
+        </div>
       </CardHeader>
       <CardContent className="flex items-center justify-between gap-2 px-3.5 text-xs text-muted-foreground">
         <Button
@@ -64,7 +69,10 @@ function GroupMobileCard({ group, onOpen, onEdit, onDelete, onScan, onPrintGroup
           variant="outline"
           className="touch-manipulation"
           type="button"
-          onClick={() => onScan(group)}
+          onClick={(e) => {
+            e.stopPropagation()
+            onScan(group)
+          }}
         >
           <ScanBarcode />
           Scan
