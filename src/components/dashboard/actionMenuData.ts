@@ -1,8 +1,9 @@
-import { Pencil, Printer, Trash2 } from "lucide-react"
+import { BadgeCheck, Pencil, Printer, Trash2 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 import type { GroupPrintScope } from "./groupPrintSelection"
 import type { GroupRow } from "./groupTableData"
+import { getProductPrintStatus } from "./productPrintData"
 import type { ProductRow } from "./productTableData"
 
 type ActionMenuEntry =
@@ -22,6 +23,7 @@ type ProductActionHandlers = {
   onEdit: (product: ProductRow) => void
   onDelete: (product: ProductRow) => void
   onPrint?: (product: ProductRow) => void
+  onMarkUpToDate?: (product: ProductRow) => void
 }
 
 type GroupActionHandlers = {
@@ -31,12 +33,30 @@ type GroupActionHandlers = {
   onPrintGroup?: (group: GroupRow, scope: GroupPrintScope) => void
 }
 
-function getProductActionMenuItems({ product, onEdit, onDelete, onPrint }: ProductActionHandlers) {
+function getProductActionMenuItems({
+  product,
+  onEdit,
+  onDelete,
+  onPrint,
+  onMarkUpToDate,
+}: ProductActionHandlers) {
+  const showMarkUpToDate =
+    onMarkUpToDate !== undefined && getProductPrintStatus(product) !== "up-to-date"
+
   return compactActions([
     { type: "label", id: "name", label: product.name },
     { type: "separator", id: "primary-separator" },
     { type: "item", id: "edit", label: "Edit", icon: Pencil, onSelect: () => onEdit(product) },
     onPrint ? { type: "item", id: "print", label: "Print", icon: Printer, onSelect: () => onPrint(product) } : null,
+    showMarkUpToDate
+      ? {
+          type: "item",
+          id: "mark-up-to-date",
+          label: "Mark up to date",
+          icon: BadgeCheck,
+          onSelect: () => onMarkUpToDate(product),
+        }
+      : null,
     { type: "separator", id: "danger-separator" },
     {
       type: "item",

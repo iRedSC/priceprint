@@ -7,6 +7,7 @@ type ProductRowContextMenuProps = {
   onEdit: (product: ProductRow) => void
   onDelete: (product: ProductRow) => void
   onPrint: (product: ProductRow) => void
+  onMarkUpToDate?: (product: ProductRow) => void
 }
 
 function ProductRowContextMenu({
@@ -14,8 +15,9 @@ function ProductRowContextMenu({
   onEdit,
   onDelete,
   onPrint,
+  onMarkUpToDate,
 }: ProductRowContextMenuProps) {
-  const items = getProductActionMenuItems({ product, onEdit, onDelete, onPrint })
+  const items = getProductActionMenuItems({ product, onEdit, onDelete, onPrint, onMarkUpToDate })
 
   return <ActionContextMenuItems items={items} />
 }

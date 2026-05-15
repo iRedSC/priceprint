@@ -18,12 +18,13 @@ type ProductActionMenuProps = {
   onEdit: (product: ProductRow) => void
   onDelete: (product: ProductRow) => void
   onPrint?: (product: ProductRow) => void
+  onMarkUpToDate?: (product: ProductRow) => void
 }
 
-function ProductActionMenu({ product, onEdit, onDelete, onPrint }: ProductActionMenuProps) {
+function ProductActionMenu({ product, onEdit, onDelete, onPrint, onMarkUpToDate }: ProductActionMenuProps) {
   const isMd = useMinWidthMd()
   const [trayOpen, setTrayOpen] = useState(false)
-  const items = getProductActionMenuItems({ product, onEdit, onDelete, onPrint })
+  const items = getProductActionMenuItems({ product, onEdit, onDelete, onPrint, onMarkUpToDate })
 
   if (!isMd) {
     return (

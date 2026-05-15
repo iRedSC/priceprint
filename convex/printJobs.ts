@@ -245,6 +245,46 @@ export const recordProductPrint = mutation({
   },
 });
 
+/** Sets last printed price to the current product price without recording a print job (e.g. shelf already correct). */
+export const markProductUpToDate = mutation({
+  args: {
+    sessionToken: v.string(),
+    productId: v.id("products"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getSessionUserId(ctx, args.sessionToken);
+    const product = await ctx.db.get(args.productId);
+
+    if (!product || product.userId !== userId) {
+      throw new ConvexError("Product not found.");
+    }
+
+    const existingPrint = await ctx.db
+      .query("printData")
+      .withIndex("by_user_product", (q) => q.eq("userId", userId).eq("productId", product._id))
+      .unique();
+
+    const now = Date.now();
+
+    if (existingPrint) {
+      await ctx.db.patch(existingPrint._id, {
+        lastPrintedAt: now,
+        lastPrintedPrice: product.price,
+        updatedAt: now,
+      });
+    } else {
+      await ctx.db.insert("printData", {
+        userId,
+        productId: product._id,
+        lastPrintedAt: now,
+        lastPrintedPrice: product.price,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+  },
+});
+
 export const undoLatestPrintJob = mutation({
   args: { sessionToken: v.string() },
   handler: async (ctx, args) => {

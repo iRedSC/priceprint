@@ -65,6 +65,7 @@ function ProductsPanel() {
   const updateProductMutation = useMutation(api.products.update)
   const deleteProductMutation = useMutation(api.products.remove)
   const recordProductPrintMutation = useMutation(api.printJobs.recordProductPrint)
+  const markProductUpToDateMutation = useMutation(api.printJobs.markProductUpToDate)
   const refreshProductPrices = useAction(api.shopify.refreshProductPrices)
   const productRows = useMemo(
     () => (products ?? EMPTY_PRODUCTS).map((product) => applyOptimisticPatches(product, optimisticPatches[product._id])),
@@ -179,6 +180,28 @@ function ProductsPanel() {
     }
   }
 
+  const markProductUpToDate = useCallback(
+    async (product: ProductRow) => {
+      if (!session) {
+        toast.error("Sign in again to update print status.")
+        return
+      }
+
+      try {
+        await markProductUpToDateMutation({
+          sessionToken: session.sessionToken,
+          productId: product._id,
+        })
+        toast.success(`Marked "${product.name}" up to date.`)
+      } catch (error) {
+        toast.error("Could not mark product up to date.", {
+          description: error instanceof Error ? error.message : "Try again in a moment.",
+        })
+      }
+    },
+    [markProductUpToDateMutation, session],
+  )
+
   const printProductToLabelLive = async (product: ProductRow) => {
     if (!session) {
       toast.error("Sign in again to print.")
@@ -290,6 +313,7 @@ function ProductsPanel() {
             emptyMessage={getProductsMessage(session, products)}
             onEdit={setEditingProduct}
             onDelete={deleteProduct}
+            onMarkUpToDate={markProductUpToDate}
           />
         }
         desktop={
@@ -305,11 +329,13 @@ function ProductsPanel() {
                 onEdit: setEditingProduct,
                 onDelete: deleteProduct,
                 onPrint: printProductToLabelLive,
+                onMarkUpToDate: markProductUpToDate,
               })
               const mobileItems = getProductActionMenuItems({
                 product,
                 onEdit: setEditingProduct,
                 onDelete: deleteProduct,
+                onMarkUpToDate: markProductUpToDate,
               })
 
               return {
