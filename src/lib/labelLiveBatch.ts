@@ -17,7 +17,7 @@ function printUri(design: string, printerId: string, variablesJson: string) {
     `design=${encodeURIComponent(design)}`,
     `variables=${encodeURIComponent(variablesJson)}`,
     `printer=${encodeURIComponent(printerId)}`,
-    "window=show",
+    "window=hide",
     "copies=1",
   ];
 
