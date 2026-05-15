@@ -19,10 +19,9 @@ type ProductMobileCardProps = {
   product: ProductRow
   onEdit: (product: ProductRow) => void
   onDelete: (product: ProductRow) => void
-  onPrint?: (product: ProductRow) => void
 }
 
-function ProductMobileCard({ product, onEdit, onDelete, onPrint }: ProductMobileCardProps) {
+function ProductMobileCard({ product, onEdit, onDelete }: ProductMobileCardProps) {
   return (
     <Card size="sm" className="gap-2 py-3">
       <CardHeader className="grid-cols-[minmax(0,1fr)_auto_auto] gap-2 px-3.5">
@@ -50,7 +49,7 @@ function ProductMobileCard({ product, onEdit, onDelete, onPrint }: ProductMobile
             <ProductPrintedPriceNote product={product} />
           </div>
         </div>
-        <ProductActionMenu product={product} onEdit={onEdit} onDelete={onDelete} onPrint={onPrint} />
+        <ProductActionMenu product={product} onEdit={onEdit} onDelete={onDelete} />
       </CardHeader>
       <CardContent className="grid grid-cols-[1fr_auto_1fr] items-end gap-3 px-3.5">
         <div className="grid min-w-0 gap-1">

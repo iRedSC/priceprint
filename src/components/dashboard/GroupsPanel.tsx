@@ -296,7 +296,6 @@ function GroupsPanel() {
             onEdit={setEditingGroup}
             onDelete={deleteGroup}
             onScan={(group) => setScanningGroupId(group._id)}
-            onPrintGroup={printGroupToLabelLive}
           />
         }
         desktop={
@@ -314,11 +313,16 @@ function GroupsPanel() {
                 onDelete: deleteGroup,
                 onPrintGroup: printGroupToLabelLive,
               })
+              const mobileItems = getGroupActionMenuItems({
+                group,
+                onEdit: setEditingGroup,
+                onDelete: deleteGroup,
+              })
 
               return {
                 title: `Actions for ${group.name}`,
                 desktopContent: <ActionContextMenuItems items={items} />,
-                mobileContent: (close) => <ActionTrayMenuItems items={items} onAction={close} />,
+                mobileContent: (close) => <ActionTrayMenuItems items={mobileItems} onAction={close} />,
               }
             }}
           />

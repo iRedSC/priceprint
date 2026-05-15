@@ -13,7 +13,6 @@ import {
   countUnprintedProducts,
   countUpToDateProducts,
 } from "./groupPrintCounts"
-import type { GroupPrintScope } from "./groupPrintSelection"
 import type { GroupRow } from "./groupTableData"
 import GroupActionMenu from "./GroupActionMenu"
 import GroupStatusChips from "./GroupStatusChips"
@@ -25,10 +24,9 @@ type GroupMobileCardProps = {
   onEdit: (group: GroupRow) => void
   onDelete: (group: GroupRow) => void
   onScan: (group: GroupRow) => void
-  onPrintGroup?: (group: GroupRow, scope: GroupPrintScope) => void
 }
 
-function GroupMobileCard({ group, onOpen, onEdit, onDelete, onScan, onPrintGroup }: GroupMobileCardProps) {
+function GroupMobileCard({ group, onOpen, onEdit, onDelete, onScan }: GroupMobileCardProps) {
   const unprinted = countUnprintedProducts(group)
   const upToDate = countUpToDateProducts(group)
   const outOfDate = countOutOfDateProducts(group)
@@ -59,7 +57,6 @@ function GroupMobileCard({ group, onOpen, onEdit, onDelete, onScan, onPrintGroup
             group={group}
             onEdit={onEdit}
             onDelete={onDelete}
-            onPrintGroup={onPrintGroup}
           />
         </div>
       </CardHeader>

@@ -290,7 +290,6 @@ function ProductsPanel() {
             emptyMessage={getProductsMessage(session, products)}
             onEdit={setEditingProduct}
             onDelete={deleteProduct}
-            onPrint={printProductToLabelLive}
           />
         }
         desktop={
@@ -307,11 +306,16 @@ function ProductsPanel() {
                 onDelete: deleteProduct,
                 onPrint: printProductToLabelLive,
               })
+              const mobileItems = getProductActionMenuItems({
+                product,
+                onEdit: setEditingProduct,
+                onDelete: deleteProduct,
+              })
 
               return {
                 title: `Actions for ${product.name}`,
                 desktopContent: <ActionContextMenuItems items={items} />,
-                mobileContent: (close) => <ActionTrayMenuItems items={items} onAction={close} />,
+                mobileContent: (close) => <ActionTrayMenuItems items={mobileItems} onAction={close} />,
               }
             }}
           />

@@ -6,7 +6,6 @@ type ProductMobileListProps = {
   emptyMessage?: string
   onEdit: (product: ProductRow) => void
   onDelete: (product: ProductRow) => void
-  onPrint?: (product: ProductRow) => void
 }
 
 function ProductMobileList({
@@ -14,7 +13,6 @@ function ProductMobileList({
   emptyMessage = "No products scanned yet.",
   onEdit,
   onDelete,
-  onPrint,
 }: ProductMobileListProps) {
   if (!products.length) {
     return (
@@ -32,7 +30,6 @@ function ProductMobileList({
           product={product}
           onEdit={onEdit}
           onDelete={onDelete}
-          onPrint={onPrint}
         />
       ))}
     </div>

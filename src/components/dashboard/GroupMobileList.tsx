@@ -1,4 +1,3 @@
-import type { GroupPrintScope } from "./groupPrintSelection"
 import type { GroupRow } from "./groupTableData"
 import GroupMobileCard from "./GroupMobileCard"
 
@@ -9,7 +8,6 @@ type GroupMobileListProps = {
   onEdit: (group: GroupRow) => void
   onDelete: (group: GroupRow) => void
   onScan: (group: GroupRow) => void
-  onPrintGroup?: (group: GroupRow, scope: GroupPrintScope) => void
 }
 
 function GroupMobileList({
@@ -19,7 +17,6 @@ function GroupMobileList({
   onEdit,
   onDelete,
   onScan,
-  onPrintGroup,
 }: GroupMobileListProps) {
   if (!groups.length) {
     return <p className="rounded-xl border bg-card p-4 text-sm text-muted-foreground">{emptyMessage}</p>
@@ -35,7 +32,6 @@ function GroupMobileList({
           onEdit={onEdit}
           onDelete={onDelete}
           onScan={onScan}
-          onPrintGroup={onPrintGroup}
         />
       ))}
     </div>
