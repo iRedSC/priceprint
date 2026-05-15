@@ -1,4 +1,4 @@
-import { CalendarPlus, Layers, MapPin, RefreshCw, Tag, Trash2 } from "lucide-react"
+import { Layers, Trash2 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import type { ReactNode } from "react"
 
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card"
 
 import type { GroupProduct } from "./groupTableData"
-import { formatProductDate, formatProductPrice } from "./productFormat"
+import { formatProductPrice } from "./productFormat"
 import ProductImage from "./ProductImage"
 import ProductPrintedPriceNote from "./ProductPrintedPriceNote"
 import ProductPrintStatusChip from "./ProductPrintStatusChip"
@@ -40,21 +40,18 @@ function GroupProductMobileCard({ product, reorderHandle, onRemoveProduct }: Gro
         </Button>
       }
     >
-      <Card size="sm" className="gap-2 py-3 pr-11">
+      <Card size="sm" className="gap-2 border border-border py-3">
         <CardHeader className="grid-cols-[minmax(0,1fr)_auto] gap-2 px-3.5">
           <div className="min-w-0">
             <div className="flex min-w-0 items-start gap-2">
               <ProductImage src={product.img} alt={product.name} className="size-10 rounded-lg" />
               <CardTitle className="line-clamp-2 min-w-0 text-base">{product.name}</CardTitle>
             </div>
-            <CardDescription className="mt-1 flex flex-wrap gap-1.5">
-              {product.vendor ? <InfoChip icon={MapPin} value={product.vendor} /> : null}
-              {product.type ? <InfoChip icon={Tag} value={product.type} /> : null}
-              {product.variant ? <InfoChip icon={Layers} value={product.variant} /> : null}
-              {!product.vendor && !product.type && !product.variant ? (
-                <InfoChip value="No catalog details" />
-              ) : null}
-            </CardDescription>
+            {product.variant ? (
+              <CardDescription className="mt-1 flex flex-wrap gap-1.5">
+                <InfoChip icon={Layers} value={product.variant} />
+              </CardDescription>
+            ) : null}
           </div>
           <div className="min-w-20 text-right">
             <div className="flex items-center justify-end gap-0.5">
@@ -71,13 +68,10 @@ function GroupProductMobileCard({ product, reorderHandle, onRemoveProduct }: Gro
           <div className="flex justify-center">
             <ProductPrintStatusChip product={product} />
           </div>
-          <TimelineDates createdAt={product.createdAt} updatedAt={product.updatedAt} />
-        </CardContent>
-        {reorderHandle ? (
-          <div className="absolute inset-y-0 right-0 flex items-center pr-1" data-swipe-ignore>
+          <div className="flex justify-end" data-swipe-ignore>
             {reorderHandle}
           </div>
-        ) : null}
+        </CardContent>
       </Card>
     </SwipeRevealAction>
   )
@@ -98,26 +92,6 @@ function CodeText({ value }: { value?: string }) {
       {value}
     </div>
   ) : null
-}
-
-type TimelineDatesProps = {
-  createdAt: number
-  updatedAt?: number
-}
-
-function TimelineDates({ createdAt, updatedAt }: TimelineDatesProps) {
-  return (
-    <div className="shrink-0 text-[0.75rem] leading-tight text-muted-foreground">
-      <div className="flex items-center justify-end gap-1">
-        <CalendarPlus className="size-3.5" />
-        <span>{formatProductDate(createdAt)}</span>
-      </div>
-      <div className="flex items-center justify-end gap-1">
-        <RefreshCw className="size-3.5" />
-        <span>{formatProductDate(updatedAt)}</span>
-      </div>
-    </div>
-  )
 }
 
 export default GroupProductMobileCard
