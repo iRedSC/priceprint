@@ -17,6 +17,7 @@ type GroupProductsDialogProps = {
   onAddProducts: (group: GroupRow, productIds: ProductRow["_id"][]) => Promise<void> | void
   onRemoveProduct: (group: GroupRow, product: GroupProduct) => Promise<void> | void
   onReorderProducts: (group: GroupRow, orderedProductIds: GroupProduct["_id"][]) => Promise<void> | void
+  onOpenScan?: (group: GroupRow) => void
 }
 
 function GroupProductsDialog({
@@ -26,6 +27,7 @@ function GroupProductsDialog({
   onAddProducts,
   onRemoveProduct,
   onReorderProducts,
+  onOpenScan,
 }: GroupProductsDialogProps) {
   return (
     <Dialog open={Boolean(group)} onOpenChange={onOpenChange}>
@@ -44,6 +46,7 @@ function GroupProductsDialog({
                 group={group}
                 products={products}
                 onAddProducts={(productIds) => onAddProducts(group, productIds)}
+                onOpenScan={onOpenScan ? () => onOpenScan(group) : undefined}
               />
               <GroupProductsTable
                 products={group.products}

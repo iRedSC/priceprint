@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { Plus } from "lucide-react"
+import { Plus, ScanBarcode } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -32,9 +32,10 @@ type GroupProductPickerProps = {
   group: GroupRow
   products: ProductRow[]
   onAddProducts: (productIds: ProductRow["_id"][]) => Promise<void> | void
+  onOpenScan?: () => void
 }
 
-function GroupProductPicker({ group, products, onAddProducts }: GroupProductPickerProps) {
+function GroupProductPicker({ group, products, onAddProducts, onOpenScan }: GroupProductPickerProps) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")
   const [selectedIds, setSelectedIds] = useState<Set<ProductRow["_id"]>>(new Set())
@@ -78,13 +79,18 @@ function GroupProductPicker({ group, products, onAddProducts }: GroupProductPick
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button type="button" size="responsive" className="w-full md:w-fit">
-          <Plus />
-          Add Products
-        </Button>
-      </DialogTrigger>
+    <div className="flex w-full flex-wrap gap-2 md:w-fit">
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogTrigger asChild>
+          <Button
+            type="button"
+            size="responsive"
+            className="min-w-0 flex-1 touch-manipulation md:flex-initial md:w-fit"
+          >
+            <Plus />
+            Add Products
+          </Button>
+        </DialogTrigger>
       <DialogContent className="md:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Add products</DialogTitle>
@@ -186,7 +192,20 @@ function GroupProductPicker({ group, products, onAddProducts }: GroupProductPick
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
+      </Dialog>
+      {onOpenScan ? (
+        <Button
+          type="button"
+          size="responsive"
+          variant="outline"
+          className="min-w-0 flex-1 touch-manipulation md:hidden"
+          onClick={onOpenScan}
+        >
+          <ScanBarcode />
+          Scan
+        </Button>
+      ) : null}
+    </div>
   )
 }
 

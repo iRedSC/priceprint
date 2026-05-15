@@ -5,8 +5,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { ScanBarcode } from "lucide-react"
 import { formatGroupDate } from "./groupFormat"
 import {
   countOutOfDateProducts,
@@ -23,10 +21,9 @@ type GroupMobileCardProps = {
   onOpen: (group: GroupRow) => void
   onEdit: (group: GroupRow) => void
   onDelete: (group: GroupRow) => void
-  onScan: (group: GroupRow) => void
 }
 
-function GroupMobileCard({ group, onOpen, onEdit, onDelete, onScan }: GroupMobileCardProps) {
+function GroupMobileCard({ group, onOpen, onEdit, onDelete }: GroupMobileCardProps) {
   const unprinted = countUnprintedProducts(group)
   const upToDate = countUpToDateProducts(group)
   const outOfDate = countOutOfDateProducts(group)
@@ -60,21 +57,8 @@ function GroupMobileCard({ group, onOpen, onEdit, onDelete, onScan }: GroupMobil
           />
         </div>
       </CardHeader>
-      <CardContent className="flex items-center justify-between gap-2 px-3.5 text-xs text-muted-foreground">
-        <Button
-          size="sm"
-          variant="outline"
-          className="touch-manipulation"
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation()
-            onScan(group)
-          }}
-        >
-          <ScanBarcode />
-          Scan
-        </Button>
-        <span>Updated {formatGroupDate(group.updatedAt ?? group.createdAt)}</span>
+      <CardContent className="px-3.5 text-xs text-muted-foreground">
+        Updated {formatGroupDate(group.updatedAt ?? group.createdAt)}
       </CardContent>
     </Card>
   )

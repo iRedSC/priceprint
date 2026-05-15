@@ -295,7 +295,6 @@ function GroupsPanel() {
             onOpen={openGroup}
             onEdit={setEditingGroup}
             onDelete={deleteGroup}
-            onScan={(group) => setScanningGroupId(group._id)}
           />
         }
         desktop={
@@ -359,6 +358,7 @@ function GroupsPanel() {
         onAddProducts={addProducts}
         onRemoveProduct={removeProduct}
         onReorderProducts={reorderGroupProducts}
+        onOpenScan={(group) => setScanningGroupId(group._id)}
       />
       <LabelLiveDebugDialog
         message={labelLiveDebug}

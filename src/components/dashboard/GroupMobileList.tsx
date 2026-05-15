@@ -8,7 +8,6 @@ type GroupMobileListProps = {
   onOpen: (group: GroupRow) => void
   onEdit: (group: GroupRow) => void
   onDelete: (group: GroupRow) => void
-  onScan: (group: GroupRow) => void
 }
 
 function GroupMobileList({
@@ -17,7 +16,6 @@ function GroupMobileList({
   onOpen,
   onEdit,
   onDelete,
-  onScan,
 }: GroupMobileListProps) {
   return (
     <DashboardMobileList items={groups} emptyMessage={emptyMessage}>
@@ -28,7 +26,6 @@ function GroupMobileList({
           onOpen={onOpen}
           onEdit={onEdit}
           onDelete={onDelete}
-          onScan={onScan}
         />
       )}
     </DashboardMobileList>
