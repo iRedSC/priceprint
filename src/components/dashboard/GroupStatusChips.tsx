@@ -36,6 +36,7 @@ function StatusCountChip({
           className={cn(
             "inline-flex h-7 min-w-7 cursor-default touch-manipulation items-center justify-center rounded-full border px-2 py-0.5 text-xs font-semibold tabular-nums",
             chipStyles[tone],
+            count === 0 && "opacity-40",
           )}
         >
           {count}
