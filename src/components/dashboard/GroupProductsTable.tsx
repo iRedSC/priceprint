@@ -64,9 +64,9 @@ function GroupProductsTable({
     >
       <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
         {isMd ? (
-          <div className="overflow-hidden rounded-xl border touch-manipulation">
+          <div className="rounded-xl border bg-card touch-manipulation">
             <Table>
-              <TableHeader>
+              <TableHeader className="sticky top-0 z-10 bg-card">
                 <TableRow>
                   <TableHead className="w-10 px-2 text-center">
                     <span className="sr-only">Reorder</span>
