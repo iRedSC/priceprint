@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "convex/react";
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 
-import { readStoredSession } from "@/authSession";
+import { readStoredSession, type AuthResult } from "@/authSession";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,25 +18,32 @@ import { api } from "../../../convex/_generated/api";
 
 import LabelLiveVariablesInfo from "./LabelLiveVariablesInfo";
 
-function LabelLiveDesignSection() {
-  const [session] = useState(readStoredSession);
-  const serverSettings = useQuery(
-    api.userPrefs.getLabelLiveSettings,
-    session ? { sessionToken: session.sessionToken } : "skip",
-  );
-  const setSettings = useMutation(api.userPrefs.setLabelLiveSettings);
+type LabelLiveServerSettings = {
+  designName?: string | null;
+  printerId?: string | null;
+} | undefined;
 
-  const [designName, setDesignName] = useState("");
-  const [printerId, setPrinterId] = useState("");
+type LabelLiveDesignFormProps = {
+  session: AuthResult | null;
+  serverSettings: LabelLiveServerSettings;
+  setSettings: (_args: {
+    sessionToken: string;
+    designName: string;
+    printerId: string;
+  }) => Promise<void | null>;
+};
+
+function LabelLiveDesignForm({
+  session,
+  serverSettings,
+  setSettings,
+}: LabelLiveDesignFormProps) {
+  const [designName, setDesignName] = useState(
+    () => serverSettings?.designName ?? "",
+  );
+  const [printerId, setPrinterId] = useState(() => serverSettings?.printerId ?? "");
   const [message, setMessage] = useState("");
   const [isBusy, setIsBusy] = useState(false);
-
-  useEffect(() => {
-    if (serverSettings !== undefined) {
-      setDesignName(serverSettings?.designName ?? "");
-      setPrinterId(serverSettings?.printerId ?? "");
-    }
-  }, [serverSettings]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -117,6 +124,29 @@ function LabelLiveDesignSection() {
         </CardFooter>
       </Card>
     </form>
+  );
+}
+
+function LabelLiveDesignSection() {
+  const [session] = useState(readStoredSession);
+  const serverSettings = useQuery(
+    api.userPrefs.getLabelLiveSettings,
+    session ? { sessionToken: session.sessionToken } : "skip",
+  );
+  const setSettings = useMutation(api.userPrefs.setLabelLiveSettings);
+
+  const formKey =
+    serverSettings === undefined
+      ? "pending"
+      : `${serverSettings.designName ?? ""}\0${serverSettings.printerId ?? ""}`;
+
+  return (
+    <LabelLiveDesignForm
+      key={formKey}
+      session={session}
+      serverSettings={serverSettings}
+      setSettings={setSettings}
+    />
   );
 }
 

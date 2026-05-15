@@ -47,19 +47,6 @@ function GroupScanDialog({ group, onOpenChange, onScanProduct }: GroupScanDialog
   }
 
   useEffect(() => {
-    if (!open) {
-      if (scanSuccessTimeoutRef.current) {
-        window.clearTimeout(scanSuccessTimeoutRef.current)
-        scanSuccessTimeoutRef.current = null
-      }
-      setHolding(false)
-      setLastScanned(null)
-      setScanSucceeded(false)
-      setScanSuccessKey(0)
-    }
-  }, [open])
-
-  useEffect(() => {
     return () => {
       if (scanSuccessTimeoutRef.current) {
         window.clearTimeout(scanSuccessTimeoutRef.current)

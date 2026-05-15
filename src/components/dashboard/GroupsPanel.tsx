@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { useAction, useMutation, useQuery } from "convex/react"
 import { toast } from "sonner"
 
@@ -70,20 +70,20 @@ function GroupsPanel() {
   const groupRows = groups ?? EMPTY_GROUPS
   const productRows = products ?? EMPTY_PRODUCTS
 
-  useEffect(() => {
-    if (groups === undefined) {
-      return
-    }
 
-    setOptimisticGroupOrders((prev) => pruneStaleGroupOrderPatches(prev, groups))
-  }, [groups])
+  const effectiveOptimisticGroupOrders = useMemo(() => {
+    if (groups === undefined) {
+      return optimisticGroupOrders
+    }
+    return pruneStaleGroupOrderPatches(optimisticGroupOrders, groups)
+  }, [groups, optimisticGroupOrders])
 
   const displayGroupRows = useMemo(
     () =>
       groupRows.map((group) =>
-        applyOptimisticGroupProductOrder(group, optimisticGroupOrders[group._id]),
+        applyOptimisticGroupProductOrder(group, effectiveOptimisticGroupOrders[group._id]),
       ),
-    [groupRows, optimisticGroupOrders],
+    [groupRows, effectiveOptimisticGroupOrders],
   )
 
   const filteredGroups = useMemo(() => filterGroups(displayGroupRows, search), [displayGroupRows, search])
@@ -336,6 +336,7 @@ function GroupsPanel() {
         onUpdateGroup={updateGroup}
       />
       <GroupScanDialog
+        key={scanningGroupId ?? "scan-closed"}
         group={scanningGroup}
         onOpenChange={(open) => {
           if (!open) {

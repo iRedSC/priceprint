@@ -25,6 +25,7 @@ export function useBarcodeScanner({
 
     let cancelled = false
     let stream: MediaStream | null = null
+    let attachedVideo: HTMLVideoElement | null = null
 
     const startCamera = async () => {
       try {
@@ -39,6 +40,7 @@ export function useBarcodeScanner({
 
         const video = videoRef.current
         if (video) {
+          attachedVideo = video
           video.srcObject = stream
           video.setAttribute("playsinline", "true")
           await video.play()
@@ -54,8 +56,8 @@ export function useBarcodeScanner({
     return () => {
       cancelled = true
       stream?.getTracks().forEach((track) => track.stop())
-      if (videoRef.current) {
-        videoRef.current.srcObject = null
+      if (attachedVideo) {
+        attachedVideo.srcObject = null
       }
     }
   }, [open, videoRef])
