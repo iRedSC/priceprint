@@ -1,5 +1,7 @@
 import type { Doc } from "../../convex/_generated/dataModel";
 
+import { formatProductPriceAmount } from "@/lib/formatProductPriceAmount";
+
 type PrintableProduct = Doc<"products"> & {
   printData?: Doc<"printData"> | null;
 };
@@ -26,7 +28,7 @@ export function productToLabelLiveVariables(product: PrintableProduct): Record<s
   if (product.type !== undefined) out.TYPE = product.type;
   if (product.variant !== undefined) out.VARIANT = product.variant;
   if (product.vendor !== undefined) out.VENDOR = product.vendor;
-  out.PRICE = String(product.price);
+  out.PRICE = formatProductPriceAmount(product.price);
   out.IMG = product.img ?? "";
   out.META = metaText;
 

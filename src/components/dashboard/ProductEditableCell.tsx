@@ -12,6 +12,8 @@ type ProductEditableCellProps = {
   prefix?: string
   step?: number
   type?: "text" | "number"
+  /** When set, used to render the committed value (e.g. fixed decimal places for price). */
+  formatDisplay?: (value: string | number | undefined) => string
   onCommit: (product: ProductRow, field: ProductEditableField, value: string) => Promise<boolean> | boolean
 }
 
@@ -23,10 +25,11 @@ function ProductEditableCell({
   prefix,
   step = 1,
   type = "text",
+  formatDisplay,
   onCommit,
 }: ProductEditableCellProps) {
   const [draft, setDraft] = useState<string | null>(null)
-  const formattedValue = formatValue(value)
+  const formattedValue = formatDisplay ? formatDisplay(value) : formatValue(value)
   const displayValue = draft ?? formattedValue
   const reset = () => setDraft(null)
   const commit = async (valueToCommit = displayValue) => {

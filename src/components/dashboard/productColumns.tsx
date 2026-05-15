@@ -4,7 +4,7 @@ import ProductEditableCell from "./ProductEditableCell"
 import ProductImage from "./ProductImage"
 import ProductPrintedPriceNote from "./ProductPrintedPriceNote"
 import ProductPrintStatusChip from "./ProductPrintStatusChip"
-import { formatProductDate } from "./productFormat"
+import { formatProductDate, formatProductPriceAmount } from "./productFormat"
 import { getProductPrintStatus } from "./productPrintData"
 import type { ProductEditableField, ProductRow } from "./productTableData"
 
@@ -93,6 +93,9 @@ export function createProductColumns({ onFieldCommit }: ProductColumnOptions): C
             prefix="$"
             step={1}
             type="number"
+            formatDisplay={(v) =>
+              v === undefined ? "" : formatProductPriceAmount(typeof v === "number" ? v : Number(v))
+            }
             onCommit={onFieldCommit}
           />
           <ProductPrintedPriceNote product={row.original} />
