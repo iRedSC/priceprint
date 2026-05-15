@@ -20,7 +20,7 @@ function ActionContextMenuItems({ items }: { items: ActionMenuEntry[] }) {
       return <ContextMenuSeparator key={item.id} />
     }
     return (
-      <ContextMenuItem key={item.id} variant={item.variant} onSelect={item.onSelect}>
+      <ContextMenuItem key={item.id} variant={item.variant} onSelect={(e) => item.onSelect(e)}>
         <item.icon />
         {item.label}
       </ContextMenuItem>
@@ -37,7 +37,7 @@ function ActionDropdownMenuItems({ items }: { items: ActionMenuEntry[] }) {
       return <DropdownMenuSeparator key={item.id} />
     }
     return (
-      <DropdownMenuItem key={item.id} variant={item.variant} onSelect={item.onSelect}>
+      <DropdownMenuItem key={item.id} variant={item.variant} onSelect={(e) => item.onSelect(e)}>
         <item.icon />
         {item.label}
       </DropdownMenuItem>
@@ -63,8 +63,8 @@ function ActionTrayMenuItems({ items, onAction }: { items: ActionMenuEntry[]; on
               "flex min-h-11 w-full touch-manipulation items-center gap-3 rounded-lg px-3 text-left text-base outline-none transition-colors hover:bg-accent focus-visible:bg-accent focus-visible:text-accent-foreground",
               item.variant === "destructive" && "text-destructive hover:bg-destructive/10 focus-visible:bg-destructive/10",
             )}
-            onClick={() => {
-              item.onSelect()
+            onClick={(e) => {
+              item.onSelect(e)
               onAction?.()
             }}
           >

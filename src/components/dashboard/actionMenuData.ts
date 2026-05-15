@@ -15,14 +15,18 @@ type ActionMenuEntry =
       label: string
       icon: LucideIcon
       variant?: "default" | "destructive"
-      onSelect: () => void
+      onSelect: (event?: unknown) => void
     }
+
+function hasShiftModifier(event?: unknown) {
+  return typeof event === "object" && event !== null && "shiftKey" in event && (event as { shiftKey: boolean }).shiftKey
+}
 
 type ProductActionHandlers = {
   product: ProductRow
   onEdit: (product: ProductRow) => void
   onDelete: (product: ProductRow) => void
-  onPrint?: (product: ProductRow) => void
+  onPrint?: (product: ProductRow, opts?: { skipLabelCountModal?: boolean }) => void
   onMarkUpToDate?: (product: ProductRow) => void
 }
 
@@ -47,7 +51,15 @@ function getProductActionMenuItems({
     { type: "label", id: "name", label: product.name },
     { type: "separator", id: "primary-separator" },
     { type: "item", id: "edit", label: "Edit", icon: Pencil, onSelect: () => onEdit(product) },
-    onPrint ? { type: "item", id: "print", label: "Print", icon: Printer, onSelect: () => onPrint(product) } : null,
+    onPrint
+      ? {
+          type: "item",
+          id: "print",
+          label: "Print",
+          icon: Printer,
+          onSelect: (event) => onPrint(product, { skipLabelCountModal: hasShiftModifier(event) }),
+        }
+      : null,
     showMarkUpToDate
       ? {
           type: "item",

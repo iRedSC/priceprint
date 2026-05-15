@@ -17,6 +17,7 @@ import { ActionContextMenuItems, ActionTrayMenuItems } from "./actionMenuItems"
 import DashboardResponsiveList from "./DashboardResponsiveList"
 import EditProductDialog from "./EditProductDialog"
 import LabelLiveDebugDialog from "./LabelLiveDebugDialog"
+import ProductLabelCountDialog from "./ProductLabelCountDialog"
 import ProductMobileActions from "./ProductMobileActions"
 import ProductMobileList from "./ProductMobileList"
 import ProductTaskBar from "./ProductTaskBar"
@@ -49,6 +50,7 @@ function ProductsPanel() {
   const [mobileSort, setMobileSort] = useState<ProductSort>("updated")
   const [editingProduct, setEditingProduct] = useState<ProductRow | null>(null)
   const [labelLiveDebug, setLabelLiveDebug] = useState<LabelLiveDebugMessage | null>(null)
+  const [labelCountProduct, setLabelCountProduct] = useState<ProductRow | null>(null)
   const [optimisticPatches, setOptimisticPatches] = useState<OptimisticProductPatches>({})
   const [isRefreshingProducts, setIsRefreshingProducts] = useState(false)
   const [session] = useState(readStoredSession)
@@ -202,84 +204,97 @@ function ProductsPanel() {
     [markProductUpToDateMutation, session],
   )
 
-  const printProductToLabelLive = async (product: ProductRow) => {
-    if (!session) {
-      toast.error("Sign in again to print.")
-      return
-    }
+  const printProductToLabelLive = useCallback(
+    async (product: ProductRow, labelCount: number) => {
+      if (!session) {
+        toast.error("Sign in again to print.")
+        return
+      }
 
-    if (labelLiveSettings === undefined) {
-      toast.info("Loading printer settings. Try again in a moment.")
-      return
-    }
+      if (labelLiveSettings === undefined) {
+        toast.info("Loading printer settings. Try again in a moment.")
+        return
+      }
 
-    const trimmedDesign = labelLiveSettings?.designName?.trim()
-    const trimmedPrinterId = labelLiveSettings?.printerId?.trim()
+      const trimmedDesign = labelLiveSettings?.designName?.trim()
+      const trimmedPrinterId = labelLiveSettings?.printerId?.trim()
 
-    if (!trimmedDesign) {
-      toast.error("Add your Label LIVE design name in Settings first.")
-      return
-    }
+      if (!trimmedDesign) {
+        toast.error("Add your Label LIVE design name in Settings first.")
+        return
+      }
 
-    if (!trimmedPrinterId) {
-      toast.error("Add your Label LIVE printer ID in Settings first.")
-      return
-    }
+      if (!trimmedPrinterId) {
+        toast.error("Add your Label LIVE printer ID in Settings first.")
+        return
+      }
 
-    const jobs = [
-      {
+      const variables = productToLabelLiveVariables(product)
+      const jobs = Array.from({ length: labelCount }, () => ({
         design: trimmedDesign,
         printerId: trimmedPrinterId,
-        variables: productToLabelLiveVariables(product),
-      },
-    ]
+        variables,
+      }))
 
-    try {
-      const { openedLabelliveFallback } = await sendLabelLiveJobs(jobs)
-
-      let historyNote = ""
       try {
-        await recordProductPrintMutation({
-          sessionToken: session.sessionToken,
-          productId: product._id,
-        })
-      } catch (historyError) {
-        historyNote =
-          `Print history failed to save: ${
-            historyError instanceof Error ? historyError.message : "Unknown error"
-          }`
-      }
+        const { openedLabelliveFallback } = await sendLabelLiveJobs(jobs)
 
-      if (openedLabelliveFallback) {
-        const debugMessage = buildLabelLiveProtocolFallbackMessage(
-          jobs,
-          historyNote
-            ? `${historyNote}\n\n(${jobs.length} job(s) triggered.)`
-            : `(${jobs.length} job(s) triggered.)`,
-        )
+        let historyNote = ""
+        try {
+          await recordProductPrintMutation({
+            sessionToken: session.sessionToken,
+            productId: product._id,
+          })
+        } catch (historyError) {
+          historyNote =
+            `Print history failed to save: ${
+              historyError instanceof Error ? historyError.message : "Unknown error"
+            }`
+        }
+
+        if (openedLabelliveFallback) {
+          const debugMessage = buildLabelLiveProtocolFallbackMessage(
+            jobs,
+            historyNote
+              ? `${historyNote}\n\n(${jobs.length} job(s) triggered.)`
+              : `(${jobs.length} job(s) triggered.)`,
+          )
+          setLabelLiveDebug(debugMessage)
+          toast.warning(debugMessage.title, {
+            description: debugMessage.description,
+          })
+          return
+        }
+
+        if (historyNote) {
+          toast.warning(`Sent ${jobs.length} label job(s), but history did not save.`, {
+            description: historyNote,
+          })
+          return
+        }
+
+        toast.success(`Sent ${jobs.length} label job(s) to Label LIVE.`)
+      } catch (error) {
+        const debugMessage = buildLabelLiveSendFailedMessage(error, jobs)
         setLabelLiveDebug(debugMessage)
-        toast.warning(debugMessage.title, {
+        toast.error(debugMessage.title, {
           description: debugMessage.description,
         })
+      }
+    },
+    [labelLiveSettings, recordProductPrintMutation, session],
+  )
+
+  const startProductPrint = useCallback(
+    (product: ProductRow, opts?: { skipLabelCountModal?: boolean }) => {
+      if (opts?.skipLabelCountModal) {
+        void printProductToLabelLive(product, 1)
         return
       }
-
-      if (historyNote) {
-        toast.warning(`Sent ${jobs.length} label job(s), but history did not save.`, {
-          description: historyNote,
-        })
-        return
-      }
-
-      toast.success(`Sent ${jobs.length} label job(s) to Label LIVE.`)
-    } catch (error) {
-      const debugMessage = buildLabelLiveSendFailedMessage(error, jobs)
-      setLabelLiveDebug(debugMessage)
-      toast.error(debugMessage.title, {
-        description: debugMessage.description,
-      })
-    }
-  }
+      setLabelCountProduct(product)
+    },
+    [printProductToLabelLive],
+  )
 
   const filteredProducts = useMemo(
     () => filterProducts(productRows, search),
@@ -328,7 +343,7 @@ function ProductsPanel() {
                 product,
                 onEdit: setEditingProduct,
                 onDelete: deleteProduct,
-                onPrint: printProductToLabelLive,
+                onPrint: startProductPrint,
                 onMarkUpToDate: markProductUpToDate,
               })
               const mobileItems = getProductActionMenuItems({
@@ -362,6 +377,19 @@ function ProductsPanel() {
         onOpenChange={(open) => {
           if (!open) {
             setLabelLiveDebug(null)
+          }
+        }}
+      />
+      <ProductLabelCountDialog
+        product={labelCountProduct}
+        onOpenChange={(open) => {
+          if (!open) {
+            setLabelCountProduct(null)
+          }
+        }}
+        onConfirm={(count) => {
+          if (labelCountProduct) {
+            void printProductToLabelLive(labelCountProduct, count)
           }
         }}
       />
