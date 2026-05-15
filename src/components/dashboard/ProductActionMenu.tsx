@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { MoreHorizontal } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -6,8 +7,10 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { MobileTray } from "@/components/ui/mobile-tray"
+import { useMinWidthMd } from "@/hooks/useMinWidthMd"
 import { getProductActionMenuItems } from "./actionMenuData"
-import { ActionDropdownMenuItems } from "./actionMenuItems"
+import { ActionDropdownMenuItems, ActionTrayMenuItems } from "./actionMenuItems"
 import type { ProductRow } from "./productTableData"
 
 type ProductActionMenuProps = {
@@ -18,7 +21,33 @@ type ProductActionMenuProps = {
 }
 
 function ProductActionMenu({ product, onEdit, onDelete, onPrint }: ProductActionMenuProps) {
+  const isMd = useMinWidthMd()
+  const [trayOpen, setTrayOpen] = useState(false)
   const items = getProductActionMenuItems({ product, onEdit, onDelete, onPrint })
+
+  if (!isMd) {
+    return (
+      <>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="size-10 touch-manipulation"
+          aria-label={`Open actions for ${product.name}`}
+          onClick={() => setTrayOpen(true)}
+        >
+          <MoreHorizontal />
+        </Button>
+        <MobileTray
+          open={trayOpen}
+          onOpenChange={setTrayOpen}
+          title={`Actions for ${product.name}`}
+        >
+          <ActionTrayMenuItems items={items} onAction={() => setTrayOpen(false)} />
+        </MobileTray>
+      </>
+    )
+  }
 
   return (
     <DropdownMenu>

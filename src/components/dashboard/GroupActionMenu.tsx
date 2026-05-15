@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { MoreHorizontal } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -6,8 +7,10 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { MobileTray } from "@/components/ui/mobile-tray"
+import { useMinWidthMd } from "@/hooks/useMinWidthMd"
 import { getGroupActionMenuItems } from "./actionMenuData"
-import { ActionDropdownMenuItems } from "./actionMenuItems"
+import { ActionDropdownMenuItems, ActionTrayMenuItems } from "./actionMenuItems"
 import type { GroupPrintScope } from "./groupPrintSelection"
 import type { GroupRow } from "./groupTableData"
 
@@ -20,7 +23,33 @@ type GroupActionMenuProps = {
 }
 
 function GroupActionMenu({ group, onOpen, onEdit, onDelete, onPrintGroup }: GroupActionMenuProps) {
+  const isMd = useMinWidthMd()
+  const [trayOpen, setTrayOpen] = useState(false)
   const items = getGroupActionMenuItems({ group, onOpen, onEdit, onDelete, onPrintGroup })
+
+  if (!isMd) {
+    return (
+      <>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="size-10 touch-manipulation"
+          aria-label={`Open actions for ${group.name}`}
+          onClick={() => setTrayOpen(true)}
+        >
+          <MoreHorizontal />
+        </Button>
+        <MobileTray
+          open={trayOpen}
+          onOpenChange={setTrayOpen}
+          title={`Actions for ${group.name}`}
+        >
+          <ActionTrayMenuItems items={items} onAction={() => setTrayOpen(false)} />
+        </MobileTray>
+      </>
+    )
+  }
 
   return (
     <DropdownMenu>
