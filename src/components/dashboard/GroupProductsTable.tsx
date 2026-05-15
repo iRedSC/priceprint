@@ -15,6 +15,7 @@ import DashboardMobileList from "./DashboardMobileList"
 import GroupProductSortableMobileCard from "./GroupProductSortableMobileCard"
 import GroupProductSortableTableRow from "./GroupProductSortableTableRow"
 import type { GroupProduct } from "./groupTableData"
+import { restrictGroupProductSortToYAxis } from "./groupProductSortModifier"
 import { useGroupProductsSortSensors } from "./GroupProductsSortSensors"
 import { DashboardEmptyPanel } from "./MobileDashboardPrimitives"
 
@@ -58,6 +59,8 @@ function GroupProductsTable({
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
+      modifiers={[restrictGroupProductSortToYAxis]}
+      autoScroll={false}
       onDragEnd={(e) => {
         void handleDragEnd(e)
       }}
