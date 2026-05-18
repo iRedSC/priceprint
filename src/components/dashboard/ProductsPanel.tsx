@@ -26,7 +26,13 @@ import UndoPrintConfirmDialog from "./UndoPrintConfirmDialog"
 import { createProductColumns } from "./productColumns"
 import { filterProducts } from "./productSearch"
 import { sortProducts, type ProductSort } from "./productSort"
-import type { ProductEditableField, ProductInput, ProductRow } from "./productTableData"
+import type {
+  ProductEditableField,
+  ProductInput,
+  ProductRow,
+  ProductUploadDuplicateMode,
+  ProductUploadResult,
+} from "./productTableData"
 
 const EMPTY_PRODUCTS: ProductRow[] = []
 const PRODUCT_EDITABLE_FIELDS: ProductEditableField[] = [
@@ -91,21 +97,47 @@ function ProductsPanel() {
       return
     }
 
-    await createProduct({ sessionToken: session.sessionToken, product })
+    try {
+      await createProduct({ sessionToken: session.sessionToken, product })
+    } catch (error) {
+      toast.error("Could not add product.", {
+        description: error instanceof Error ? error.message : "Try again.",
+      })
+      throw error
+    }
   }
-  const uploadProducts = async (newProducts: ProductInput[]) => {
+  const uploadProducts = async (
+    newProducts: ProductInput[],
+    duplicateMode: ProductUploadDuplicateMode
+  ): Promise<ProductUploadResult | void> => {
     if (!session) {
       return
     }
 
-    await createProducts({ sessionToken: session.sessionToken, products: newProducts })
+    try {
+      const result = await createProducts({ sessionToken: session.sessionToken, products: newProducts, duplicateMode })
+      toast.success(formatUploadResultToast(result))
+      return result
+    } catch (error) {
+      toast.error("Could not import products.", {
+        description: error instanceof Error ? error.message : "Try again.",
+      })
+      throw error
+    }
   }
   const updateProduct = async (productId: ProductRow["_id"], product: ProductInput) => {
     if (!session) {
       return
     }
 
-    await updateProductMutation({ sessionToken: session.sessionToken, productId, product })
+    try {
+      await updateProductMutation({ sessionToken: session.sessionToken, productId, product })
+    } catch (error) {
+      toast.error("Could not update product.", {
+        description: error instanceof Error ? error.message : "Try again.",
+      })
+      throw error
+    }
   }
   const updateProductField = useCallback(async (
     product: ProductRow,
@@ -459,6 +491,16 @@ function ProductsPanel() {
       />
     </section>
   )
+}
+
+function formatUploadResultToast(result: ProductUploadResult) {
+  const parts = [
+    `${result.inserted} added`,
+    `${result.updated} overwritten`,
+    `${result.ignored} ignored`,
+  ]
+
+  return `Import complete: ${parts.join(", ")}.`
 }
 
 function getProductsMessage(

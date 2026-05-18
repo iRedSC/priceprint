@@ -14,6 +14,8 @@ const productFields = {
   meta: v.optional(v.any()),
 };
 
+const uploadDuplicateModes = v.union(v.literal("ignore"), v.literal("overwrite"));
+
 const hashValue = async (value: string) => {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
 
@@ -48,6 +50,101 @@ const normalizeOptionalCode = (value: string | undefined) => {
 
   return trimmed.length ? trimmed : undefined;
 };
+
+function normalizeProductCodes<T extends { sku?: string; upc?: string }>(
+  product: T,
+): Omit<T, "sku" | "upc"> & { sku?: string; upc?: string } {
+  return {
+    ...product,
+    sku: normalizeOptionalCode(product.sku),
+    upc: normalizeOptionalCode(product.upc),
+  };
+}
+
+function assertUniqueCodesInBatch(products: Array<{ sku?: string; upc?: string }>) {
+  const seenSkus = new Set<string>();
+  const seenUpcs = new Set<string>();
+
+  for (const product of products) {
+    if (product.upc) {
+      if (seenUpcs.has(product.upc)) {
+        throw new ConvexError(`UPC "${product.upc}" is duplicated in this import.`);
+      }
+      seenUpcs.add(product.upc);
+    }
+
+    if (product.sku) {
+      if (seenSkus.has(product.sku)) {
+        throw new ConvexError(`SKU "${product.sku}" is duplicated in this import.`);
+      }
+      seenSkus.add(product.sku);
+    }
+  }
+}
+
+async function findDuplicateProductByCode(
+  ctx: MutationCtx,
+  userId: Id<"users">,
+  field: "sku" | "upc",
+  value: string,
+  exceptProductId?: Id<"products">,
+): Promise<Doc<"products"> | null> {
+  const rows =
+    field === "upc"
+      ? await ctx.db
+          .query("products")
+          .withIndex("by_user_upc", (q) => q.eq("userId", userId).eq("upc", value))
+          .collect()
+      : await ctx.db
+          .query("products")
+          .withIndex("by_user_sku", (q) => q.eq("userId", userId).eq("sku", value))
+          .collect();
+
+  return rows.find((row) => row._id !== exceptProductId) ?? null;
+}
+
+async function assertUniqueProductCodes(
+  ctx: MutationCtx,
+  userId: Id<"users">,
+  product: { sku?: string; upc?: string },
+  exceptProductId?: Id<"products">,
+) {
+  if (product.upc) {
+    const duplicate = await findDuplicateProductByCode(ctx, userId, "upc", product.upc, exceptProductId);
+
+    if (duplicate) {
+      throw new ConvexError(`UPC "${product.upc}" is already used by another product.`);
+    }
+  }
+
+  if (product.sku) {
+    const duplicate = await findDuplicateProductByCode(ctx, userId, "sku", product.sku, exceptProductId);
+
+    if (duplicate) {
+      throw new ConvexError(`SKU "${product.sku}" is already used by another product.`);
+    }
+  }
+}
+
+async function findExistingProductByCode(
+  ctx: MutationCtx,
+  userId: Id<"users">,
+  normalized: { sku?: string; upc?: string },
+): Promise<Doc<"products"> | null> {
+  if (normalized.upc) {
+    const row = await findDuplicateProductByCode(ctx, userId, "upc", normalized.upc);
+
+    if (row) {
+      return row;
+    }
+  }
+
+  if (normalized.sku) {
+    return await findDuplicateProductByCode(ctx, userId, "sku", normalized.sku);
+  }
+
+  return null;
+}
 
 async function findExistingProductForScan(
   ctx: MutationCtx,
@@ -112,9 +209,12 @@ export const create = mutation({
   handler: async (ctx, args) => {
     const now = Date.now();
     const userId = await getSessionUserId(ctx, args.sessionToken);
+    const product = normalizeProductCodes(args.product);
+
+    await assertUniqueProductCodes(ctx, userId, product);
 
     return await ctx.db.insert("products", {
-      ...args.product,
+      ...product,
       userId,
       createdAt: now,
       updatedAt: now,
@@ -131,15 +231,13 @@ export const upsertFromScan = mutation({
   handler: async (ctx, args) => {
     const now = Date.now();
     const userId = await getSessionUserId(ctx, args.sessionToken);
-    const product = {
-      ...args.product,
-      sku: normalizeOptionalCode(args.product.sku),
-      upc: normalizeOptionalCode(args.product.upc),
-    };
+    const product = normalizeProductCodes(args.product);
 
     const existing = await findExistingProductForScan(ctx, userId, product);
 
     if (existing) {
+      await assertUniqueProductCodes(ctx, userId, product, existing._id);
+
       await ctx.db.patch(existing._id, {
         ...product,
         updatedAt: now,
@@ -147,6 +245,8 @@ export const upsertFromScan = mutation({
 
       return existing._id;
     }
+
+    await assertUniqueProductCodes(ctx, userId, product);
 
     return await ctx.db.insert("products", {
       ...product,
@@ -161,21 +261,45 @@ export const createMany = mutation({
   args: {
     sessionToken: v.string(),
     products: v.array(v.object(productFields)),
+    duplicateMode: uploadDuplicateModes,
   },
   handler: async (ctx, args) => {
     const now = Date.now();
     const userId = await getSessionUserId(ctx, args.sessionToken);
+    const products = args.products.map(normalizeProductCodes);
+    const result = { inserted: 0, updated: 0, ignored: 0 };
 
-    return await Promise.all(
-      args.products.map((product) =>
-        ctx.db.insert("products", {
+    assertUniqueCodesInBatch(products);
+
+    for (const product of products) {
+      const existing = await findExistingProductByCode(ctx, userId, product);
+
+      if (existing && args.duplicateMode === "ignore") {
+        result.ignored += 1;
+        continue;
+      }
+
+      if (existing) {
+        await assertUniqueProductCodes(ctx, userId, product, existing._id);
+        await ctx.db.patch(existing._id, {
           ...product,
-          userId,
-          createdAt: now,
           updatedAt: now,
-        }),
-      ),
-    );
+        });
+        result.updated += 1;
+        continue;
+      }
+
+      await assertUniqueProductCodes(ctx, userId, product);
+      await ctx.db.insert("products", {
+        ...product,
+        userId,
+        createdAt: now,
+        updatedAt: now,
+      });
+      result.inserted += 1;
+    }
+
+    return result;
   },
 });
 
@@ -193,8 +317,11 @@ export const update = mutation({
       throw new ConvexError("Product not found.");
     }
 
+    const nextProduct = normalizeProductCodes(args.product);
+    await assertUniqueProductCodes(ctx, userId, nextProduct, args.productId);
+
     await ctx.db.patch(args.productId, {
-      ...args.product,
+      ...nextProduct,
       updatedAt: Date.now(),
     });
   },

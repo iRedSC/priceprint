@@ -4,13 +4,16 @@ import ProductSortButton from "./ProductSortButton"
 import RefreshProductsButton from "./RefreshProductsButton"
 import UploadProductsDialog from "./UploadProductsDialog"
 import type { ProductSort } from "./productSort"
-import type { ProductInput } from "./productTableData"
+import type { ProductInput, ProductUploadDuplicateMode, ProductUploadResult } from "./productTableData"
 
 type ProductTaskBarProps = {
   search: string
   onSearchChange: (search: string) => void
   onAddProduct: (product: ProductInput) => Promise<void> | void
-  onUploadProducts: (products: ProductInput[]) => Promise<void> | void
+  onUploadProducts: (
+    products: ProductInput[],
+    duplicateMode: ProductUploadDuplicateMode
+  ) => Promise<ProductUploadResult | void> | ProductUploadResult | void
   isRefreshingProducts: boolean
   onRefreshProducts: () => Promise<void> | void
   sort: ProductSort

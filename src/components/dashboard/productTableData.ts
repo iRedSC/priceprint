@@ -12,6 +12,14 @@ export type ProductInput = {
   meta?: unknown
 }
 
+export type ProductUploadDuplicateMode = "ignore" | "overwrite"
+
+export type ProductUploadResult = {
+  inserted: number
+  updated: number
+  ignored: number
+}
+
 export type ProductPrintStatus = "up-to-date" | "not-printed" | "needs-reprinted"
 export type ProductRow = Doc<"products"> & {
   printData?: Doc<"printData"> | null

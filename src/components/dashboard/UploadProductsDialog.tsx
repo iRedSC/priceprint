@@ -11,11 +11,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
+import UploadDuplicateModeToggle from "./UploadDuplicateModeToggle"
 import { parseProductCsv, productCsvExample } from "./productCsv"
-import type { ProductInput } from "./productTableData"
+import type { ProductInput, ProductUploadDuplicateMode, ProductUploadResult } from "./productTableData"
 
 type UploadProductsDialogProps = {
-  onUploadProducts: (products: ProductInput[]) => Promise<void> | void
+  onUploadProducts: (
+    products: ProductInput[],
+    duplicateMode: ProductUploadDuplicateMode
+  ) => Promise<ProductUploadResult | void> | ProductUploadResult | void
 }
 
 const exampleHref = `data:text/csv;charset=utf-8,${encodeURIComponent(productCsvExample)}`
@@ -24,6 +28,7 @@ function UploadProductsDialog({ onUploadProducts }: UploadProductsDialogProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [open, setOpen] = useState(false)
   const [dragging, setDragging] = useState(false)
+  const [duplicateMode, setDuplicateMode] = useState<ProductUploadDuplicateMode>("ignore")
   const [message, setMessage] = useState("CSV columns: name, sku, upc, type, vendor, price, img, meta")
 
   const handleFile = async (file?: File) => {
@@ -39,11 +44,11 @@ function UploadProductsDialog({ onUploadProducts }: UploadProductsDialogProps) {
         return
       }
 
-      await onUploadProducts(products)
-      setMessage(`${products.length} products imported from ${file.name}`)
+      const result = await onUploadProducts(products, duplicateMode)
+      setMessage(formatUploadMessage(file.name, products.length, result))
       setOpen(false)
-    } catch {
-      setMessage("Could not read that CSV file.")
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not read that CSV file.")
     }
   }
 
@@ -59,6 +64,7 @@ function UploadProductsDialog({ onUploadProducts }: UploadProductsDialogProps) {
           <DialogTitle>Upload products</DialogTitle>
           <DialogDescription>{message}</DialogDescription>
         </DialogHeader>
+        <UploadDuplicateModeToggle value={duplicateMode} onChange={setDuplicateMode} />
         <button
           type="button"
           className={cn(
@@ -90,6 +96,24 @@ function UploadProductsDialog({ onUploadProducts }: UploadProductsDialogProps) {
       </DialogContent>
     </Dialog>
   )
+}
+
+function formatUploadMessage(
+  fileName: string,
+  productCount: number,
+  result: ProductUploadResult | void
+) {
+  if (!result) {
+    return `${productCount} products imported from ${fileName}`
+  }
+
+  const parts = [
+    `${result.inserted} added`,
+    `${result.updated} overwritten`,
+    `${result.ignored} ignored`,
+  ]
+
+  return `${parts.join(", ")} from ${fileName}`
 }
 
 export default UploadProductsDialog
