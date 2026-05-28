@@ -264,15 +264,16 @@
     }
 
     html.standalone-pwa .dashboard-tabs-dock-mobile {
-      padding-bottom: 0;
+      /* Fixed inset only — env(safe-area-inset-bottom) is inflated in iOS PWA. */
+      padding-bottom: 1rem;
     }
 
     html.standalone-pwa .dashboard-mobile-list-scroll-end {
-      padding-bottom: 4rem;
+      padding-bottom: 5rem;
     }
 
     html.standalone-pwa .safe-area-dashboard-fab {
-      bottom: 4.75rem;
+      bottom: 5.75rem;
     }
 
     html.standalone-pwa .dashboard-settings-scroll {
@@ -288,15 +289,15 @@
     }
 
     .dashboard-tabs-dock-mobile {
-      padding-bottom: 0;
+      padding-bottom: 1rem;
     }
 
     .dashboard-mobile-list-scroll-end {
-      padding-bottom: 4rem;
+      padding-bottom: 5rem;
     }
 
     .safe-area-dashboard-fab {
-      bottom: 4.75rem;
+      bottom: 5.75rem;
     }
 
     .dashboard-settings-scroll {
