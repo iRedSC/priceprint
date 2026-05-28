@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react"
-import { useAction, useMutation, useQuery } from "convex/react"
+import { useAction, useMutation } from "convex/react"
 import { toast } from "sonner"
 
 import { readStoredSession, type AuthResult } from "@/authSession"
@@ -33,8 +33,8 @@ import type {
   ProductUploadDuplicateMode,
   ProductUploadResult,
 } from "./productTableData"
+import type { LabelLiveSettings, UndoablePrintTargets } from "./useDashboardData"
 
-const EMPTY_PRODUCTS: ProductRow[] = []
 const PRODUCT_EDITABLE_FIELDS: ProductEditableField[] = [
   "sku",
   "upc",
@@ -53,7 +53,17 @@ type OptimisticProductFieldPatch = {
 type OptimisticProductPatch = Partial<Record<ProductEditableField, OptimisticProductFieldPatch>>
 type OptimisticProductPatches = Partial<Record<ProductRow["_id"], OptimisticProductPatch>>
 
-function ProductsPanel() {
+type ProductsPanelProps = {
+  products: ProductRow[]
+  labelLiveSettings: LabelLiveSettings
+  undoablePrintTargets: UndoablePrintTargets
+}
+
+function ProductsPanel({
+  products,
+  labelLiveSettings,
+  undoablePrintTargets,
+}: ProductsPanelProps) {
   const [search, setSearch] = useState("")
   const [mobileSort, setMobileSort] = useState<ProductSort>("updated")
   const [editingProduct, setEditingProduct] = useState<ProductRow | null>(null)
@@ -64,18 +74,6 @@ function ProductsPanel() {
   const [optimisticPatches, setOptimisticPatches] = useState<OptimisticProductPatches>({})
   const [isRefreshingProducts, setIsRefreshingProducts] = useState(false)
   const [session] = useState(readStoredSession)
-  const products = useQuery(
-    api.products.list,
-    session ? { sessionToken: session.sessionToken } : "skip"
-  )
-  const labelLiveSettings = useQuery(
-    api.userPrefs.getLabelLiveSettings,
-    session ? { sessionToken: session.sessionToken } : "skip"
-  )
-  const undoablePrintTargets = useQuery(
-    api.printJobs.undoablePrintTargets,
-    session ? { sessionToken: session.sessionToken } : "skip"
-  )
   const createProduct = useMutation(api.products.create)
   const createProducts = useMutation(api.products.createMany)
   const updateProductMutation = useMutation(api.products.update)
@@ -85,12 +83,12 @@ function ProductsPanel() {
   const markProductUpToDateMutation = useMutation(api.printJobs.markProductUpToDate)
   const refreshProductPrices = useAction(api.shopify.refreshProductPrices)
   const productRows = useMemo(
-    () => (products ?? EMPTY_PRODUCTS).map((product) => applyOptimisticPatches(product, optimisticPatches[product._id])),
+    () => products.map((product) => applyOptimisticPatches(product, optimisticPatches[product._id])),
     [optimisticPatches, products]
   )
   const undoableProductIds = useMemo(
-    () => new Set(undoablePrintTargets?.productIds ?? []),
-    [undoablePrintTargets?.productIds]
+    () => new Set(undoablePrintTargets.productIds),
+    [undoablePrintTargets.productIds]
   )
   const addProduct = async (product: ProductInput) => {
     if (!session) {
@@ -256,14 +254,9 @@ function ProductsPanel() {
         return
       }
 
-      if (labelLiveSettings === undefined) {
-        toast.info("Loading printer settings. Try again in a moment.")
-        return
-      }
-
-      const trimmedUpcDesign = labelLiveSettings?.upcDesignName?.trim()
-      const trimmedSkuDesign = labelLiveSettings?.skuDesignName?.trim()
-      const trimmedPrinterId = labelLiveSettings?.printerId?.trim()
+      const trimmedUpcDesign = labelLiveSettings.upcDesignName?.trim()
+      const trimmedSkuDesign = labelLiveSettings.skuDesignName?.trim()
+      const trimmedPrinterId = labelLiveSettings.printerId?.trim()
       const design = isValidUpc(product.upc) ? trimmedUpcDesign : trimmedSkuDesign
 
       if (!design) {
@@ -403,7 +396,7 @@ function ProductsPanel() {
         mobile={
           <ProductMobileList
             products={mobileProducts}
-            emptyMessage={getProductsMessage(session, products)}
+            emptyMessage={getProductsMessage(session)}
             onEdit={setEditingProduct}
             onDelete={deleteProduct}
             onMarkUpToDate={markProductUpToDate}
@@ -413,7 +406,7 @@ function ProductsPanel() {
           <VirtualDataTable
             columns={columns}
             data={filteredProducts}
-            emptyMessage={getProductsMessage(session, products)}
+            emptyMessage={getProductsMessage(session)}
             height="fill"
             rowHeight={56}
             renderRowMenu={(product) => ({
@@ -503,16 +496,9 @@ function formatUploadResultToast(result: ProductUploadResult) {
   return `Import complete: ${parts.join(", ")}.`
 }
 
-function getProductsMessage(
-  session: AuthResult | null,
-  products: ProductRow[] | undefined
-) {
+function getProductsMessage(session: AuthResult | null) {
   if (!session) {
     return "Sign in to load products."
-  }
-
-  if (products === undefined) {
-    return "Loading products..."
   }
 
   return "No products scanned yet."

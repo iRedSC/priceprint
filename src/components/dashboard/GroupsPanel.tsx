@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react"
-import { useAction, useMutation, useQuery } from "convex/react"
+import { useAction, useMutation } from "convex/react"
 import { toast } from "sonner"
 
 import { readStoredSession, type AuthResult } from "@/authSession"
@@ -36,11 +36,21 @@ import {
   type OptimisticGroupOrders,
 } from "./optimisticGroupProductOrder"
 import type { ProductInput, ProductRow } from "./productTableData"
+import type { LabelLiveSettings, UndoablePrintTargets } from "./useDashboardData"
 
-const EMPTY_GROUPS: GroupRow[] = []
-const EMPTY_PRODUCTS: ProductRow[] = []
+type GroupsPanelProps = {
+  groups: GroupRow[]
+  products: ProductRow[]
+  labelLiveSettings: LabelLiveSettings
+  undoablePrintTargets: UndoablePrintTargets
+}
 
-function GroupsPanel() {
+function GroupsPanel({
+  groups,
+  products,
+  labelLiveSettings,
+  undoablePrintTargets,
+}: GroupsPanelProps) {
   const [search, setSearch] = useState("")
   const [selectedGroupId, setSelectedGroupId] = useState<GroupRow["_id"] | null>(null)
   const [scanningGroupId, setScanningGroupId] = useState<GroupRow["_id"] | null>(null)
@@ -50,22 +60,6 @@ function GroupsPanel() {
   const [groupUndoBusy, setGroupUndoBusy] = useState(false)
   const [optimisticGroupOrders, setOptimisticGroupOrders] = useState<OptimisticGroupOrders>({})
   const [session] = useState(readStoredSession)
-  const groups = useQuery(
-    api.groups.list,
-    session ? { sessionToken: session.sessionToken } : "skip"
-  )
-  const products = useQuery(
-    api.products.list,
-    session ? { sessionToken: session.sessionToken } : "skip"
-  )
-  const labelLiveSettings = useQuery(
-    api.userPrefs.getLabelLiveSettings,
-    session ? { sessionToken: session.sessionToken } : "skip"
-  )
-  const undoablePrintTargets = useQuery(
-    api.printJobs.undoablePrintTargets,
-    session ? { sessionToken: session.sessionToken } : "skip"
-  )
   const createGroup = useMutation(api.groups.create)
   const upsertProductFromScan = useMutation(api.products.upsertFromScan)
   const updateGroupMutation = useMutation(api.groups.update)
@@ -76,16 +70,13 @@ function GroupsPanel() {
   const recordGroupPrintMutation = useMutation(api.printJobs.recordGroupPrint)
   const undoGroupPrintMutation = useMutation(api.printJobs.undoPrintForGroup)
   const lookupScannedProduct = useAction(api.shopify.lookupProductByScannedCode)
-  const groupRows = groups ?? EMPTY_GROUPS
-  const productRows = products ?? EMPTY_PRODUCTS
+  const groupRows = groups
+  const productRows = products
 
-
-  const effectiveOptimisticGroupOrders = useMemo(() => {
-    if (groups === undefined) {
-      return optimisticGroupOrders
-    }
-    return pruneStaleGroupOrderPatches(optimisticGroupOrders, groups)
-  }, [groups, optimisticGroupOrders])
+  const effectiveOptimisticGroupOrders = useMemo(
+    () => pruneStaleGroupOrderPatches(optimisticGroupOrders, groups),
+    [groups, optimisticGroupOrders],
+  )
 
   const displayGroupRows = useMemo(
     () =>
@@ -97,8 +88,8 @@ function GroupsPanel() {
 
   const filteredGroups = useMemo(() => filterGroups(displayGroupRows, search), [displayGroupRows, search])
   const undoableGroupIds = useMemo(
-    () => new Set(undoablePrintTargets?.groupIds ?? []),
-    [undoablePrintTargets?.groupIds]
+    () => new Set(undoablePrintTargets.groupIds),
+    [undoablePrintTargets.groupIds]
   )
   const selectedGroup = useMemo(
     () => displayGroupRows.find((group) => group._id === selectedGroupId) ?? null,
@@ -213,14 +204,9 @@ function GroupsPanel() {
       return
     }
 
-    if (labelLiveSettings === undefined) {
-      toast.info("Loading printer settings. Try again in a moment.")
-      return
-    }
-
-    const trimmedUpcDesign = labelLiveSettings?.upcDesignName?.trim()
-    const trimmedSkuDesign = labelLiveSettings?.skuDesignName?.trim()
-    const trimmedPrinterId = labelLiveSettings?.printerId?.trim()
+    const trimmedUpcDesign = labelLiveSettings.upcDesignName?.trim()
+    const trimmedSkuDesign = labelLiveSettings.skuDesignName?.trim()
+    const trimmedPrinterId = labelLiveSettings.printerId?.trim()
 
     if (!trimmedPrinterId) {
       toast.error("Add your Label LIVE printer ID in Settings first.")
@@ -341,7 +327,7 @@ function GroupsPanel() {
         mobile={
           <GroupMobileList
             groups={filteredGroups}
-            emptyMessage={getGroupsMessage(session, groups)}
+            emptyMessage={getGroupsMessage(session)}
             onOpen={openGroup}
             onEdit={setEditingGroup}
             onDelete={deleteGroup}
@@ -351,7 +337,7 @@ function GroupsPanel() {
           <VirtualDataTable
             columns={columns}
             data={filteredGroups}
-            emptyMessage={getGroupsMessage(session, groups)}
+            emptyMessage={getGroupsMessage(session)}
             height="fill"
             rowHeight={56}
             onRowClick={openGroup}
@@ -444,13 +430,9 @@ function GroupsPanel() {
   )
 }
 
-function getGroupsMessage(session: AuthResult | null, groups: GroupRow[] | undefined) {
+function getGroupsMessage(session: AuthResult | null) {
   if (!session) {
     return "Sign in to load groups."
-  }
-
-  if (groups === undefined) {
-    return "Loading groups..."
   }
 
   return "No groups yet."

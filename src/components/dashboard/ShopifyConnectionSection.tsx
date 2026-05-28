@@ -1,5 +1,5 @@
-import { useQuery } from "convex/react"
 import { useState } from "react"
+import type { FunctionReturnType } from "convex/server"
 
 import { readStoredSession } from "@/authSession"
 import { api } from "../../../convex/_generated/api"
@@ -16,13 +16,13 @@ import ShopifyAddStoreCard from "./ShopifyAddStoreCard"
 import ShopifyConnectStoreDialog from "./ShopifyConnectStoreDialog"
 import ShopifyStoreConnectionCard from "./ShopifyStoreConnectionCard"
 
-function ShopifyConnectionSection() {
+type ShopifyConnectionSectionProps = {
+  connections: FunctionReturnType<typeof api.shopify.myConnections>
+}
+
+function ShopifyConnectionSection({ connections }: ShopifyConnectionSectionProps) {
   const [session] = useState(readStoredSession)
   const [connectOpen, setConnectOpen] = useState(false)
-  const connections = useQuery(
-    api.shopify.myConnections,
-    session ? { sessionToken: session.sessionToken } : "skip"
-  )
 
   return (
     <>
@@ -38,8 +38,6 @@ function ShopifyConnectionSection() {
 
           {!session ? (
             <p className="text-sm text-muted-foreground">Sign in to manage store connections.</p>
-          ) : connections === undefined ? (
-            <p className="text-sm text-muted-foreground">Loading stores…</p>
           ) : (
             <TooltipProvider delayDuration={200}>
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">

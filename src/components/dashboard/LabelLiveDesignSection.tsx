@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { useState, type FormEvent } from "react";
 
 import { readStoredSession, type AuthResult } from "@/authSession";
@@ -17,17 +17,11 @@ import { Label } from "@/components/ui/label";
 import { api } from "../../../convex/_generated/api";
 
 import LabelLiveVariablesInfo from "./LabelLiveVariablesInfo";
-
-type LabelLiveServerSettings = {
-  designName?: string | null;
-  upcDesignName?: string | null;
-  skuDesignName?: string | null;
-  printerId?: string | null;
-} | undefined;
+import type { LabelLiveSettings } from "./useDashboardData";
 
 type LabelLiveDesignFormProps = {
   session: AuthResult | null;
-  serverSettings: LabelLiveServerSettings;
+  serverSettings: LabelLiveSettings;
   setSettings: (_args: {
     sessionToken: string;
     upcDesignName: string;
@@ -76,7 +70,7 @@ function LabelLiveDesignForm({
     }
   };
 
-  const disabled = Boolean(!session || serverSettings === undefined);
+  const disabled = !session;
 
   return (
     <form onSubmit={handleSubmit}>
@@ -146,20 +140,17 @@ function LabelLiveDesignForm({
   );
 }
 
-function LabelLiveDesignSection() {
+type LabelLiveDesignSectionProps = {
+  serverSettings: LabelLiveSettings;
+};
+
+function LabelLiveDesignSection({ serverSettings }: LabelLiveDesignSectionProps) {
   const [session] = useState(readStoredSession);
-  const serverSettings = useQuery(
-    api.userPrefs.getLabelLiveSettings,
-    session ? { sessionToken: session.sessionToken } : "skip",
-  );
   const setSettings = useMutation(api.userPrefs.setLabelLiveSettings);
 
-  const formKey =
-    serverSettings === undefined
-      ? "pending"
-      : `${serverSettings.upcDesignName ?? serverSettings.designName ?? ""}\0${
-          serverSettings.skuDesignName ?? serverSettings.designName ?? ""
-        }\0${serverSettings.printerId ?? ""}`;
+  const formKey = `${serverSettings.upcDesignName ?? serverSettings.designName ?? ""}\0${
+    serverSettings.skuDesignName ?? serverSettings.designName ?? ""
+  }\0${serverSettings.printerId ?? ""}`;
 
   return (
     <LabelLiveDesignForm
