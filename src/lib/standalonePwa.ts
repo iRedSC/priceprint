@@ -18,22 +18,11 @@ export function isStandalonePwa(): boolean {
   )
 }
 
-function syncAppHeight(): void {
-  const height = window.visualViewport?.height ?? window.innerHeight
-  document.documentElement.style.setProperty("--app-height", `${Math.round(height)}px`)
-}
-
-/** Apply `standalone-pwa` on `<html>` and sync visible viewport height for iOS PWA. */
+/** Apply `standalone-pwa` on `<html>` for CSS that trims browser-only bottom spacing. */
 export function initStandalonePwaClass(): void {
   if (typeof document === "undefined" || !isStandalonePwa()) {
     return
   }
 
-  const root = document.documentElement
-  root.classList.add("standalone-pwa")
-
-  syncAppHeight()
-  window.visualViewport?.addEventListener("resize", syncAppHeight)
-  window.visualViewport?.addEventListener("scroll", syncAppHeight)
-  window.addEventListener("resize", syncAppHeight)
+  document.documentElement.classList.add("standalone-pwa")
 }

@@ -244,30 +244,35 @@
       padding-bottom: 0;
     }
 
+    html.standalone-pwa {
+      /* viewport-fit=cover: prevents a white band below fixed UI on iOS PWA cold start */
+      min-height: calc(100% + env(safe-area-inset-top, 0px));
+    }
+
     .dashboard-tabs-dock-mobile {
       padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
     }
 
     /*
      * iOS home-screen PWA: safe-area-inset-bottom still reports Safari toolbar height.
-     * Pin the dock to the screen bottom and match list/FAB clearance to the dock only.
+     * Use 100vh (not visualViewport/dvh) and pin the dock flush to the screen bottom.
      */
     html.standalone-pwa .dashboard-page-viewport {
-      height: var(--app-height, 100dvh);
-      max-height: var(--app-height, 100dvh);
-      min-height: var(--app-height, 100dvh);
+      height: 100vh;
+      max-height: 100vh;
+      min-height: 100vh;
     }
 
     html.standalone-pwa .dashboard-tabs-dock-mobile {
-      padding-bottom: 1rem;
+      padding-bottom: 0;
     }
 
     html.standalone-pwa .dashboard-mobile-list-scroll-end {
-      padding-bottom: 5rem;
+      padding-bottom: 4rem;
     }
 
     html.standalone-pwa .safe-area-dashboard-fab {
-      bottom: 5.75rem;
+      bottom: 4.75rem;
     }
 
     html.standalone-pwa .dashboard-settings-scroll {
@@ -277,21 +282,21 @@
 
   @media (max-width: 47.999rem) and (display-mode: standalone) {
     .dashboard-page-viewport {
-      height: var(--app-height, 100dvh);
-      max-height: var(--app-height, 100dvh);
-      min-height: var(--app-height, 100dvh);
+      height: 100vh;
+      max-height: 100vh;
+      min-height: 100vh;
     }
 
     .dashboard-tabs-dock-mobile {
-      padding-bottom: 1rem;
+      padding-bottom: 0;
     }
 
     .dashboard-mobile-list-scroll-end {
-      padding-bottom: 5rem;
+      padding-bottom: 4rem;
     }
 
     .safe-area-dashboard-fab {
-      bottom: 5.75rem;
+      bottom: 4.75rem;
     }
 
     .dashboard-settings-scroll {
