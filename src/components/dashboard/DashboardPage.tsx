@@ -38,7 +38,7 @@ function DashboardPage({ onSignOut }: DashboardPageProps) {
   }
 
   return (
-    <main className="safe-area-dashboard-page flex h-[100dvh] max-h-[100dvh] min-h-dvh flex-col overflow-hidden bg-muted/30 text-foreground">
+    <main className="safe-area-dashboard-page dashboard-page-viewport flex flex-col overflow-hidden bg-muted/30 text-foreground">
       <div className="mx-auto flex min-h-0 w-full min-w-0 max-w-6xl flex-1 flex-col gap-5">
         <header className="shrink-0">
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -79,7 +79,7 @@ function DashboardPage({ onSignOut }: DashboardPageProps) {
           </TabsContent>
           <TabsContent
             value="settings"
-            className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain outline-none touch-manipulation max-md:pb-[calc(9rem+env(safe-area-inset-bottom,0px))] md:pb-0"
+            className="dashboard-settings-scroll flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain outline-none touch-manipulation max-md:pb-[calc(9rem+env(safe-area-inset-bottom,0px))] md:pb-0"
           >
             <SettingsPanel onSignOut={onSignOut} />
           </TabsContent>

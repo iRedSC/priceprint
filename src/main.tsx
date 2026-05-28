@@ -4,7 +4,10 @@ import { ConvexProvider, ConvexReactClient } from 'convex/react'
 import './index.css'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import App from './App.tsx'
+import { initStandalonePwaClass } from './lib/standalonePwa.ts'
 import { registerServiceWorker } from './registerServiceWorker.ts'
+
+initStandalonePwaClass()
 
 const convexUrl = import.meta.env.VITE_CONVEX_URL
 

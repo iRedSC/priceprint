@@ -223,6 +223,12 @@
     right: calc(1rem + env(safe-area-inset-right, 0px));
   }
 
+  .dashboard-page-viewport {
+    height: 100dvh;
+    max-height: 100dvh;
+    min-height: 100dvh;
+  }
+
   /* Scroll lists under the floating tab dock; clearance lives on list content, not the viewport. */
   .dashboard-mobile-list-scroll-end {
     padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
@@ -231,6 +237,67 @@
   @media (max-width: 47.999rem) {
     .safe-area-dashboard-page {
       padding-bottom: 0;
+    }
+
+    /*
+     * iOS home-screen PWA: no Safari bottom bar, but dvh/safe-area still reserve browser chrome.
+     * Use classic viewport height; keep home-indicator inset on the dock only.
+     */
+    html.standalone-pwa,
+    html.standalone-pwa body {
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+    }
+
+    html.standalone-pwa .dashboard-page-viewport {
+      height: 100vh;
+      height: -webkit-fill-available;
+      max-height: 100vh;
+      max-height: -webkit-fill-available;
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+    }
+
+    html.standalone-pwa .dashboard-mobile-list-scroll-end {
+      padding-bottom: 5rem;
+    }
+
+    html.standalone-pwa .safe-area-dashboard-fab {
+      bottom: 5.75rem;
+    }
+
+    html.standalone-pwa .dashboard-settings-scroll {
+      padding-bottom: 9rem;
+    }
+  }
+
+  @media (max-width: 47.999rem) and (display-mode: standalone) {
+    html,
+    body {
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+    }
+
+    html.standalone-pwa .dashboard-page-viewport,
+    .dashboard-page-viewport {
+      height: 100vh;
+      height: -webkit-fill-available;
+      max-height: 100vh;
+      max-height: -webkit-fill-available;
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+    }
+
+    .dashboard-mobile-list-scroll-end {
+      padding-bottom: 5rem;
+    }
+
+    .safe-area-dashboard-fab {
+      bottom: 5.75rem;
+    }
+
+    .dashboard-settings-scroll {
+      padding-bottom: 9rem;
     }
   }
 
