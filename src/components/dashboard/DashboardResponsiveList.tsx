@@ -22,14 +22,8 @@ function DashboardResponsiveList({
     return (
       <>
         <div className={cn("flex min-h-0 flex-1 flex-col md:hidden", mobileClassName)}>
-          <div
-            className={cn(
-              "min-h-0 flex-1 touch-manipulation overscroll-contain overflow-y-auto",
-              /* Clears fixed tab dock + mobile FAB; keep off main viewport so flex min-h-0 scroll works */
-              "max-md:pb-[calc(9rem+env(safe-area-inset-bottom,0px))]",
-            )}
-          >
-            {mobile}
+          <div className="min-h-0 flex-1 touch-manipulation overscroll-contain overflow-y-auto">
+            <div className="dashboard-mobile-list-scroll-end">{mobile}</div>
           </div>
         </div>
         <div className={cn("hidden min-h-0 flex-1 flex-col md:flex", desktopClassName)}>

@@ -223,6 +223,17 @@
     right: calc(1rem + env(safe-area-inset-right, 0px));
   }
 
+  /* Scroll lists under the floating tab dock; clearance lives on list content, not the viewport. */
+  .dashboard-mobile-list-scroll-end {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (max-width: 47.999rem) {
+    .safe-area-dashboard-page {
+      padding-bottom: 0;
+    }
+  }
+
   @media (min-width: 40rem) {
     .safe-area-auth-page {
       padding-right: calc(1.5rem + env(safe-area-inset-right, 0px));
