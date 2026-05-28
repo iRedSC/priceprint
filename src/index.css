@@ -229,6 +229,11 @@
     min-height: 100dvh;
   }
 
+  .dashboard-tabs-dock-mobile {
+    padding-left: calc(1rem + env(safe-area-inset-left, 0px));
+    padding-right: calc(1rem + env(safe-area-inset-right, 0px));
+  }
+
   /* Scroll lists under the floating tab dock; clearance lives on list content, not the viewport. */
   .dashboard-mobile-list-scroll-end {
     padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
@@ -239,23 +244,22 @@
       padding-bottom: 0;
     }
 
-    /*
-     * iOS home-screen PWA: no Safari bottom bar, but dvh/safe-area still reserve browser chrome.
-     * Use classic viewport height; keep home-indicator inset on the dock only.
-     */
-    html.standalone-pwa,
-    html.standalone-pwa body {
-      min-height: 100vh;
-      min-height: -webkit-fill-available;
+    .dashboard-tabs-dock-mobile {
+      padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
     }
 
+    /*
+     * iOS home-screen PWA: safe-area-inset-bottom still reports Safari toolbar height.
+     * Pin the dock to the screen bottom and match list/FAB clearance to the dock only.
+     */
     html.standalone-pwa .dashboard-page-viewport {
-      height: 100vh;
-      height: -webkit-fill-available;
-      max-height: 100vh;
-      max-height: -webkit-fill-available;
-      min-height: 100vh;
-      min-height: -webkit-fill-available;
+      height: var(--app-height, 100dvh);
+      max-height: var(--app-height, 100dvh);
+      min-height: var(--app-height, 100dvh);
+    }
+
+    html.standalone-pwa .dashboard-tabs-dock-mobile {
+      padding-bottom: 1rem;
     }
 
     html.standalone-pwa .dashboard-mobile-list-scroll-end {
@@ -272,20 +276,14 @@
   }
 
   @media (max-width: 47.999rem) and (display-mode: standalone) {
-    html,
-    body {
-      min-height: 100vh;
-      min-height: -webkit-fill-available;
+    .dashboard-page-viewport {
+      height: var(--app-height, 100dvh);
+      max-height: var(--app-height, 100dvh);
+      min-height: var(--app-height, 100dvh);
     }
 
-    html.standalone-pwa .dashboard-page-viewport,
-    .dashboard-page-viewport {
-      height: 100vh;
-      height: -webkit-fill-available;
-      max-height: 100vh;
-      max-height: -webkit-fill-available;
-      min-height: 100vh;
-      min-height: -webkit-fill-available;
+    .dashboard-tabs-dock-mobile {
+      padding-bottom: 1rem;
     }
 
     .dashboard-mobile-list-scroll-end {
